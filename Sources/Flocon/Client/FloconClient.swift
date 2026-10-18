@@ -73,6 +73,11 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         return plugins[FloconTablePlugin.name] as? FloconTablePlugin
     }
 
+    var deeplinksPlugin: FloconDeeplinksPlugin? {
+        pluginsLock.lock(); defer { pluginsLock.unlock() }
+        return plugins[FloconDeeplinksPlugin.name] as? FloconDeeplinksPlugin
+    }
+
     var filesPlugin: FloconFilesPlugin? {
         pluginsLock.lock(); defer { pluginsLock.unlock() }
         return plugins[FloconFilesPlugin.name] as? FloconFilesPlugin

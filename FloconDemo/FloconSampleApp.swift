@@ -28,6 +28,37 @@ struct FloconSampleApp: App {
 
         SampleFiles.seed()
 
+        // Listed in the Deeplinks section of Flocon Desktop. Try them on the simulator with:
+        // xcrun simctl openurl booted "flocondemo://user/Florent"
+        floconRegisterDeeplinks(
+            [
+                FloconDeeplink("[scheme]://home", label: "Home", parameters: [.variable("scheme", variableName: "scheme")]),
+                FloconDeeplink(
+                    "[scheme]://user/[userId]",
+                    label: "User",
+                    description: "Open the profile of a user",
+                    parameters: [
+                        .variable("scheme", variableName: "scheme"),
+                        .autoComplete("userId", ["Florent", "David", "Guillaume"]),
+                    ]
+                ),
+                FloconDeeplink(
+                    "[scheme]://post/[postId]?comment=[comment]",
+                    label: "Post",
+                    description: "Open a post and prefill a comment",
+                    parameters: [
+                        .variable("scheme", variableName: "scheme"),
+                        .autoComplete("postId", ["1", "2", "3"]),
+                        .variable("comment", variableName: "comment"),
+                    ]
+                ),
+            ],
+            variables: [
+                FloconDeeplinkVariable("scheme", description: "URL scheme of the app", suggestions: ["flocondemo"]),
+                FloconDeeplinkVariable("comment", description: "Text of the comment"),
+            ]
+        )
+
         // The keychain is opt-in, and should only be shown in debug builds:
         // its values are sent unencrypted to the Mac running Flocon.
         #if DEBUG

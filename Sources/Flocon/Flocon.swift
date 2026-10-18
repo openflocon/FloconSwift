@@ -63,7 +63,7 @@ public final class Flocon: @unchecked Sendable {
 
     /// Registers a custom plugin.
     ///
-    /// The built-in plugins (network, analytics, tables, preferences, files, device) are registered by
+    /// The built-in plugins (network, analytics, tables, preferences, files, deeplinks, device) are registered by
     /// ``initialize(config:)``. Registering a plugin with the same ``FloconPlugin/pluginName``
     /// replaces the previous one. Has no effect before ``initialize(config:)``.
     ///
@@ -105,6 +105,7 @@ public final class Flocon: @unchecked Sendable {
         newClient.register(plugin: FloconDevicePlugin(sender: newClient))
         newClient.register(plugin: FloconPreferencesPlugin(sender: newClient))
         newClient.register(plugin: FloconFilesPlugin(sender: newClient, fileSender: newClient))
+        newClient.register(plugin: FloconDeeplinksPlugin(sender: newClient))
         _client = newClient
         _isInitialized = true
         _connectTask = Task { [weak self] in

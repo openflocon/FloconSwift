@@ -7,9 +7,11 @@ struct ContentView: View {
     @State private var status = "Tap a button, then check Flocon on your Mac."
     @State private var isLoading = false
     @State private var tableRowCount = 0
+    @State private var path: [DeeplinkRoute] = []
+    @State private var unknownDeeplink: URL?
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             List {
                 Section("Result") {
                     HStack {
@@ -85,6 +87,30 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("Flocon sample")
+            .navigationDestination(for: DeeplinkRoute.self) { route in
+                route.screen
+            }
+            .onOpenURL { url in
+                status = "Deeplink opened: \(url.absoluteString)"
+                switch DeeplinkRoute.destination(for: url) {
+                case .home:
+                    path = []
+                case .route(let route):
+                    // replace the stack, so that the deeplink screen is shown right above home
+                    path = [route]
+                case nil:
+                    unknownDeeplink = url
+                }
+            }
+            .alert(
+                "Unknown deeplink",
+                isPresented: Binding(get: { unknownDeeplink != nil }, set: { if !$0 { unknownDeeplink = nil } }),
+                presenting: unknownDeeplink
+            ) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { url in
+                Text("The sample has no screen for \(url.absoluteString).")
+            }
         }
     }
 

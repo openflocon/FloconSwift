@@ -9,6 +9,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Tables**: any structured data you want to inspect while the app runs
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
 - **Files**: browse, download and delete the files of the app container
+- **Deeplinks**: the deeplinks of your app, with their parameters
 - **App icon**: your app appears with its icon in the desktop app
 
 ## Requirements
@@ -185,9 +186,37 @@ Nothing to set up: the Files section of the desktop app opens the root of the ap
 
 Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside the app container are refused, and the root folders themselves can never be deleted.
 
+## Deeplinks
+
+List the deeplinks of your app, writing the parts to fill in between brackets:
+
+```swift
+floconRegisterDeeplinks(
+    [
+        FloconDeeplink("myapp://home", label: "Home"),
+        FloconDeeplink(
+            "myapp://user/[userId]",
+            label: "User",
+            description: "Open the profile of a user",
+            parameters: [.autoComplete("userId", ["Florent", "David"])]
+        ),
+        FloconDeeplink("myapp://[env]/settings", parameters: [.variable("env", variableName: "env")]),
+    ],
+    variables: [FloconDeeplinkVariable("env", suggestions: ["staging", "production"])]
+)
+```
+
+A variable is shared by several deeplinks, and edited once in the desktop app.
+
+Opening a deeplink from the desktop app on the iOS Simulator needs a desktop version that includes [openflocon/Flocon#580](https://github.com/openflocon/Flocon/pull/580); older versions only open them with `adb`. You can always open one from the terminal:
+
+```bash
+xcrun simctl openurl booted "myapp://user/Florent"
+```
+
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, and writes sample files to browse.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, and registers deeplinks handled by its `flocondemo://` URL scheme.
 
 ## Documentation
 
