@@ -81,6 +81,23 @@ struct ContentView: View {
                     }
                 }
 
+                Section {
+                    Button("NSException (index out of range)", role: .destructive) {
+                        _ = NSArray().object(at: 1)
+                    }
+                    Button("Force unwrap of nil", role: .destructive) {
+                        let missing = UserDefaults.standard.string(forKey: "flocon.sample.missing.key")
+                        print(missing!.count)
+                    }
+                    Button("fatalError", role: .destructive) {
+                        fatalError("Crash test from the Flocon sample")
+                    }
+                } header: {
+                    Text("Crashes")
+                } footer: {
+                    Text("Each button crashes the app. Launch it again: the crash shows up in the Crashes section of Flocon. Crashes are not caught while the Xcode debugger is attached.")
+                }
+
                 Section("Errors") {
                     testButton("404 test") { try await client.notFound() }
                     testButton("Network error test") { try await client.networkError() }

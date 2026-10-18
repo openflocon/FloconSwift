@@ -10,6 +10,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
 - **Files**: browse, download and delete the files of the app container
 - **Deeplinks**: the deeplinks of your app, with their parameters
+- **Crashes**: the crashes of your app, reported on the next launch
 - **App icon**: your app appears with its icon in the desktop app
 
 ## Requirements
@@ -214,9 +215,22 @@ Opening a deeplink from the desktop app on the iOS Simulator needs a desktop ver
 xcrun simctl openurl booted "myapp://user/Florent"
 ```
 
+## Crashes
+
+Crashes are reported by default. A crash cannot be sent while the app crashes: it is saved, and sent the next time the app connects to the desktop.
+
+- Objective-C exceptions (`NSException`) are reported with their name, reason and call stack.
+- Swift runtime errors (force unwrap of `nil`, `fatalError`, index out of range…) and other crash signals (`SIGTRAP`, `SIGABRT`, `SIGSEGV`…) are reported with the signal and the call stack. The Swift error message is only printed in the console.
+
+The handlers already installed, by another crash reporter for example, are kept and still called. Crashes are not caught while the Xcode debugger is attached, as it catches them first: launch the app from the simulator or the device to try it. To install no handler at all:
+
+```swift
+Flocon.initialize(config: FloconConfig(isCrashReporterEnabled: false))
+```
+
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, and registers deeplinks handled by its `flocondemo://` URL scheme.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, registers deeplinks handled by its `flocondemo://` URL scheme, and has buttons to try each kind of crash.
 
 ## Documentation
 

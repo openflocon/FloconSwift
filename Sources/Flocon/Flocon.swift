@@ -15,6 +15,11 @@ public struct FloconConfig: Sendable {
     public var webSocketPort: Int
     /// Port of the desktop HTTP server, used to send the files downloaded from the desktop app.
     public var httpPort: Int
+    /// Whether the crashes of the app are reported to the desktop app, on the next launch.
+    ///
+    /// The crash handlers keep the handlers already installed, by another crash reporter for
+    /// example, and call them. Turn this off if you prefer the SDK not to install any handler.
+    public var isCrashReporterEnabled: Bool
 
     /// Version of the SDK, reported to the desktop app.
     public static let sdkVersion = "0.1.0"
@@ -25,10 +30,17 @@ public struct FloconConfig: Sendable {
     ///   - host: Host name or IP address of the Mac running Flocon. Defaults to `localhost`.
     ///   - webSocketPort: Port of the desktop WebSocket server. Defaults to `9023`.
     ///   - httpPort: Port of the desktop HTTP server. Defaults to `9024`.
-    public init(host: String = "localhost", webSocketPort: Int = 9023, httpPort: Int = 9024) {
+    ///   - isCrashReporterEnabled: Whether the crashes are reported to the desktop app. Defaults to `true`.
+    public init(
+        host: String = "localhost",
+        webSocketPort: Int = 9023,
+        httpPort: Int = 9024,
+        isCrashReporterEnabled: Bool = true
+    ) {
         self.host = host
         self.webSocketPort = webSocketPort
         self.httpPort = httpPort
+        self.isCrashReporterEnabled = isCrashReporterEnabled
     }
 }
 
@@ -63,7 +75,7 @@ public final class Flocon: @unchecked Sendable {
 
     /// Registers a custom plugin.
     ///
-    /// The built-in plugins (network, analytics, tables, preferences, files, deeplinks, device) are registered by
+    /// The built-in plugins (network, analytics, tables, preferences, files, deeplinks, crash reporter, device) are registered by
     /// ``initialize(config:)``. Registering a plugin with the same ``FloconPlugin/pluginName``
     /// replaces the previous one. Has no effect before ``initialize(config:)``.
     ///
@@ -106,6 +118,12 @@ public final class Flocon: @unchecked Sendable {
         newClient.register(plugin: FloconPreferencesPlugin(sender: newClient))
         newClient.register(plugin: FloconFilesPlugin(sender: newClient, fileSender: newClient))
         newClient.register(plugin: FloconDeeplinksPlugin(sender: newClient))
+        let crashReporter = FloconCrashReporterPlugin(sender: newClient)
+        newClient.register(plugin: crashReporter)
+        // before connecting: it also prepares the crash of the previous launch, sent on connection
+        if config.isCrashReporterEnabled {
+            crashReporter.installCrashHandlers()
+        }
         _client = newClient
         _isInitialized = true
         _connectTask = Task { [weak self] in
@@ -113,8 +131,6 @@ public final class Flocon: @unchecked Sendable {
         }
         lock.unlock()
 
-        // TODO: install the crash handler (NSSetUncaughtExceptionHandler + signal handlers)
-        // once the crash reporter plugin exists.
     }
 
     /// Called from the WebSocket's `onClosed` callback, on another thread, hence the lock.
