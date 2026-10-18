@@ -8,6 +8,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Analytics**: the events sent to your analytics providers, one table per provider
 - **Tables**: any structured data you want to inspect while the app runs
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
+- **Files**: browse, download and delete the files of the app container
 - **App icon**: your app appears with its icon in the desktop app
 
 ## Requirements
@@ -178,9 +179,15 @@ Generic and internet passwords appear as two stores, with one key per item (`ser
 
 With `isEditable: true`, only existing items with a text value can be edited; items are never added or deleted.
 
+## Files
+
+Nothing to set up: the Files section of the desktop app opens the root of the app container (with its `Documents`, `Library` and `tmp` folders), or its `Library/Caches` folder.
+
+Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside the app container are refused, and the root folders themselves can never be deleted.
+
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, and shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, and writes sample files to browse.
 
 ## Documentation
 

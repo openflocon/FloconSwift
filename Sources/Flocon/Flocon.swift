@@ -13,7 +13,7 @@ public struct FloconConfig: Sendable {
     public var host: String
     /// Port of the desktop WebSocket server.
     public var webSocketPort: Int
-    /// Port of the desktop HTTP server, reserved for file uploads (not used yet).
+    /// Port of the desktop HTTP server, used to send the files downloaded from the desktop app.
     public var httpPort: Int
 
     /// Version of the SDK, reported to the desktop app.
@@ -63,7 +63,7 @@ public final class Flocon: @unchecked Sendable {
 
     /// Registers a custom plugin.
     ///
-    /// The built-in plugins (network, analytics, tables, preferences, device) are registered by
+    /// The built-in plugins (network, analytics, tables, preferences, files, device) are registered by
     /// ``initialize(config:)``. Registering a plugin with the same ``FloconPlugin/pluginName``
     /// replaces the previous one. Has no effect before ``initialize(config:)``.
     ///
@@ -104,6 +104,7 @@ public final class Flocon: @unchecked Sendable {
         newClient.register(plugin: FloconTablePlugin(sender: newClient))
         newClient.register(plugin: FloconDevicePlugin(sender: newClient))
         newClient.register(plugin: FloconPreferencesPlugin(sender: newClient))
+        newClient.register(plugin: FloconFilesPlugin(sender: newClient, fileSender: newClient))
         _client = newClient
         _isInitialized = true
         _connectTask = Task { [weak self] in

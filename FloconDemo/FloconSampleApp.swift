@@ -26,6 +26,8 @@ struct FloconSampleApp: App {
         SamplePreferences.seed()
         floconRegisterUserDefaults(SamplePreferences.suite, suiteName: SamplePreferences.suiteName)
 
+        SampleFiles.seed()
+
         // The keychain is opt-in, and should only be shown in debug builds:
         // its values are sent unencrypted to the Mac running Flocon.
         #if DEBUG

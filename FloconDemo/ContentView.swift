@@ -61,6 +61,12 @@ struct ContentView: View {
                     }
                 }
 
+                Section("Files") {
+                    Button("Write sample files") {
+                        status = "\(SampleFiles.seed()) sample files written, browse them in Flocon"
+                    }
+                }
+
                 Section("Tables") {
                     Button("Log table row") {
                         tableRowCount += 1

@@ -2,7 +2,7 @@ import Foundation
 
 /// Owns the WebSocket connection and the plugins, sends messages to the desktop
 /// and routes the incoming ones to the right plugin.
-final class FloconClient: FloconMessageSender, @unchecked Sendable {
+final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Sendable {
     private let config: FloconConfig
     // Start time of this app launch, lets the desktop group messages by session.
     private let appInstance = Int64(Date().timeIntervalSince1970 * 1000)
@@ -73,6 +73,11 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
         return plugins[FloconTablePlugin.name] as? FloconTablePlugin
     }
 
+    var filesPlugin: FloconFilesPlugin? {
+        pluginsLock.lock(); defer { pluginsLock.unlock() }
+        return plugins[FloconFilesPlugin.name] as? FloconFilesPlugin
+    }
+
     var preferencesPlugin: FloconPreferencesPlugin? {
         pluginsLock.lock(); defer { pluginsLock.unlock() }
         return plugins[FloconPreferencesPlugin.name] as? FloconPreferencesPlugin
@@ -123,6 +128,19 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
 
     func send(plugin: String, method: String, body: String) {
         outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: body))
+    }
+
+    // MARK: Sending files (FloconFileSender)
+
+    func sendFile(at fileURL: URL, remotePath: String, requestId: String) async {
+        let appInfos = await FloconAppInfos.current()
+        let uploader = FloconFileUploader(host: config.host, port: config.httpPort)
+        await uploader.upload(
+            fileAt: fileURL,
+            remotePath: remotePath,
+            requestId: requestId,
+            identity: .init(deviceId: appInfos.deviceId, appPackageName: appInfos.appPackageName, appInstance: appInstance)
+        )
     }
 
     private static func encode(_ message: OutgoingMessage, appInfos: FloconAppInfos, appInstance: Int64) -> String? {
