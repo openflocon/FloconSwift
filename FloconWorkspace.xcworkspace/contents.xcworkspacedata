@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <Group
+      location = "group:FloconDemo"
+      name = "FloconDemo">
+      <FileRef
+         location = "group:FloconDemo.xcodeproj">
+      </FileRef>
+   </Group>
+   <FileRef
+      location = "group:FloconSwift">
+   </FileRef>
+</Workspace>

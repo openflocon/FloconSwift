@@ -1,0 +1,85 @@
+import Foundation
+
+// MARK: - Requête (JSON plat, identique à FloconNetworkCallRequestRemote côté Kotlin)
+// Les optionnels sont encodés en `null` explicite (et non omis).
+
+struct FloconNetworkCallRequestRemote: Encodable {
+    let floconCallId: String?
+    let floconNetworkType: String?
+
+    let url: String?
+    let method: String?
+    let startTime: Int64?
+    // request
+    let requestHeaders: [String: String]?
+    let requestBody: String?
+    let requestSize: Int64?
+    let isMocked: Bool?
+
+    enum CodingKeys: String, CodingKey {
+        case floconCallId, floconNetworkType, url, method, startTime
+        case requestHeaders, requestBody, requestSize, isMocked
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(floconCallId, forKey: .floconCallId)
+        try c.encode(floconNetworkType, forKey: .floconNetworkType)
+        try c.encode(url, forKey: .url)
+        try c.encode(method, forKey: .method)
+        try c.encode(startTime, forKey: .startTime)
+        try c.encode(requestHeaders, forKey: .requestHeaders)
+        try c.encode(requestBody, forKey: .requestBody)
+        try c.encode(requestSize, forKey: .requestSize)
+        try c.encode(isMocked, forKey: .isMocked)
+    }
+}
+
+// MARK: - Réponse
+
+/// Contenu de la réponse (pas encodé tel quel : voir FloconNetworkCallResponseRemote).
+struct FloconNetworkResponse {
+    let httpCode: Int?
+    let contentType: String?
+    let body: String?
+    let headers: [String: String]
+    let size: Int64?
+    let grpcStatus: String?
+    let error: String?
+    let requestHeaders: [String: String]?
+    let isImage: Bool
+}
+
+/// JSON plat, identique à FloconNetworkCallResponseRemote côté Kotlin
+/// (mapper/FloconNetworkRequestToJson.kt).
+struct FloconNetworkCallResponseRemote: Encodable {
+    let floconCallId: String
+    let durationMs: Double
+    let floconNetworkType: String
+    let isMocked: Bool
+    let response: FloconNetworkResponse
+
+    enum CodingKeys: String, CodingKey {
+        case floconCallId, floconNetworkType, isMocked, durationMs, isImage
+        case requestHeaders
+        case responseHttpCode, responseContentType, responseBody
+        case responseHeaders, responseSize, responseGrpcStatus, responseError
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(floconCallId, forKey: .floconCallId)
+        try c.encode(floconNetworkType, forKey: .floconNetworkType)
+        try c.encode(isMocked, forKey: .isMocked)
+        try c.encode(durationMs, forKey: .durationMs)
+        try c.encode(response.isImage, forKey: .isImage)
+        try c.encode(response.requestHeaders, forKey: .requestHeaders)
+        try c.encode(response.httpCode, forKey: .responseHttpCode)
+        try c.encode(response.contentType, forKey: .responseContentType)
+        try c.encode(response.body, forKey: .responseBody)
+        try c.encode(response.headers, forKey: .responseHeaders)
+        try c.encode(response.size, forKey: .responseSize)
+        try c.encode(response.grpcStatus, forKey: .responseGrpcStatus)
+        try c.encode(response.error, forKey: .responseError)
+    }
+}
