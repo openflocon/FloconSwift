@@ -7,6 +7,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Network**: every HTTP call made through `URLSession` (headers, bodies, timing, redirects, images), and the WebSocket events you log
 - **Analytics**: the events sent to your analytics providers, one table per provider
 - **Tables**: any structured data you want to inspect while the app runs
+- **Preferences**: the content of your `UserDefaults` stores, editable from the desktop
 - **App icon**: your app appears with its icon in the desktop app
 
 ## Requirements
@@ -151,9 +152,20 @@ floconTable("users").log(
 )
 ```
 
+## Preferences
+
+`UserDefaults.standard` is shown automatically. Register your other stores, such as the ones shared with an App Group:
+
+```swift
+let shared = UserDefaults(suiteName: "group.com.example.app")!
+floconRegisterUserDefaults(shared, suiteName: "group.com.example.app")
+```
+
+Values of type `String`, `Bool`, number, `Date` and `[String]` can be edited from the desktop; an edit is applied only when its type matches the stored value. `Data`, dictionaries and mixed arrays are shown read-only.
+
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, and logs analytics events and table rows.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, and shows `UserDefaults` values that update live when you edit them in the desktop app.
 
 ## Documentation
 

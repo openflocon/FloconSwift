@@ -73,6 +73,11 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
         return plugins[FloconTablePlugin.name] as? FloconTablePlugin
     }
 
+    var preferencesPlugin: FloconPreferencesPlugin? {
+        pluginsLock.lock(); defer { pluginsLock.unlock() }
+        return plugins[FloconPreferencesPlugin.name] as? FloconPreferencesPlugin
+    }
+
     // MARK: Connection
 
     /// Connects to the desktop app.

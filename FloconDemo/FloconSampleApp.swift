@@ -21,6 +21,10 @@ struct FloconSampleApp: App {
         // Kingfisher downloads through its own URLSession: give it an intercepted
         // configuration, same as with Alamofire.
         KingfisherManager.shared.downloader.sessionConfiguration = URLSessionConfiguration.default.withFlocon()
+
+        // UserDefaults.standard is shown automatically; other suites are registered.
+        SamplePreferences.seed()
+        floconRegisterUserDefaults(SamplePreferences.suite, suiteName: SamplePreferences.suiteName)
     }
 
     var body: some Scene {

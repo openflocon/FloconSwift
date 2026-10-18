@@ -55,6 +55,12 @@ struct ContentView: View {
                     }
                 }
 
+                Section("Preferences (UserDefaults)") {
+                    NavigationLink("Preferences") {
+                        PreferencesView()
+                    }
+                }
+
                 Section("Tables") {
                     Button("Log table row") {
                         tableRowCount += 1
