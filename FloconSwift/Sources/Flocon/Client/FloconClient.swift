@@ -1,22 +1,22 @@
 import Foundation
 
-/// Équivalent de FloconClientImpl : possède le websocket, les plugins,
-/// et sait envoyer / dispatcher les messages.
+/// Owns the WebSocket connection and the plugins, sends messages to the desktop
+/// and routes the incoming ones to the right plugin.
 final class FloconClient: FloconMessageSender, @unchecked Sendable {
     private let config: FloconConfig
-    // Timestamp de démarrage du SDK pour ce lancement (appInstance côté Android).
+    // Start time of this app launch, lets the desktop group messages by session.
     private let appInstance = Int64(Date().timeIntervalSince1970 * 1000)
 
     private let webSocketClient: FloconWebSocketClient = buildFloconWebSocketClient()
 
-    /// Message pas encore emballé : l'enveloppe a besoin des FloconAppInfos, lues sur le main actor.
+    /// A message waiting for its envelope, which needs the app infos read on the main actor.
     private struct OutgoingMessage: Sendable {
         let plugin: String
         let method: String
         let body: String
     }
 
-    // File d'envoi sérielle : garde l'ordre des messages (un Task par message ne le garantirait pas).
+    // Serial outbox: keeps messages in order (one Task per message would not).
     private let outbox: AsyncStream<OutgoingMessage>.Continuation
     private var outboxTask: Task<Void, Never>?
 
@@ -31,8 +31,8 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
         let ws = webSocketClient
         let appInstance = appInstance
         outboxTask = Task {
-            // Lu une seule fois, sans bloquer le thread qui a appelé Flocon.initialize() :
-            // les messages envoyés d'ici là attendent dans le stream, dans l'ordre.
+            // Read once, without blocking the thread that called Flocon.initialize():
+            // messages sent in the meantime wait in the stream, in order.
             let appInfos = await FloconAppInfos.current()
             for await message in stream {
                 guard let json = Self.encode(message, appInfos: appInfos, appInstance: appInstance) else { continue }
@@ -73,9 +73,12 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
         return plugins[FloconTablePlugin.name] as? FloconTablePlugin
     }
 
-    // MARK: Connexion
+    // MARK: Connection
 
-    /// Équivalent de connect(onClosed:). Lance une erreur si la connexion échoue.
+    /// Connects to the desktop app.
+    ///
+    /// - Parameter onClosed: Called when an established connection is lost.
+    /// - Throws: An error if the connection cannot be opened.
     func connect(onClosed: @escaping @Sendable () -> Void) async throws {
         try await webSocketClient.connect(
             address: config.host,
@@ -95,14 +98,14 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
         Task { await ws.sendPendingMessages() }
     }
 
-    // MARK: Réception
+    // MARK: Receiving
 
     private func onMessageReceived(_ text: String) {
         guard
             let data = text.data(using: .utf8),
             let message = try? JSONDecoder().decode(FloconMessageFromServer.self, from: data)
         else {
-            FloconLogger.log("Message serveur illisible : \(text)")
+            FloconLogger.log("Unreadable message from the desktop: \(text)")
             return
         }
         pluginsLock.lock()
@@ -111,7 +114,7 @@ final class FloconClient: FloconMessageSender, @unchecked Sendable {
         plugin?.onMessageReceived(message)
     }
 
-    // MARK: Envoi (FloconMessageSender)
+    // MARK: Sending (FloconMessageSender)
 
     func send(plugin: String, method: String, body: String) {
         outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: body))

@@ -1,7 +1,7 @@
 import Foundation
 
-/// Delegate URLSession : sert à savoir quand la connexion est réellement ouverte
-/// (URLSessionWebSocketTask.resume() ne dit rien tout seul, contrairement à onOpen d'OkHttp).
+/// Tells when the WebSocket is actually open, or why it could not open:
+/// `URLSessionWebSocketTask.resume()` does not report it by itself.
 final class ConnectionDelegate: NSObject, URLSessionWebSocketDelegate, @unchecked Sendable {
     private let lock = NSLock()
     private var openContinuation: CheckedContinuation<Void, Error>?
@@ -23,7 +23,7 @@ final class ConnectionDelegate: NSObject, URLSessionWebSocketDelegate, @unchecke
         lock.unlock()
 
         if let pending {
-            // Jamais ouverte -> échec de connexion (équivalent onFailure avant onOpen)
+            // never opened: the connection failed
             pending.resume(throwing: error ?? URLError(.cannotConnectToHost))
         } else {
             closed?()

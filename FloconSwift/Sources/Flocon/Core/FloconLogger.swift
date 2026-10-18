@@ -1,5 +1,6 @@
 import Foundation
 
+/// Console logger of the SDK. Every line is prefixed with `[Flocon]`.
 enum FloconLogger {
     private static let lock = NSLock()
     private nonisolated(unsafe) static var _isEnabled = true

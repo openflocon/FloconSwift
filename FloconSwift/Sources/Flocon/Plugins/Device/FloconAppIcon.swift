@@ -5,15 +5,18 @@ import UIKit
 import AppKit
 #endif
 
-/// Équivalent de getAppIconBase64 : icône redimensionnée à 300 px max, PNG, base64 sans retour à la ligne.
+/// Reads the app icon and encodes it for the desktop app.
 enum FloconAppIcon {
     private static let maxSize: CGFloat = 300
 
+    /// Returns the app icon as a base64 PNG, at most 300 pixels wide.
+    ///
+    /// - Returns: The encoded icon, or `nil` if the app has no icon.
     @MainActor
     static func base64PNG() -> String? {
         #if canImport(UIKit)
         guard let image = appIcon() else { return nil }
-        // en pixels : AppIcon60x60 fait 60 pt mais 120 px en @2x
+        // in pixels: AppIcon60x60 is 60 points, but 120 pixels at @2x
         let pixelWidth = image.size.width * image.scale
         let pixelHeight = image.size.height * image.scale
         let scale = min(maxSize / pixelWidth, maxSize / pixelHeight, 1)
@@ -43,8 +46,10 @@ enum FloconAppIcon {
     }
 
     #if canImport(UIKit)
-    /// L'icône n'est pas accessible directement sur iOS : on la retrouve via l'Info.plist
-    /// (CFBundleIcons, généré par l'asset catalog). On garde la plus grande trouvée.
+    /// Finds the largest app icon listed in the Info.plist.
+    ///
+    /// iOS has no API that returns the app icon: its file names are listed under
+    /// `CFBundleIcons`, which the asset catalog compiler generates.
     @MainActor
     private static func appIcon() -> UIImage? {
         let info = Bundle.main.infoDictionary

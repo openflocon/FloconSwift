@@ -1,6 +1,7 @@
 import Foundation
 
-// Équivalent de FloconMessageToServer côté Android.
+/// Envelope of every message sent to the desktop app: the payload of a plugin,
+/// plus the identity of the app and device that sent it.
 struct FloconMessageToServer: Encodable {
     let deviceId: String
     let plugin: String

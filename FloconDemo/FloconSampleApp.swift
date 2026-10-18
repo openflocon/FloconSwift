@@ -5,8 +5,7 @@ import Kingfisher
 @main
 struct FloconSampleApp: App {
     init() {
-        // Same as the `isImage` of FloconOkhttpInterceptor in MainActivity.kt:
-        // picsum URLs are treated as images (body not sent).
+        // picsum URLs are treated as images: their body is not sent to Flocon.
         Flocon.setNetworkOptions(
             FloconNetworkOptions(
                 shouldLog: { _ in true },

@@ -1,10 +1,10 @@
 import Foundation
 
-// MARK: - URLProtocol
-
-/// Équivalent de FloconOkhttpInterceptor.
-/// URLSession n'a pas de chaîne d'interceptors : on utilise un URLProtocol qui rejoue la requête
-/// dans une session interne, observe la réponse, puis la renvoie au client d'origine.
+/// Intercepts the HTTP calls of a session and sends them to the desktop app.
+///
+/// URLSession has no interceptor chain: this URLProtocol performs the request again in
+/// ``FloconInnerSessionRouter``'s session, records the response, and forwards it to the
+/// original client.
 final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     private static let handledKey = "FloconURLProtocolHandled"
 
@@ -24,12 +24,12 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     // MARK: URLProtocol
 
     override class func canInit(with request: URLRequest) -> Bool {
-        // pas de boucle : les requêtes rejouées par la session interne sont marquées
+        // no loop: the requests performed by the inner session are marked
         guard URLProtocol.property(forKey: handledKey, in: request) == nil else { return false }
         guard let scheme = request.url?.scheme?.lowercased(), scheme == "http" || scheme == "https" else {
             return false
         }
-        // no-op si Flocon n'est pas initialisé (comme `floconNetworkPlugin == null` côté Kotlin)
+        // nothing to do before Flocon.initialize()
         guard Flocon.shared.client?.networkPlugin != nil else { return false }
         return FloconNetworkOptions.current.shouldLog(request)
     }
@@ -47,8 +47,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         let startedAtMs = Int64(Date().timeIntervalSince1970 * 1000)
         startNanos = DispatchTime.now().uptimeNanoseconds
 
-        // Le body d'un upload arrive souvent en stream : on le lit une fois pour pouvoir
-        // à la fois le logger et le rejouer.
+        // The body of an upload is often a stream: read it once, to both log it and send it.
         let bodyData = Self.readBody(of: request)
         var forwarded = request
         if let bodyData {
@@ -80,11 +79,11 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
 
     override func stopLoading() {
         stopped = true
-        // didComplete sera appelé avec l'erreur d'annulation (et loggé)
+        // didComplete is then called with the cancellation error, which is logged
         innerTask?.cancel()
     }
 
-    // MARK: Callbacks de la session interne (via FloconInnerSessionRouter)
+    // MARK: Inner session callbacks (through FloconInnerSessionRouter)
 
     func didReceive(
         response: URLResponse,
@@ -106,8 +105,8 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         newRequest request: URLRequest,
         completionHandler: @escaping (URLRequest?) -> Void
     ) {
-        // On logge la réponse 3xx, puis on laisse le client d'origine suivre la redirection :
-        // elle repassera par ce protocol et sera loggée comme un appel à part.
+        // Log the 3xx response, then let the original client follow the redirect:
+        // the new request goes through this protocol again and is logged as a separate call.
         self.response = response
         reportResponse(task: task, error: nil)
         redirected = true
@@ -167,7 +166,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
             payload = FloconNetworkResponse(
                 httpCode: response?.statusCode,
                 contentType: contentType,
-                // on n'envoie pas les octets des images
+                // image bytes are not sent
                 body: isImage ? nil : String(data: receivedData, encoding: .utf8),
                 headers: headers,
                 size: Int64(receivedData.count),

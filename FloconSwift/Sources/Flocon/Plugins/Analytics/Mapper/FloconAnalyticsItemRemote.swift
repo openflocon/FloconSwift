@@ -1,11 +1,6 @@
 import Foundation
 
-// MARK: - Modèle JSON
-// ⚠️ DEVINÉ : le Kotlin passe par analyticsItemsToJson(item), que je n'ai pas pu lire
-// (ni AnalyticsItem). La doc confirme seulement : nom d'événement, propriétés clé/valeur,
-// horodatage et flux. Les noms de clés ci-dessous sont à comparer avec le mapper ;
-// tout est regroupé ici.
-
+/// JSON format of an analytics item sent to the desktop app.
 struct FloconAnalyticsItemRemote: Encodable {
     let id: String
     let analyticsTableId: String

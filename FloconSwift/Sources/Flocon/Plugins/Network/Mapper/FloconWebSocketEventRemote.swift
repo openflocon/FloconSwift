@@ -1,7 +1,8 @@
 import Foundation
 
-/// Identique à FloconWebSocketEventRemote (mapper/FloconNetworkRequestToJson.kt).
-/// Les optionnels sont encodés en `null` explicite, comme kotlinx.serialization.
+/// JSON format of a WebSocket event sent to the desktop app.
+///
+/// Optional values are encoded as an explicit `null`, not omitted.
 struct FloconWebSocketEventRemote: Encodable {
     let id: String
     let event: String

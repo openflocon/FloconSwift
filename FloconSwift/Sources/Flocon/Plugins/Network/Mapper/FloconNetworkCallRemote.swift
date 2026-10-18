@@ -1,8 +1,8 @@
 import Foundation
 
-// MARK: - Requête (JSON plat, identique à FloconNetworkCallRequestRemote côté Kotlin)
-// Les optionnels sont encodés en `null` explicite (et non omis).
-
+/// JSON format of a request sent to the desktop app.
+///
+/// Optional values are encoded as an explicit `null`, not omitted.
 struct FloconNetworkCallRequestRemote: Encodable {
     let floconCallId: String?
     let floconNetworkType: String?
@@ -10,7 +10,6 @@ struct FloconNetworkCallRequestRemote: Encodable {
     let url: String?
     let method: String?
     let startTime: Int64?
-    // request
     let requestHeaders: [String: String]?
     let requestBody: String?
     let requestSize: Int64?
@@ -35,9 +34,7 @@ struct FloconNetworkCallRequestRemote: Encodable {
     }
 }
 
-// MARK: - Réponse
-
-/// Contenu de la réponse (pas encodé tel quel : voir FloconNetworkCallResponseRemote).
+/// Content of a response, encoded through ``FloconNetworkCallResponseRemote``.
 struct FloconNetworkResponse {
     let httpCode: Int?
     let contentType: String?
@@ -50,8 +47,8 @@ struct FloconNetworkResponse {
     let isImage: Bool
 }
 
-/// JSON plat, identique à FloconNetworkCallResponseRemote côté Kotlin
-/// (mapper/FloconNetworkRequestToJson.kt).
+/// JSON format of a response sent to the desktop app: a flat object, matched with its
+/// request by `floconCallId`.
 struct FloconNetworkCallResponseRemote: Encodable {
     let floconCallId: String
     let durationMs: Double

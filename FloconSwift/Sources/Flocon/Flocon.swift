@@ -1,15 +1,30 @@
 import Foundation
 
-/// Équivalent de getServerHost(context) + des constantes de port de FloconClientImpl.
+/// Where the SDK finds the Flocon desktop app.
+///
+/// The defaults work from the iOS Simulator, which shares the network of the Mac.
+/// On a physical device, use the local IP address of the Mac running Flocon:
+///
+/// ```swift
+/// Flocon.initialize(config: FloconConfig(host: "192.168.1.20"))
+/// ```
 public struct FloconConfig: Sendable {
-    /// "localhost" fonctionne depuis le simulateur iOS.
-    /// Sur un vrai iPhone, mets l'IP locale de ton Mac (ex: "192.168.1.20").
+    /// Host name or IP address of the Mac running the Flocon desktop app.
     public var host: String
+    /// Port of the desktop WebSocket server.
     public var webSocketPort: Int
-    public var httpPort: Int // pas encore utilisé : envoi de fichiers (FloconFileSender) pas porté
+    /// Port of the desktop HTTP server, reserved for file uploads (not used yet).
+    public var httpPort: Int
 
+    /// Version of the SDK, reported to the desktop app.
     public static let sdkVersion = "0.1.0"
 
+    /// Creates a configuration.
+    ///
+    /// - Parameters:
+    ///   - host: Host name or IP address of the Mac running Flocon. Defaults to `localhost`.
+    ///   - webSocketPort: Port of the desktop WebSocket server. Defaults to `9023`.
+    ///   - httpPort: Port of the desktop HTTP server. Defaults to `9024`.
     public init(host: String = "localhost", webSocketPort: Int = 9023, httpPort: Int = 9024) {
         self.host = host
         self.webSocketPort = webSocketPort
@@ -17,17 +32,42 @@ public struct FloconConfig: Sendable {
     }
 }
 
-/// Équivalent de FloconApp + FloconCore + object Flocon.
-/// Usage : `Flocon.initialize()`
+/// Entry point of the Flocon SDK.
+///
+/// Call ``initialize(config:)`` once, as early as possible in the app lifecycle:
+///
+/// ```swift
+/// @main
+/// struct MyApp: App {
+///     init() {
+///         Flocon.initialize()
+///     }
+///     // ...
+/// }
+/// ```
+///
+/// The SDK then connects to the Flocon desktop app in the background and keeps retrying
+/// until it is reachable. Messages sent before the connection is up are queued.
 public final class Flocon: @unchecked Sendable {
+    /// The shared SDK instance.
     public static let shared = Flocon()
 
-    /// Point d'entrée, comme Flocon.initialize(context) sur Android.
+    /// Starts the SDK and connects to the Flocon desktop app.
+    ///
+    /// Calling this method more than once has no effect. It can be called from any thread.
+    ///
+    /// - Parameter config: Where to find the desktop app. Defaults to `localhost`.
     public static func initialize(config: FloconConfig = FloconConfig()) {
         shared.initializeFlocon(config: config)
     }
 
-    /// Enregistrer un plugin (réseau, base de données, etc.) une fois qu'ils seront portés.
+    /// Registers a custom plugin.
+    ///
+    /// The built-in plugins (network, analytics, tables, device) are registered by
+    /// ``initialize(config:)``. Registering a plugin with the same ``FloconPlugin/pluginName``
+    /// replaces the previous one. Has no effect before ``initialize(config:)``.
+    ///
+    /// - Parameter plugin: The plugin that receives the desktop messages addressed to it.
     public static func register(plugin: FloconPlugin) {
         shared.client?.register(plugin: plugin)
     }
@@ -44,12 +84,13 @@ public final class Flocon: @unchecked Sendable {
         return _client
     }
 
+    /// Whether ``initialize(config:)`` has been called.
     public var isInitialized: Bool {
         lock.lock(); defer { lock.unlock() }
         return _isInitialized
     }
 
-    // MARK: FloconCore
+    // MARK: Connection
 
     private func initializeFlocon(config: FloconConfig) {
         lock.lock()
@@ -69,11 +110,11 @@ public final class Flocon: @unchecked Sendable {
         }
         lock.unlock()
 
-        // TODO: équivalent de crashReporterPlugin.setupCrashHandler()
-        // (NSSetUncaughtExceptionHandler + signal handlers), à brancher quand le plugin sera porté.
+        // TODO: install the crash handler (NSSetUncaughtExceptionHandler + signal handlers)
+        // once the crash reporter plugin exists.
     }
 
-    /// Le callback onClosed arrive depuis le WebSocket, sur un autre thread : on passe par le verrou.
+    /// Called from the WebSocket's `onClosed` callback, on another thread, hence the lock.
     private func restartConnection(client: FloconClient) {
         lock.lock(); defer { lock.unlock() }
         _connectTask = Task { [weak self] in
@@ -81,20 +122,20 @@ public final class Flocon: @unchecked Sendable {
         }
     }
 
-    /// Essaie de se connecter ; en cas d'échec, réessaie dans 3 s (comme FloconCore.start).
+    /// Connects to the desktop app, retrying every 3 seconds until it succeeds.
     private func start(client: FloconClient) async {
         while !Task.isCancelled {
             do {
                 try await client.connect(onClosed: { [weak self] in
-                    // connexion perdue : on relance la boucle de connexion
+                    // connection lost: start connecting again
                     self?.restartConnection(client: client)
                 })
-                // succès : on dit bonjour au desktop, puis on vide les messages en attente
+                // connected: say hello to the desktop, then flush the queued messages
                 client.send(plugin: "bonjour", method: "bonjour", body: "bonjour")
                 client.sendPendingMessages()
                 return
             } catch {
-                FloconLogger.logError("Connexion impossible, nouvel essai dans 3s", error)
+                FloconLogger.logError("Cannot connect, retrying in 3s", error)
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
             }
         }

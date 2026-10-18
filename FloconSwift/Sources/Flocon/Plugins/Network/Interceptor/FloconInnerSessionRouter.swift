@@ -1,17 +1,17 @@
 import Foundation
 
-// MARK: - Session interne partagée
-
-/// Une seule URLSession pour toutes les requêtes rejouées (au lieu d'une par requête) :
-/// son delegate route chaque callback vers le FloconURLProtocol qui possède la tâche.
+/// Shared session that performs the requests intercepted by ``FloconURLProtocol``.
+///
+/// A single session serves all the requests, instead of one per request. Its delegate routes
+/// each callback to the ``FloconURLProtocol`` that owns the task.
 final class FloconInnerSessionRouter: NSObject, URLSessionDataDelegate, @unchecked Sendable {
     static let shared = FloconInnerSessionRouter()
 
     private let lock = NSLock()
     private var handlers: [Int: FloconURLProtocol] = [:]
 
-    /// Créée une seule fois, dans l'init (thread-safe) de `shared`.
-    /// La session garde son delegate (le routeur) en vie.
+    /// Created once, in the thread-safe initializer of `shared`.
+    /// The session keeps its delegate (this router) alive.
     private var session: URLSession!
 
     private override init() {

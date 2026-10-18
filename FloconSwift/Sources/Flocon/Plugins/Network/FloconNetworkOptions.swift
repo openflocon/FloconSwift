@@ -1,13 +1,29 @@
 import Foundation
 
-// MARK: - Options (équivalents de shouldLog / isImage de FloconOkhttpInterceptor)
-
+/// Options of the network interception.
+///
+/// ```swift
+/// Flocon.setNetworkOptions(
+///     FloconNetworkOptions(
+///         shouldLog: { request in request.url?.host != "analytics.example.com" },
+///         isImage: { request, _ in request.url?.path.hasPrefix("/images/") == true }
+///     )
+/// )
+/// ```
 public struct FloconNetworkOptions: Sendable {
-    /// Retourne false pour ne pas logger une requête.
+    /// Returns whether a request is sent to the desktop app. All requests are by default.
     public var shouldLog: @Sendable (URLRequest) -> Bool
-    /// Permet de dire qu'une réponse est une image en plus du test `Content-Type: image/*`.
+    /// Returns whether a response is an image, in addition to the `Content-Type: image/*` check.
+    ///
+    /// The body of an image is not sent: the desktop app downloads the image from its URL.
     public var isImage: (@Sendable (URLRequest, HTTPURLResponse) -> Bool)?
 
+    /// Creates network options.
+    ///
+    /// - Parameters:
+    ///   - shouldLog: Returns whether a request is sent to the desktop app. Defaults to all requests.
+    ///   - isImage: Returns whether a response is an image, in addition to the
+    ///     `Content-Type: image/*` check. Defaults to `nil`.
     public init(
         shouldLog: @escaping @Sendable (URLRequest) -> Bool = { _ in true },
         isImage: (@Sendable (URLRequest, HTTPURLResponse) -> Bool)? = nil
@@ -29,24 +45,40 @@ extension FloconNetworkOptions {
     }
 }
 
-// MARK: - API publique
+// MARK: - Public API
 
 extension Flocon {
+    /// Sets the options of the network interception.
+    ///
+    /// - Parameter options: The options, used for the requests started after this call.
     public static func setNetworkOptions(_ options: FloconNetworkOptions) {
         FloconNetworkState.lock.lock(); defer { FloconNetworkState.lock.unlock() }
         FloconNetworkState.options = options
     }
 
-    /// Intercepte `URLSession.shared` uniquement.
-    /// (Les sessions créées avec leur propre configuration utilisent `.withFlocon()`.)
+    /// Sends the calls of `URLSession.shared` to the desktop app.
+    ///
+    /// Sessions created with their own configuration are not affected: create them with
+    /// ``Foundation/URLSessionConfiguration/withFlocon()`` instead.
     public static func interceptSharedSession() {
         URLProtocol.registerClass(FloconURLProtocol.self)
     }
 }
 
 extension URLSessionConfiguration {
-    /// Usage : `URLSession(configuration: .default.withFlocon())`
-    /// Avec Alamofire : `Session(configuration: URLSessionConfiguration.default.withFlocon())`
+    /// Sends the calls of the sessions created with this configuration to the desktop app.
+    ///
+    /// ```swift
+    /// let session = URLSession(configuration: .default.withFlocon())
+    ///
+    /// // Alamofire
+    /// let session = Session(configuration: URLSessionConfiguration.default.withFlocon())
+    ///
+    /// // Kingfisher
+    /// KingfisherManager.shared.downloader.sessionConfiguration = .default.withFlocon()
+    /// ```
+    ///
+    /// - Returns: The same configuration, with the Flocon interceptor added to its protocol classes.
     public func withFlocon() -> URLSessionConfiguration {
         var classes = protocolClasses ?? []
         if !classes.contains(where: { $0 == FloconURLProtocol.self }) {

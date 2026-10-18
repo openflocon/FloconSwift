@@ -1,6 +1,6 @@
 import Foundation
 
-/// Équivalent de l'interface commonMain FloconWebSocketClient.
+/// WebSocket connection to the Flocon desktop app.
 protocol FloconWebSocketClient: AnyObject {
     func connect(
         address: String,
@@ -14,7 +14,7 @@ protocol FloconWebSocketClient: AnyObject {
     func disconnect() async
 }
 
-/// Équivalent de buildFloconWebSocketClient() (expect/actual).
+/// Creates the default WebSocket client, based on `URLSessionWebSocketTask`.
 func buildFloconWebSocketClient() -> FloconWebSocketClient {
     FloconWebSocketClientImpl()
 }

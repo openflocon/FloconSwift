@@ -3,7 +3,7 @@ import Foundation
 import UIKit
 #endif
 
-/// Équivalent de getAppInfos(context) côté Android.
+/// Identity of the app and device, sent with every message.
 struct FloconAppInfos: Sendable {
     let deviceId: String
     let deviceName: String
@@ -11,8 +11,10 @@ struct FloconAppInfos: Sendable {
     let appName: String
     let appPackageName: String
 
-    /// UIDevice est @MainActor : appelé avec `await` depuis la file d'envoi,
-    /// pour que Flocon.initialize() reste utilisable depuis n'importe quel thread.
+    /// Reads the current app and device information.
+    ///
+    /// `UIDevice` is main-actor isolated. The SDK awaits this from its outbox task, so that
+    /// ``Flocon/initialize(config:)`` can still be called from any thread.
     @MainActor
     static func current() -> FloconAppInfos {
         let bundle = Bundle.main

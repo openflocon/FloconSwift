@@ -1,17 +1,18 @@
 import Foundation
 import Flocon
 
-/// Same as DummyHttpCaller / GraphQlTester in the Android sample.
-/// The session is created with `.withFlocon()`: all its calls go through the interceptor.
+/// Network calls triggered by the sample screens.
+///
+/// The session is created with `.withFlocon()`: all its calls are sent to Flocon.
 struct SampleNetworkClient: Sendable {
     private let session = URLSession(configuration: URLSessionConfiguration.default.withFlocon())
 
-    /// Simple JSON GET (same as "okhttp test").
+    /// Simple JSON GET.
     func simpleGet() async throws -> String {
         try await perform(URLRequest(url: URL(string: "https://jsonplaceholder.typicode.com/todos/1")!))
     }
 
-    /// Compressed response (same as "okhttp gzip test").
+    /// Compressed (gzip) response.
     func gzipGet() async throws -> String {
         try await perform(URLRequest(url: URL(string: "https://httpbin.org/gzip")!))
     }
@@ -30,7 +31,7 @@ struct SampleNetworkClient: Sendable {
         return try await perform(request)
     }
 
-    /// GraphQL request (same as "graphql test").
+    /// GraphQL request.
     func graphQL() async throws -> String {
         var request = URLRequest(url: URL(string: "https://countries.trevorblades.com/graphql")!)
         request.httpMethod = "POST"
@@ -61,8 +62,8 @@ struct SampleNetworkClient: Sendable {
         try await perform(URLRequest(url: URL(string: "https://this-host-does-not-exist.invalid")!))
     }
 
-    /// Manual WebSocket logging (same as "websocket test"):
-    /// each sent / received frame is logged by hand in Flocon.
+    /// WebSocket echo, logged by hand in Flocon:
+    /// each event of the connection is sent with `floconLogWebSocketEvent`.
     func websocketEcho() async throws -> String {
         let url = URL(string: "wss://ws.postman-echo.com/raw")!
         let urlString = url.absoluteString

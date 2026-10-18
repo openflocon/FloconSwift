@@ -1,11 +1,9 @@
 import Foundation
 
-// MARK: - Plugin
-
-/// Équivalent de FloconAnalyticsPluginImpl : un message envoyé par item,
-/// les erreurs sont loggées sans interrompre les suivants.
+/// Sends analytics events to the Flocon desktop app.
+///
+/// Log events with ``floconAnalytics(_:)`` rather than calling this plugin directly.
 public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
-    // Protocol.FromDevice.Analytics côté Kotlin
     static let name = "Analytics"
     private static let methodAddItems = "AddItems"
 
@@ -18,13 +16,14 @@ public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
 
     public func onConnectedToServer() {}
 
-    public func onMessageReceived(_ message: FloconMessageFromServer) {
-        // no op (comme côté Android)
-    }
+    /// The desktop app sends nothing to this plugin.
+    public func onMessageReceived(_ message: FloconMessageFromServer) {}
 
+    /// Sends analytics items to the desktop app, in a single message.
+    ///
+    /// - Parameter items: The items to send. Nothing is sent if empty.
     public func registerAnalytics(_ items: [FloconAnalyticsItem]) {
         guard !items.isEmpty else { return }
-        // 1. On transforme chaque item en modèle
         let models = items.compactMap { item -> FloconAnalyticsItemRemote? in
             return FloconAnalyticsItemRemote(
                 id: UUID().uuidString,
@@ -35,12 +34,10 @@ public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
             )
         }
 
-        // 2. On encode le tableau complet d'un coup en JSON
+        // the desktop expects a JSON array of items
         do {
             let data = try JSONEncoder().encode(models)
             guard let jsonArrayString = String(data: data, encoding: .utf8) else { return }
-            
-            // 3. On envoie la chaîne JSON globale (qui commence par "[" et finit par "]")
             sender?.send(plugin: pluginName, method: Self.methodAddItems, body: jsonArrayString)
         } catch {
             FloconLogger.logError("error on sendAnalytics", error)

@@ -1,12 +1,13 @@
 import Foundation
 
-/// Équivalent de FloconWebSocketClientImpl (androidMain, basé sur OkHttp).
-/// Ici : URLSessionWebSocketTask, isolé dans un actor pour la sécurité des accès concurrents.
+/// WebSocket client based on `URLSessionWebSocketTask`.
+///
+/// An actor, so that the connection state and the message queue are safe to use from any thread.
 actor FloconWebSocketClientImpl: FloconWebSocketClient {
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
 
-    // Équivalent de MessageQueue(capacity = 200) : on garde les plus récents.
+    // Messages sent while disconnected; only the most recent ones are kept.
     private let queueCapacity = 200
     private var queue: [String] = []
 
@@ -16,7 +17,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
         onMessageReceived: @escaping @Sendable (String) -> Void,
         onClosed: @escaping @Sendable () -> Void
     ) async throws {
-        // déjà connecté : on ne fait rien
+        // already connected
         if task != nil { return }
 
         guard let url = URL(string: "ws://\(address):\(port)") else {
@@ -35,7 +36,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
                 newTask.resume()
             }
         } onCancel: {
-            FloconLogger.log("Task annulée, fermeture du WebSocket.")
+            FloconLogger.log("Task cancelled, closing the WebSocket.")
             newTask.cancel(with: .goingAway, reason: nil)
         }
 
@@ -78,8 +79,9 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
         }
     }
 
-    /// Appelé quand le serveur ferme / que la connexion tombe.
-    /// Le `===` évite de notifier deux fois, et de notifier après un disconnect() volontaire.
+    /// Called when the server closes the connection or the connection drops.
+    ///
+    /// The `===` check avoids notifying twice, or after an explicit `disconnect()`.
     private func handleEnded(_ socket: URLSessionWebSocketTask, onClosed: @Sendable () -> Void) {
         guard task === socket else { return }
         task = nil
@@ -90,7 +92,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
 
     func sendMessage(_ message: String) async -> Bool {
         guard let task else {
-            // pas encore connecté : on met en file d'attente
+            // not connected yet: queue the message
             queue.append(message)
             if queue.count > queueCapacity { queue.removeFirst(queue.count - queueCapacity) }
             return false
@@ -116,7 +118,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
 
     func disconnect() async {
         let socket = task
-        task = nil // avant close : évite de déclencher onClosed
+        task = nil // before closing, so that onClosed is not triggered
         socket?.cancel(with: .normalClosure, reason: "Client disconnecting".data(using: .utf8))
         session?.invalidateAndCancel()
         session = nil

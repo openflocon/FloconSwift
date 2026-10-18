@@ -1,12 +1,8 @@
 import Foundation
 
-// MARK: - Plugin
-
-/// Équivalent de FloconNetworkPlugin côté Android (partie « log » uniquement).
-/// Mocks et « bad network quality » ne sont pas portés.
+/// Sends the network calls and WebSocket events of the app to the Flocon desktop app.
 final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "network"
-    // Protocol.FromDevice.Network côté Kotlin
     private static let methodLogRequest = "logNetworkCallRequest"
     private static let methodLogResponse = "logNetworkCallResponse"
 
@@ -20,7 +16,7 @@ final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
     func onConnectedToServer() {}
 
     func onMessageReceived(_ message: FloconMessageFromServer) {
-        // TODO: mocks, bad network quality (messages envoyés par le desktop)
+        // TODO: network mocks and bad network simulation, configured from the desktop
     }
 
     func logRequest(_ call: FloconNetworkCallRequestRemote) {
