@@ -7,7 +7,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Network**: every HTTP call made through `URLSession` (headers, bodies, timing, redirects, images), and the WebSocket events you log
 - **Analytics**: the events sent to your analytics providers, one table per provider
 - **Tables**: any structured data you want to inspect while the app runs
-- **Preferences**: the content of your `UserDefaults` stores, editable from the desktop
+- **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
 - **App icon**: your app appears with its icon in the desktop app
 
 ## Requirements
@@ -163,9 +163,24 @@ floconRegisterUserDefaults(shared, suiteName: "group.com.example.app")
 
 Values of type `String`, `Bool`, number, `Date` and `[String]` can be edited from the desktop; an edit is applied only when its type matches the stored value. `Data`, dictionaries and mixed arrays are shown read-only.
 
+### Keychain
+
+The keychain is not shown by default. Opt in, in debug builds only: its values are sent unencrypted to the Mac running Flocon.
+
+```swift
+#if DEBUG
+floconRegisterKeychain()                    // read-only
+// floconRegisterKeychain(isEditable: true) // also apply the edits made in the desktop
+#endif
+```
+
+Generic and internet passwords appear as two stores, with one key per item (`service / account`, `server / account`). Values are shown as text when they are UTF-8, as their size otherwise. Items protected by Face ID, Touch ID or the passcode, or unreadable while the device is locked, are shown as `<protected>`: reading them never shows an authentication prompt. The Simulator does not enforce these protections, so it shows their values.
+
+With `isEditable: true`, only existing items with a text value can be edited; items are never added or deleted.
+
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, and shows `UserDefaults` values that update live when you edit them in the desktop app.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, and shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app.
 
 ## Documentation
 

@@ -25,6 +25,13 @@ struct FloconSampleApp: App {
         // UserDefaults.standard is shown automatically; other suites are registered.
         SamplePreferences.seed()
         floconRegisterUserDefaults(SamplePreferences.suite, suiteName: SamplePreferences.suiteName)
+
+        // The keychain is opt-in, and should only be shown in debug builds:
+        // its values are sent unencrypted to the Mac running Flocon.
+        #if DEBUG
+        SampleKeychain.seed()
+        floconRegisterKeychain(isEditable: true)
+        #endif
     }
 
     var body: some Scene {
