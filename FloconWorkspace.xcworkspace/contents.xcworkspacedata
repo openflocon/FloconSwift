@@ -9,6 +9,6 @@
       </FileRef>
    </Group>
    <FileRef
-      location = "group:FloconSwift">
+      location = "group:">
    </FileRef>
 </Workspace>

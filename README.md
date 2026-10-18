@@ -17,8 +17,30 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 
 ## Installation
 
-The package is in the [`FloconSwift`](FloconSwift) folder of this repository.
-Add it to your project as a local package: in Xcode, choose **File › Add Package Dependencies… › Add Local…**, select the `FloconSwift` folder, then add the `Flocon` library to your app target.
+Flocon is distributed with Swift Package Manager. There is no tagged release yet, so depend on the `main` branch.
+
+### Xcode
+
+1. Choose **File › Add Package Dependencies…**
+2. Paste `https://github.com/openflocon/FloconSwift.git` in the search field.
+3. Set **Dependency Rule** to **Branch** › `main`, then click **Add Package**.
+4. Add the `Flocon` library to your app target.
+
+### Package.swift
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/openflocon/FloconSwift.git", branch: "main"),
+],
+targets: [
+    .target(
+        name: "MyApp",
+        dependencies: [
+            .product(name: "Flocon", package: "FloconSwift"),
+        ]
+    ),
+]
+```
 
 ## Getting started
 
