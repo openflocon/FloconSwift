@@ -13,6 +13,7 @@
 		F10C00000000000000000032 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000031 /* PreferencesView.swift */; };
 		F10C00000000000000000042 /* SampleFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000041 /* SampleFiles.swift */; };
 		F10C00000000000000000072 /* SampleDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000071 /* SampleDatabase.swift */; };
+		F10C00000000000000000074 /* SampleDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000073 /* SampleDashboard.swift */; };
 		F10C00000000000000000062 /* DeeplinkScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000061 /* DeeplinkScreens.swift */; };
 		F10C00000000000000000012 /* ImageListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000011 /* ImageListView.swift */; };
 		E56E386B3083E37B0063FCD8 /* FloconSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56E38693083E1C70063FCD8 /* FloconSampleApp.swift */; };
@@ -28,6 +29,7 @@
 		F10C00000000000000000061 /* DeeplinkScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeeplinkScreens.swift; sourceTree = "<group>"; };
 		F10C00000000000000000041 /* SampleFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleFiles.swift; sourceTree = "<group>"; };
 		F10C00000000000000000071 /* SampleDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDatabase.swift; sourceTree = "<group>"; };
+		F10C00000000000000000073 /* SampleDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDashboard.swift; sourceTree = "<group>"; };
 		F10C00000000000000000011 /* ImageListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageListView.swift; sourceTree = "<group>"; };
 		E56E38683083E1C70063FCD8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E56E38693083E1C70063FCD8 /* FloconSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloconSampleApp.swift; sourceTree = SOURCE_ROOT; };
@@ -55,6 +57,7 @@
 				F10C00000000000000000031 /* PreferencesView.swift */,
 				F10C00000000000000000041 /* SampleFiles.swift */,
 				F10C00000000000000000071 /* SampleDatabase.swift */,
+				F10C00000000000000000073 /* SampleDashboard.swift */,
 				F10C00000000000000000061 /* DeeplinkScreens.swift */,
 				F10C00000000000000000051 /* Info.plist */,
 				F10C00000000000000000021 /* Assets.xcassets */,
@@ -158,6 +161,7 @@
 				F10C00000000000000000032 /* PreferencesView.swift in Sources */,
 				F10C00000000000000000042 /* SampleFiles.swift in Sources */,
 				F10C00000000000000000072 /* SampleDatabase.swift in Sources */,
+				F10C00000000000000000074 /* SampleDashboard.swift in Sources */,
 				F10C00000000000000000062 /* DeeplinkScreens.swift in Sources */,
 			);
 		};

@@ -29,6 +29,11 @@ extension Flocon {
     /// `nil` before ``initialize(config:)``.
     public var databasePlugin: FloconDatabasePlugin? { client?.databasePlugin }
 
+    /// Shows the dashboards of the app. Usually used through ``floconDashboard(id:_:)``.
+    ///
+    /// `nil` before ``initialize(config:)``.
+    public var dashboardPlugin: FloconDashboardPlugin? { client?.dashboardPlugin }
+
     /// Lists the deeplinks of the app. Usually used through ``floconRegisterDeeplinks(_:variables:)``.
     ///
     /// `nil` before ``initialize(config:)``.

@@ -28,6 +28,7 @@ struct FloconSampleApp: App {
 
         SampleFiles.seed()
         SampleDatabase.seed()
+        SampleDashboard.shared.start()
 
         // Listed in the Deeplinks section of Flocon Desktop. Try them on the simulator with:
         // xcrun simctl openurl booted "flocondemo://user/Florent"

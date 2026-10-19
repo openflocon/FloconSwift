@@ -10,6 +10,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
 - **Files**: browse, download and delete the files of the app container
 - **Databases**: query the SQLite databases of the app (Core Data, GRDB, SQLite…), and see the queries it runs
+- **Dashboards**: values of your app updated live, and buttons, inputs and forms that run actions in it
 - **Deeplinks**: the deeplinks of your app, with their parameters
 - **Crashes**: the crashes of your app, reported on the next launch
 - **App icon**: your app appears with its icon in the desktop app
@@ -224,6 +225,43 @@ configuration.prepareDatabase { db in
     }
 }
 ```
+
+## Dashboards
+
+A dashboard shows values of the app, and runs actions in it from the desktop app. A section is either static, or rebuilt each time a Combine publisher emits, such as a `@Published` property:
+
+```swift
+final class DebugDashboard {
+    // keep the handle: the dashboard stops following the publishers when it is released
+    private var handle: FloconDashboardHandle?
+
+    func start(session: Session) {
+        handle = floconDashboard(id: "main") {
+            FloconSection("User", publisher: session.$user) { user in
+                FloconText("name", user.name)
+                FloconText("status", user.status, color: 0xFFFF0000) // ARGB
+                FloconButton("Log out", id: "logout") { session.logOut() }
+                FloconTextField(id: "rename", label: "Rename", value: user.name) { session.rename($0) }
+                FloconCheckBox(id: "premium", label: "Premium", value: user.isPremium) { session.setPremium($0) }
+            }
+            FloconSection("Build") {
+                FloconPlainText("commit", buildCommit)
+                FloconJSON("config", configJSON)
+                FloconMarkdown("Release note", "# 1.0\nFirst **release**")
+                FloconHTML("About", "<h1>MyApp</h1>")
+            }
+            FloconForm("Create user", submitText: "Create", onSubmitted: { values in
+                session.createUser(name: values["name"] ?? "", isAdmin: values["admin"] == "true")
+            }) {
+                FloconTextField(id: "name", label: "Name", value: "")
+                FloconCheckBox(id: "admin", label: "Admin", value: false)
+            }
+        }
+    }
+}
+```
+
+The actions are called on the main actor. Element identifiers must be unique in their dashboard. A form sends the values of its inputs together, keyed by their identifiers, with check boxes as `"true"` or `"false"`. The dashboard is sent once every reactive section has a value, and again on each connection.
 
 ## Deeplinks
 
