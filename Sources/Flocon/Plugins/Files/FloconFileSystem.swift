@@ -1,49 +1,77 @@
 import Foundation
 
-/// File operations requested by the Flocon desktop app, limited to the app container.
-///
-/// The desktop names two root folders: `"files"`, the root of the app container (with its
-/// `Documents`, `Library` and `tmp` folders), and `"caches"`, its `Library/Caches` folder.
-/// Paths outside the container are refused, even though the iOS sandbox would refuse most
-/// of them anyway.
-struct FloconFileSystem: Sendable {
-    /// Root of the files the desktop can access.
-    let rootURL: URL
-    /// Folder opened by the `"caches"` constant.
-    let cachesURL: URL
+/// A folder the desktop can open, shown at the top of the Files section.
+struct FloconFileRoot: Sendable, Equatable {
+    /// Stable identifier, sent back by the desktop as a constant path.
+    let id: String
+    /// Name shown in the desktop app.
+    let name: String
+    let url: URL
 
-    /// File system of the running app.
-    static let app = FloconFileSystem(
-        rootURL: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true),
-        cachesURL: FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
-    )
+    /// Folders of every app: `Documents`, `Application Support`, `Caches`, `tmp` and the whole container.
+    static let appDefaults: [FloconFileRoot] = {
+        let fileManager = FileManager.default
+        func directory(_ directory: FileManager.SearchPathDirectory) -> URL {
+            fileManager.urls(for: directory, in: .userDomainMask)[0]
+        }
+        return [
+            FloconFileRoot(id: "documents", name: "Documents", url: directory(.documentDirectory)),
+            FloconFileRoot(id: "applicationSupport", name: "Application Support", url: directory(.applicationSupportDirectory)),
+            FloconFileRoot(id: "caches", name: "Caches", url: directory(.cachesDirectory)),
+            FloconFileRoot(id: "tmp", name: "tmp", url: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            FloconFileRoot(id: "container", name: "App container", url: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)),
+        ]
+    }()
+
+    /// A folder registered by the app, identified by its path.
+    init(folder: FloconFolder) {
+        self.init(id: FloconFileSystem.resolved(folder.url).path, name: folder.displayName, url: folder.url)
+    }
+
+    init(id: String, name: String, url: URL) {
+        self.id = id
+        self.name = name
+        self.url = url
+    }
+}
+
+/// File operations requested by the Flocon desktop app, limited to the root folders.
+///
+/// The desktop opens a root folder by its ``FloconFileRoot/id``, then any path inside it.
+/// Paths outside every root folder are refused, and the root folders themselves are never deleted.
+struct FloconFileSystem: Sendable {
+    /// Folders the desktop can access, in the order they are shown.
+    let roots: [FloconFileRoot]
+
+    /// Root folders that exist, as shown in the desktop app.
+    var existingRoots: [FloconFileRoot] {
+        roots.filter { root in
+            var isDirectory: ObjCBool = false
+            return FileManager.default.fileExists(atPath: root.url.path, isDirectory: &isDirectory) && isDirectory.boolValue
+        }
+    }
 
     /// Returns the folder or file a desktop path points to.
     ///
     /// - Parameters:
-    ///   - path: A constant (`"files"`, `"caches"`) or an absolute path.
-    ///   - isConstantPath: Whether `path` is a constant.
-    /// - Returns: The URL, or `nil` if it is outside the app container.
+    ///   - path: The identifier of a root folder or an absolute path.
+    ///   - isConstantPath: Whether `path` is the identifier of a root folder.
+    /// - Returns: The URL, or `nil` if it is outside every root folder.
     func url(forPath path: String, isConstantPath: Bool) -> URL? {
         if isConstantPath {
-            switch path {
-            case "files": return rootURL
-            case "caches": return cachesURL
-            default: break
-            }
+            return roots.first { $0.id == path }?.url
         }
         let url = URL(fileURLWithPath: path)
         return contains(url) ? url : nil
     }
 
-    /// Whether a URL is the root folder or inside it, once symbolic links are resolved.
+    /// Whether a URL is a root folder or inside one, once symbolic links are resolved.
     func contains(_ url: URL) -> Bool {
-        let root = Self.resolved(rootURL).pathComponents
         let candidate = Self.resolved(url).pathComponents
-        return candidate.starts(with: root)
+        return roots.contains { candidate.starts(with: Self.resolved($0.url).pathComponents) }
     }
 
-    private static func resolved(_ url: URL) -> URL {
+    static func resolved(_ url: URL) -> URL {
         url.standardizedFileURL.resolvingSymlinksInPath()
     }
 
@@ -101,11 +129,11 @@ struct FloconFileSystem: Sendable {
 
     // MARK: Deleting
 
-    /// Deletes a file or folder inside the container. The root folders themselves are never deleted.
+    /// Deletes a file or folder inside a root folder. The root folders themselves are never deleted.
     func deleteItem(atPath path: String) {
         let url = URL(fileURLWithPath: path)
         guard contains(url), !isRoot(url) else {
-            FloconLogger.log("Refused to delete \(path): outside the app container or a root folder")
+            FloconLogger.log("Refused to delete \(path): outside the root folders or a root folder")
             return
         }
         do {
@@ -127,6 +155,6 @@ struct FloconFileSystem: Sendable {
 
     private func isRoot(_ url: URL) -> Bool {
         let path = Self.resolved(url).path
-        return path == Self.resolved(rootURL).path || path == Self.resolved(cachesURL).path
+        return roots.contains { Self.resolved($0.url).path == path }
     }
 }

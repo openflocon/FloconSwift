@@ -27,6 +27,12 @@ struct FloconSampleApp: App {
         floconRegisterUserDefaults(SamplePreferences.suite, suiteName: SamplePreferences.suiteName)
 
         SampleFiles.seed()
+        // Documents, Application Support, Caches, tmp and the app container are shown automatically;
+        // other folders, such as an App Group container, are registered.
+        floconRegisterFolder(
+            displayName: "Preferences",
+            url: FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask)[0].appendingPathComponent("Preferences")
+        )
         SampleDatabase.seed()
         SampleDashboard.shared.start()
 

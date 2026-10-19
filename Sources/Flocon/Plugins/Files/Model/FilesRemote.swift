@@ -25,7 +25,7 @@ struct FileRemote: Encodable, Equatable {
 /// Desktop request for the content of a folder.
 struct ToDeviceGetFilesMessage: Decodable {
     let requestId: String
-    /// A folder name (`"files"`, `"caches"`) when `isConstantPath` is `true`, an absolute path otherwise.
+    /// The identifier of a root folder when `isConstantPath` is `true`, an absolute path otherwise.
     let path: String
     let isConstantPath: Bool
     let withFoldersSize: Bool?
@@ -58,4 +58,27 @@ struct ToDeviceDeleteFolderContentMessage: Decodable {
     let requestId: String
     let path: String
     let isConstantPath: Bool
+}
+
+/// Desktop request for the root folders.
+struct ToDeviceGetRootsMessage: Decodable {
+    let requestId: String
+}
+
+// MARK: - Root folders, from device
+
+/// JSON format of the root folders, sent in answer to a desktop request.
+struct FileRootsResultRemote: Encodable {
+    let requestId: String
+    let roots: [FileRootRemote]
+}
+
+/// JSON format of a root folder.
+struct FileRootRemote: Encodable, Equatable {
+    /// Identifier sent back by the desktop as a constant path.
+    let id: String
+    /// Name shown in the desktop app.
+    let name: String
+    /// Absolute path.
+    let path: String
 }
