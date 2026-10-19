@@ -4,7 +4,7 @@ Swift SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugg
 
 Once the SDK is started, your app connects to the Flocon desktop app on your Mac and shows, live:
 
-- **Network**: every HTTP call made through `URLSession` (headers, bodies, timing, redirects, images), and the WebSocket events you log
+- **Network**: every HTTP call made through `URLSession` (headers, bodies, timing, redirects, images), and the WebSocket events you log; mocks and bad network simulation set from the desktop
 - **Analytics**: the events sent to your analytics providers, one table per provider
 - **Tables**: any structured data you want to inspect while the app runs
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
@@ -115,6 +115,17 @@ Flocon.setNetworkOptions(
 ```
 
 Responses with a `Content-Type: image/*` header are always treated as images.
+
+### Mocks and bad network
+
+The mocks and the bad network simulation set in the desktop app apply to the intercepted calls, with nothing to add to your code:
+
+- a request matched by a mock (regular expression on the full URL, and method) receives its response, or its error, without reaching the server; it is shown as mocked in the desktop app
+- the bad network simulation adds latency to the calls, and makes some of them fail with one of its errors
+
+The errors set in the desktop app, such as `java.net.UnknownHostException`, are turned into the closest `URLError` (`.cannotFindHost`, `.timedOut`, `.cannotConnectToHost`, `.secureConnectionFailed`, otherwise `.networkConnectionLost`).
+
+Both are saved on the device, and apply from the next launch too, before the app connects to the desktop. Requests excluded by `shouldLog` are neither logged nor mocked.
 
 ### WebSockets
 

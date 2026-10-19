@@ -21,22 +21,63 @@ import Foundation
 ///     )
 /// )
 /// ```
+///
+/// The mocks and the bad network simulation set in the desktop app apply to the calls made
+/// with `URLSession`. They are saved, and apply from the next launch too.
 public final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "network"
     private static let methodLogRequest = "logNetworkCallRequest"
     private static let methodLogResponse = "logNetworkCallResponse"
+    private static let methodSetupMocks = "setupMocks"
+    private static let methodSetupBadNetworkConfig = "setupBadNetworkConfig"
 
     public let pluginName = FloconNetworkPlugin.name
     private weak var sender: FloconMessageSender?
+    private let store: FloconNetworkStore
 
-    init(sender: FloconMessageSender) {
+    private let lock = NSLock()
+    private var _mocks: [FloconNetworkMock]
+    private var _badNetworkConfig: FloconBadNetworkConfig?
+
+    init(sender: FloconMessageSender, store: FloconNetworkStore = .app) {
         self.sender = sender
+        self.store = store
+        _mocks = store.mocksJSON.map(FloconNetworkMockRemote.parse) ?? []
+        _badNetworkConfig = store.badNetworkConfigJSON.flatMap(FloconBadNetworkConfigRemote.parse)
+    }
+
+    /// The mocks set in the desktop app.
+    public var mocks: [FloconNetworkMock] {
+        lock.lock(); defer { lock.unlock() }
+        return _mocks
+    }
+
+    /// The bad network simulation set in the desktop app, or `nil` when it is disabled.
+    public var badNetworkConfig: FloconBadNetworkConfig? {
+        lock.lock(); defer { lock.unlock() }
+        return _badNetworkConfig
+    }
+
+    /// The first mock matching a request, if any.
+    func mock(url: String, method: String) -> FloconNetworkMock? {
+        mocks.first { $0.expectation.matches(url: url, method: method) }
     }
 
     public func onConnectedToServer() {}
 
     public func onMessageReceived(_ message: FloconMessageFromServer) {
-        // TODO: network mocks and bad network simulation, configured from the desktop
+        switch message.method {
+        case Self.methodSetupMocks:
+            let mocks = FloconNetworkMockRemote.parse(message.body)
+            lock.lock(); _mocks = mocks; lock.unlock()
+            store.mocksJSON = message.body
+        case Self.methodSetupBadNetworkConfig:
+            let config = FloconBadNetworkConfigRemote.parse(message.body)
+            lock.lock(); _badNetworkConfig = config; lock.unlock()
+            store.badNetworkConfigJSON = config == nil ? nil : message.body
+        default:
+            break
+        }
     }
 
     /// Logs the request of a call. Log its response with ``logResponse(_:)``, using the same `callId`.
