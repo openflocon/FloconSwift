@@ -27,6 +27,7 @@ struct FloconSampleApp: App {
         floconRegisterUserDefaults(SamplePreferences.suite, suiteName: SamplePreferences.suiteName)
 
         SampleFiles.seed()
+        SampleDatabase.seed()
 
         // Listed in the Deeplinks section of Flocon Desktop. Try them on the simulator with:
         // xcrun simctl openurl booted "flocondemo://user/Florent"

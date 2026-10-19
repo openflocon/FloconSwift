@@ -23,6 +23,12 @@ extension Flocon {
     /// `nil` before ``initialize(config:)``.
     public var preferencesPlugin: FloconPreferencesPlugin? { client?.preferencesPlugin }
 
+    /// Lists and queries the SQLite databases of the app. Usually used through
+    /// ``floconRegisterDatabase(displayName:url:)`` and ``floconLogDatabaseQuery(dbName:sqlQuery:bindArgs:)``.
+    ///
+    /// `nil` before ``initialize(config:)``.
+    public var databasePlugin: FloconDatabasePlugin? { client?.databasePlugin }
+
     /// Lists the deeplinks of the app. Usually used through ``floconRegisterDeeplinks(_:variables:)``.
     ///
     /// `nil` before ``initialize(config:)``.

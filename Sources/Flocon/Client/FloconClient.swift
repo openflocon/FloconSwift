@@ -83,6 +83,11 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         return plugins[FloconFilesPlugin.name] as? FloconFilesPlugin
     }
 
+    var databasePlugin: FloconDatabasePlugin? {
+        pluginsLock.lock(); defer { pluginsLock.unlock() }
+        return plugins[FloconDatabasePlugin.name] as? FloconDatabasePlugin
+    }
+
     var preferencesPlugin: FloconPreferencesPlugin? {
         pluginsLock.lock(); defer { pluginsLock.unlock() }
         return plugins[FloconPreferencesPlugin.name] as? FloconPreferencesPlugin

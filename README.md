@@ -9,6 +9,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Tables**: any structured data you want to inspect while the app runs
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
 - **Files**: browse, download and delete the files of the app container
+- **Databases**: query the SQLite databases of the app (Core Data, GRDB, SQLite…), and see the queries it runs
 - **Deeplinks**: the deeplinks of your app, with their parameters
 - **Crashes**: the crashes of your app, reported on the next launch
 - **App icon**: your app appears with its icon in the desktop app
@@ -198,6 +199,32 @@ Nothing to set up: the Files section of the desktop app opens the root of the ap
 
 Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside the app container are refused, and the root folders themselves can never be deleted.
 
+## Databases
+
+The SQLite files of `Documents` and `Library/Application Support` are shown without any setup: Core Data stores, GRDB and SQLite.swift databases are found whatever their extension. Run any SQL query on them from the desktop app.
+
+Register the databases stored elsewhere, such as in an App Group, or give a database a clearer name:
+
+```swift
+let url = FileManager.default
+    .containerURL(forSecurityApplicationGroupIdentifier: "group.com.example.app")!
+    .appendingPathComponent("shared.sqlite")
+floconRegisterDatabase(displayName: "Shared", url: url)
+```
+
+Only the listed databases can be queried, and a file that does not exist is not listed. Queries from the desktop run on their own connection: a write waits up to one second for the app to release its lock. Blobs are shown as hexadecimal, truncated after 64 bytes.
+
+To see the queries run by the app, log them from the trace hook of your database library, for example with GRDB:
+
+```swift
+var configuration = Configuration()
+configuration.prepareDatabase { db in
+    db.trace { event in
+        floconLogDatabaseQuery(dbName: "app", sqlQuery: "\(event)")
+    }
+}
+```
+
 ## Deeplinks
 
 List the deeplinks of your app, writing the parts to fill in between brackets:
@@ -241,7 +268,7 @@ Flocon.initialize(config: FloconConfig(isCrashReporterEnabled: false))
 
 ## Extending Flocon
 
-Each feature is a plugin of `Flocon.shared`: `networkPlugin`, `analyticsPlugin`, `tablePlugin`, `preferencesPlugin` and `deeplinksPlugin`. They are `nil` until `Flocon.initialize()`.
+Each feature is a plugin of `Flocon.shared`: `networkPlugin`, `analyticsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin` and `deeplinksPlugin`. They are `nil` until `Flocon.initialize()`.
 
 ### Logging other network calls
 
