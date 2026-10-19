@@ -22,7 +22,7 @@ public struct FloconConfig: Sendable {
     public var isCrashReporterEnabled: Bool
 
     /// Version of the SDK, reported to the desktop app.
-    public static let sdkVersion = "0.2.0"
+    public static let sdkVersion = "0.3.0"
 
     /// Creates a configuration.
     ///
