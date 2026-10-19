@@ -44,7 +44,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         self.plugin = plugin
         originalRequest = request
 
-        let startedAtMs = Int64(Date().timeIntervalSince1970 * 1000)
+        let startTime = Date()
         startNanos = DispatchTime.now().uptimeNanoseconds
 
         // The body of an upload is often a stream: read it once, to both log it and send it.
@@ -56,16 +56,17 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         }
 
         plugin.logRequest(
-            FloconNetworkCallRequestRemote(
-                floconCallId: callId,
-                floconNetworkType: "http",
-                url: request.url?.absoluteString ?? "",
-                method: request.httpMethod ?? "GET",
-                startTime: startedAtMs,
-                requestHeaders: request.allHTTPHeaderFields ?? [:],
-                requestBody: bodyData.flatMap { String(data: $0, encoding: .utf8) },
-                requestSize: bodyData.map { Int64($0.count) },
-                isMocked: false
+            FloconNetworkCallRequest(
+                callId: callId,
+                networkType: "http",
+                request: FloconNetworkRequest(
+                    url: request.url?.absoluteString ?? "",
+                    method: request.httpMethod ?? "GET",
+                    startTime: startTime,
+                    headers: request.allHTTPHeaderFields ?? [:],
+                    body: bodyData.flatMap { String(data: $0, encoding: .utf8) },
+                    size: bodyData.map { Int64($0.count) }
+                )
             )
         )
 
@@ -142,17 +143,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
 
         let payload: FloconNetworkResponse
         if let error {
-            payload = FloconNetworkResponse(
-                httpCode: nil,
-                contentType: nil,
-                body: nil,
-                headers: [:],
-                size: nil,
-                grpcStatus: nil,
-                error: error.localizedDescription,
-                requestHeaders: nil,
-                isImage: false
-            )
+            payload = FloconNetworkResponse(error: error.localizedDescription)
         } else {
             let contentType = response?.value(forHTTPHeaderField: "Content-Type")
             var isImage = contentType?.lowercased().hasPrefix("image/") == true
@@ -168,23 +159,15 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
                 contentType: contentType,
                 // image bytes are not sent
                 body: isImage ? nil : String(data: receivedData, encoding: .utf8),
-                headers: headers,
                 size: Int64(receivedData.count),
-                grpcStatus: nil,
-                error: nil,
+                headers: headers,
                 requestHeaders: requestHeaders,
                 isImage: isImage
             )
         }
 
         plugin.logResponse(
-            FloconNetworkCallResponseRemote(
-                floconCallId: callId,
-                durationMs: durationMs,
-                floconNetworkType: "http",
-                isMocked: false,
-                response: payload
-            )
+            FloconNetworkCallResponse(callId: callId, networkType: "http", durationMs: durationMs, response: payload)
         )
     }
 

@@ -21,7 +21,7 @@ import Foundation
 ///   - suiteName: The suite name used to create `defaults`. It is also the name of the store
 ///     in the desktop app.
 public func floconRegisterUserDefaults(_ defaults: UserDefaults, suiteName: String) {
-    Flocon.shared.client?.preferencesPlugin?.registerAndNotify(
+    Flocon.shared.preferencesPlugin?.register(
         FloconUserDefaultsPreference(defaults: defaults, name: suiteName, domainName: suiteName)
     )
 }

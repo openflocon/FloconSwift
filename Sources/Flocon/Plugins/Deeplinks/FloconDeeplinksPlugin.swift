@@ -3,11 +3,11 @@ import Foundation
 /// Sends the deeplinks of the app to the Flocon desktop app.
 ///
 /// The list is sent when it is registered, and again on each connection.
-final class FloconDeeplinksPlugin: FloconPlugin, @unchecked Sendable {
+public final class FloconDeeplinksPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "Deeplink"
     private static let methodGetDeeplinks = "GetDeeplinks"
 
-    let pluginName = FloconDeeplinksPlugin.name
+    public let pluginName = FloconDeeplinksPlugin.name
     private weak var sender: FloconMessageSender?
 
     private let lock = NSLock()
@@ -17,19 +17,24 @@ final class FloconDeeplinksPlugin: FloconPlugin, @unchecked Sendable {
         self.sender = sender
     }
 
-    func register(deeplinks: [FloconDeeplink], variables: [FloconDeeplinkVariable]) {
+    /// Lists deeplinks in the desktop app, replacing the previous list. See ``floconRegisterDeeplinks(_:variables:)``.
+    ///
+    /// - Parameters:
+    ///   - deeplinks: The deeplinks of the app.
+    ///   - variables: The variables referenced by the deeplinks.
+    public func register(deeplinks: [FloconDeeplink], variables: [FloconDeeplinkVariable] = []) {
         let remote = DeeplinksRemote(deeplinks: deeplinks, variables: variables)
         lock.lock(); registered = remote; lock.unlock()
         send(remote)
     }
 
-    func onConnectedToServer() {
+    public func onConnectedToServer() {
         lock.lock(); let remote = registered; lock.unlock()
         if let remote { send(remote) }
     }
 
     /// The desktop app sends nothing to this plugin: it opens the deeplinks itself.
-    func onMessageReceived(_ message: FloconMessageFromServer) {}
+    public func onMessageReceived(_ message: FloconMessageFromServer) {}
 
     private func send(_ remote: DeeplinksRemote) {
         do {

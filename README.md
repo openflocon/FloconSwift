@@ -228,6 +228,51 @@ The handlers already installed, by another crash reporter for example, are kept 
 Flocon.initialize(config: FloconConfig(isCrashReporterEnabled: false))
 ```
 
+## Extending Flocon
+
+Each feature is a plugin of `Flocon.shared`: `networkPlugin`, `analyticsPlugin`, `tablePlugin`, `preferencesPlugin` and `deeplinksPlugin`. They are `nil` until `Flocon.initialize()`.
+
+### Logging other network calls
+
+`URLSession` calls are logged by the SDK. Log the calls of another client, such as a socket or a gRPC client, with the network plugin ([FloconSwiftGrpc](https://github.com/openflocon/FloconSwiftGrpc) does it for grpc-swift):
+
+```swift
+let call = FloconNetworkCallRequest(
+    networkType: "http",
+    request: FloconNetworkRequest(url: "https://api.example.com/users", method: "GET")
+)
+Flocon.shared.networkPlugin?.logRequest(call)
+
+// once the response is received
+Flocon.shared.networkPlugin?.logResponse(
+    FloconNetworkCallResponse(
+        callId: call.callId,
+        networkType: "http",
+        durationMs: 120,
+        response: FloconNetworkResponse(httpCode: 200, body: #"{"users": []}"#)
+    )
+)
+```
+
+### Showing a store of your own
+
+Implement `FloconPreference` to show and edit any key-value store in the Preferences section, then register it:
+
+```swift
+final class FeatureFlagsPreference: FloconPreference {
+    let name = "Feature flags"
+    func keys() -> [String] { FeatureFlags.all.map(\.key) }
+    func value(forKey key: String) -> FloconPreferenceValue? {
+        FloconPreferenceValue(booleanValue: FeatureFlags.isEnabled(key))
+    }
+    func setValue(_ value: FloconPreferenceValue, forKey key: String) {
+        if let isEnabled = value.booleanValue { FeatureFlags.set(key, isEnabled) }
+    }
+}
+
+floconRegisterPreference(FeatureFlagsPreference())
+```
+
 ## Sample app
 
 Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, registers deeplinks handled by its `flocondemo://` URL scheme, and has buttons to try each kind of crash.

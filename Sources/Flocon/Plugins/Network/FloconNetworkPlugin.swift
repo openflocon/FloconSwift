@@ -1,30 +1,56 @@
 import Foundation
 
 /// Sends the network calls and WebSocket events of the app to the Flocon desktop app.
-final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
+///
+/// The calls made with `URLSession` are logged by the SDK. Use this plugin to log the calls of
+/// other clients, such as a gRPC or a custom socket client:
+///
+/// ```swift
+/// let call = FloconNetworkCallRequest(
+///     networkType: "http",
+///     request: FloconNetworkRequest(url: "https://api.example.com/users", method: "GET")
+/// )
+/// Flocon.shared.networkPlugin?.logRequest(call)
+/// // later
+/// Flocon.shared.networkPlugin?.logResponse(
+///     FloconNetworkCallResponse(
+///         callId: call.callId,
+///         networkType: "http",
+///         durationMs: 120,
+///         response: FloconNetworkResponse(httpCode: 200, body: #"{"users": []}"#)
+///     )
+/// )
+/// ```
+public final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "network"
     private static let methodLogRequest = "logNetworkCallRequest"
     private static let methodLogResponse = "logNetworkCallResponse"
 
-    let pluginName = FloconNetworkPlugin.name
+    public let pluginName = FloconNetworkPlugin.name
     private weak var sender: FloconMessageSender?
 
     init(sender: FloconMessageSender) {
         self.sender = sender
     }
 
-    func onConnectedToServer() {}
+    public func onConnectedToServer() {}
 
-    func onMessageReceived(_ message: FloconMessageFromServer) {
+    public func onMessageReceived(_ message: FloconMessageFromServer) {
         // TODO: network mocks and bad network simulation, configured from the desktop
     }
 
-    func logRequest(_ call: FloconNetworkCallRequestRemote) {
-        send(call, method: Self.methodLogRequest)
+    /// Logs the request of a call. Log its response with ``logResponse(_:)``, using the same `callId`.
+    ///
+    /// - Parameter call: The request.
+    public func logRequest(_ call: FloconNetworkCallRequest) {
+        send(FloconNetworkCallRequestRemote(call), method: Self.methodLogRequest)
     }
 
-    func logResponse(_ call: FloconNetworkCallResponseRemote) {
-        send(call, method: Self.methodLogResponse)
+    /// Logs the response of a call whose request was logged with ``logRequest(_:)``.
+    ///
+    /// - Parameter call: The response, with the `callId` of its request.
+    public func logResponse(_ call: FloconNetworkCallResponse) {
+        send(FloconNetworkCallResponseRemote(call), method: Self.methodLogResponse)
     }
 
     func send<T: Encodable>(_ value: T, method: String) {
