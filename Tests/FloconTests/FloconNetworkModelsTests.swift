@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@_spi(FloconExtension) @testable import Flocon
+@testable import Flocon
 
 @Suite struct FloconNetworkModelsTests {
     @Test func encodesARequestLikeTheOtherSDKs() throws {
@@ -48,21 +48,5 @@ import Testing
         #expect(json["responseHttpCode"] is NSNull)
         #expect(json["responseError"] is NSNull)
         #expect((json["responseHeaders"] as? [String: String])?["te"] == "trailers")
-    }
-}
-
-/// The extension API of 0.2.0 must keep working for FloconSwiftGrpc 0.2.0.
-@Suite struct FloconDeprecatedExtensionAPITests {
-    @available(*, deprecated)
-    @Test func doesNothingBeforeInitialize() {
-        #expect(!Flocon.isNetworkLoggingEnabled)
-        Flocon.logNetworkRequest(
-            callId: "id", networkType: "grpc", url: "localhost:50051", method: "helloworld.Greeter/SayHello",
-            startTime: Date(), headers: [:], body: "{}", size: 2
-        )
-        Flocon.logNetworkResponse(
-            callId: "id", networkType: "grpc", durationMs: 1, httpCode: nil, grpcStatus: "OK",
-            contentType: "grpc", body: nil, headers: [:], size: nil, error: nil
-        )
     }
 }
