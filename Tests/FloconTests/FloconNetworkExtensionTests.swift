@@ -2,34 +2,67 @@ import Foundation
 import Testing
 @_spi(FloconExtension) @testable import Flocon
 
-@Suite struct FloconNetworkExtensionTests {
-    @Test func doesNothingBeforeInitialize() {
-        #expect(!Flocon.isNetworkLoggingEnabled)
-        // no client: must not crash
-        Flocon.logNetworkRequest(
-            callId: "id", networkType: "grpc", url: "localhost:50051", method: "helloworld.Greeter/SayHello",
-            startTime: Date(), headers: [:], body: "{}", size: 2
-        )
-    }
-
-    @Test func encodesAGrpcResponse() throws {
-        let response = FloconNetworkCallResponseRemote(
-            floconCallId: "id",
-            durationMs: 12,
-            floconNetworkType: "grpc",
-            isMocked: false,
-            response: FloconNetworkResponse(
-                httpCode: nil, contentType: "grpc", body: #"{"message":"Hello"}"#, headers: ["te": "trailers"],
-                size: 19, grpcStatus: "OK", error: nil, requestHeaders: nil, isImage: false
+@Suite struct FloconNetworkModelsTests {
+    @Test func encodesARequestLikeTheOtherSDKs() throws {
+        let call = FloconNetworkCallRequest(
+            callId: "id",
+            networkType: "grpc",
+            request: FloconNetworkRequest(
+                url: "localhost:50051",
+                method: "helloworld.Greeter/SayHello",
+                startTime: Date(timeIntervalSince1970: 1),
+                headers: ["a": "b"],
+                body: "{}",
+                size: 2
             )
         )
-        let json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(response)) as? [String: Any])
+        let json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(FloconNetworkCallRequestRemote(call))) as? [String: Any])
 
+        #expect(json["floconCallId"] as? String == "id")
         #expect(json["floconNetworkType"] as? String == "grpc")
+        #expect(json["url"] as? String == "localhost:50051")
+        #expect(json["method"] as? String == "helloworld.Greeter/SayHello")
+        #expect(json["startTime"] as? Int == 1000)
+        #expect((json["requestHeaders"] as? [String: String])?["a"] == "b")
+        #expect(json["requestBody"] as? String == "{}")
+        #expect(json["requestSize"] as? Int == 2)
+        #expect(json["isMocked"] as? Bool == false)
+    }
+
+    @Test func encodesAGrpcResponseLikeTheOtherSDKs() throws {
+        let call = FloconNetworkCallResponse(
+            callId: "id",
+            networkType: "grpc",
+            durationMs: 12,
+            response: FloconNetworkResponse(
+                grpcStatus: "OK", contentType: "grpc", body: #"{"message":"Hello"}"#, size: 19, headers: ["te": "trailers"]
+            )
+        )
+        let json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(FloconNetworkCallResponseRemote(call))) as? [String: Any])
+
+        #expect(json["floconCallId"] as? String == "id")
+        #expect(json["floconNetworkType"] as? String == "grpc")
+        #expect(json["durationMs"] as? Double == 12)
         #expect(json["responseGrpcStatus"] as? String == "OK")
         #expect(json["responseContentType"] as? String == "grpc")
         #expect(json["responseHttpCode"] is NSNull)
         #expect(json["responseError"] is NSNull)
         #expect((json["responseHeaders"] as? [String: String])?["te"] == "trailers")
+    }
+}
+
+/// The extension API of 0.2.0 must keep working for FloconSwiftGrpc 0.2.0.
+@Suite struct FloconDeprecatedExtensionAPITests {
+    @available(*, deprecated)
+    @Test func doesNothingBeforeInitialize() {
+        #expect(!Flocon.isNetworkLoggingEnabled)
+        Flocon.logNetworkRequest(
+            callId: "id", networkType: "grpc", url: "localhost:50051", method: "helloworld.Greeter/SayHello",
+            startTime: Date(), headers: [:], body: "{}", size: 2
+        )
+        Flocon.logNetworkResponse(
+            callId: "id", networkType: "grpc", durationMs: 1, httpCode: nil, grpcStatus: "OK",
+            contentType: "grpc", body: nil, headers: [:], size: nil, error: nil
+        )
     }
 }

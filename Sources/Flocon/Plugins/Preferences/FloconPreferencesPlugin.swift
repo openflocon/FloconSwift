@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The list of stores is sent on each connection. The desktop then asks for the content
 /// of the store being displayed, and sends the edited values.
-final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
+public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "sharedPreferences"
     // app -> desktop, and desktop -> app for the two requests
     private static let methodGetSharedPreferences = "getSharedPreferences"
@@ -12,7 +12,7 @@ final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
     // desktop -> app
     private static let methodSetSharedPreferenceValue = "setSharedPreferenceValue"
 
-    let pluginName = FloconPreferencesPlugin.name
+    public let pluginName = FloconPreferencesPlugin.name
     private weak var sender: FloconMessageSender?
 
     private let lock = NSLock()
@@ -21,18 +21,20 @@ final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
     init(sender: FloconMessageSender) {
         self.sender = sender
         if let bundleId = Bundle.main.bundleIdentifier {
-            register(FloconUserDefaultsPreference(defaults: .standard, name: "UserDefaults.standard", domainName: bundleId))
+            add(FloconUserDefaultsPreference(defaults: .standard, name: "UserDefaults.standard", domainName: bundleId))
         }
     }
 
-    /// Adds a store, or replaces the store that has the same name.
-    func register(_ preference: FloconPreference) {
+    /// Adds a store, or replaces the store that has the same name, without notifying the desktop app.
+    func add(_ preference: FloconPreference) {
         lock.lock(); preferences[preference.name] = preference; lock.unlock()
     }
 
-    /// Adds a store and sends the updated list to the desktop app.
-    func registerAndNotify(_ preference: FloconPreference) {
-        register(preference)
+    /// Shows a store in the desktop app, or replaces the store that has the same name.
+    ///
+    /// - Parameter preference: The store.
+    public func register(_ preference: FloconPreference) {
+        add(preference)
         sendPreferenceList()
     }
 
@@ -43,11 +45,11 @@ final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
 
     // MARK: FloconPlugin
 
-    func onConnectedToServer() {
+    public func onConnectedToServer() {
         sendPreferenceList()
     }
 
-    func onMessageReceived(_ message: FloconMessageFromServer) {
+    public func onMessageReceived(_ message: FloconMessageFromServer) {
         let body = Data(message.body.utf8)
         switch message.method {
         case Self.methodGetSharedPreferences:

@@ -99,7 +99,10 @@ extension Flocon {
 extension FloconNetworkPlugin {
     private static let methodLogWebSocketEvent = "logWebSocketEvent"
 
-    func logWebSocketEvent(_ event: FloconWebSocketEvent) {
+    /// Logs an event of a WebSocket connection. See ``floconLogWebSocketEvent(_:)``.
+    ///
+    /// - Parameter event: The event.
+    public func logWebSocketEvent(_ event: FloconWebSocketEvent) {
         let model = FloconWebSocketEventRemote(
             id: UUID().uuidString,
             event: {

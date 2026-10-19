@@ -24,9 +24,9 @@ import Foundation
 ///   Only existing items with a readable text value can be edited; items are never added or deleted.
 ///   Defaults to `false`.
 public func floconRegisterKeychain(isEditable: Bool = false) {
-    guard let plugin = Flocon.shared.client?.preferencesPlugin else { return }
-    plugin.register(FloconKeychainPreference(itemClass: .genericPassword, isEditable: isEditable))
-    plugin.registerAndNotify(FloconKeychainPreference(itemClass: .internetPassword, isEditable: isEditable))
+    guard let plugin = Flocon.shared.preferencesPlugin else { return }
+    plugin.add(FloconKeychainPreference(itemClass: .genericPassword, isEditable: isEditable))
+    plugin.register(FloconKeychainPreference(itemClass: .internetPassword, isEditable: isEditable))
 }
 
 extension Flocon {

@@ -1,34 +1,21 @@
 import Foundation
 
-// MARK: - API for extension libraries
+// MARK: - Extension API of 0.2.0
 
-// Used by the libraries that log network calls the SDK cannot intercept itself, such as
-// FloconSwiftGrpc. Import it with `@_spi(FloconExtension) import Flocon`.
+// Kept for the libraries built against FloconSwift 0.2.0, such as FloconSwiftGrpc.
+// Use the public API of ``FloconNetworkPlugin`` instead.
 
 extension Flocon {
     /// Whether network calls can be logged: ``initialize(config:)`` has been called.
-    ///
-    /// Interceptors check it to do nothing before the SDK is started.
     @_spi(FloconExtension)
+    @available(*, deprecated, message: "Check that Flocon.shared.networkPlugin is not nil")
     public static var isNetworkLoggingEnabled: Bool {
-        shared.client?.networkPlugin != nil
+        shared.networkPlugin != nil
     }
 
     /// Logs the request of a network call.
-    ///
-    /// Log its response later with ``logNetworkResponse(callId:networkType:durationMs:httpCode:grpcStatus:contentType:body:headers:size:error:)``,
-    /// using the same `callId`.
-    ///
-    /// - Parameters:
-    ///   - callId: Unique identifier of the call, shared by its request and response.
-    ///   - networkType: Kind of call shown in the desktop app, such as `"http"` or `"grpc"`.
-    ///   - url: URL of the call; for gRPC, the authority of the server (`host:port`).
-    ///   - method: HTTP method, or the full name of the gRPC method (`package.Service/Method`).
-    ///   - startTime: When the call started.
-    ///   - headers: Headers or metadata of the request.
-    ///   - body: Body of the request, as text.
-    ///   - size: Size of the request body, in bytes.
     @_spi(FloconExtension)
+    @available(*, deprecated, message: "Use Flocon.shared.networkPlugin?.logRequest(_:)")
     public static func logNetworkRequest(
         callId: String,
         networkType: String,
@@ -39,36 +26,18 @@ extension Flocon {
         body: String?,
         size: Int64?
     ) {
-        shared.client?.networkPlugin?.logRequest(
-            FloconNetworkCallRequestRemote(
-                floconCallId: callId,
-                floconNetworkType: networkType,
-                url: url,
-                method: method,
-                startTime: Int64(startTime.timeIntervalSince1970 * 1000),
-                requestHeaders: headers,
-                requestBody: body,
-                requestSize: size,
-                isMocked: false
+        shared.networkPlugin?.logRequest(
+            FloconNetworkCallRequest(
+                callId: callId,
+                networkType: networkType,
+                request: FloconNetworkRequest(url: url, method: method, startTime: startTime, headers: headers, body: body, size: size)
             )
         )
     }
 
-    /// Logs the response of a network call whose request was logged with
-    /// ``logNetworkRequest(callId:networkType:url:method:startTime:headers:body:size:)``.
-    ///
-    /// - Parameters:
-    ///   - callId: Identifier given to the request.
-    ///   - networkType: Kind of call, the same as for the request.
-    ///   - durationMs: Duration of the call, in milliseconds.
-    ///   - httpCode: HTTP status code, `nil` for gRPC.
-    ///   - grpcStatus: Name of the gRPC status code (`OK`, `NOT_FOUND`…), `nil` for HTTP.
-    ///   - contentType: Content type of the response.
-    ///   - body: Body of the response, as text.
-    ///   - headers: Headers or metadata of the response.
-    ///   - size: Size of the response body, in bytes.
-    ///   - error: Description of the error, when the call failed without a response.
+    /// Logs the response of a network call.
     @_spi(FloconExtension)
+    @available(*, deprecated, message: "Use Flocon.shared.networkPlugin?.logResponse(_:)")
     public static func logNetworkResponse(
         callId: String,
         networkType: String,
@@ -81,22 +50,19 @@ extension Flocon {
         size: Int64?,
         error: String?
     ) {
-        shared.client?.networkPlugin?.logResponse(
-            FloconNetworkCallResponseRemote(
-                floconCallId: callId,
+        shared.networkPlugin?.logResponse(
+            FloconNetworkCallResponse(
+                callId: callId,
+                networkType: networkType,
                 durationMs: durationMs,
-                floconNetworkType: networkType,
-                isMocked: false,
                 response: FloconNetworkResponse(
                     httpCode: httpCode,
+                    grpcStatus: grpcStatus,
                     contentType: contentType,
                     body: body,
-                    headers: headers,
                     size: size,
-                    grpcStatus: grpcStatus,
-                    error: error,
-                    requestHeaders: nil,
-                    isImage: false
+                    headers: headers,
+                    error: error
                 )
             )
         )

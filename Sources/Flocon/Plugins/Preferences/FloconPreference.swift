@@ -2,8 +2,24 @@ import Foundation
 
 /// A key-value store shown in the Preferences section of the Flocon desktop app.
 ///
-/// Each store appears as one entry of the desktop list, under its ``name``.
-protocol FloconPreference: AnyObject, Sendable {
+/// `UserDefaults` and the keychain are supported by the SDK. Implement this protocol to show
+/// another store of the app, then register it with ``floconRegisterPreference(_:)``:
+///
+/// ```swift
+/// final class FeatureFlagsPreference: FloconPreference {
+///     let name = "Feature flags"
+///     func keys() -> [String] { FeatureFlags.all.map(\.key) }
+///     func value(forKey key: String) -> FloconPreferenceValue? {
+///         FloconPreferenceValue(booleanValue: FeatureFlags.isEnabled(key))
+///     }
+///     func setValue(_ value: FloconPreferenceValue, forKey key: String) {
+///         if let isEnabled = value.booleanValue { FeatureFlags.set(key, isEnabled) }
+///     }
+/// }
+/// ```
+///
+/// The methods are called from a background thread.
+public protocol FloconPreference: AnyObject, Sendable {
     /// Name of the store in the desktop app. Must be unique.
     var name: String { get }
 
@@ -15,18 +31,36 @@ protocol FloconPreference: AnyObject, Sendable {
 
     /// Writes a value edited in the desktop app.
     ///
-    /// Implementations only write the value when its type matches the stored one.
+    /// Only write the value when its type matches the stored one.
     func setValue(_ value: FloconPreferenceValue, forKey key: String)
 }
 
 /// A preference value, in one of the types the Flocon desktop app can show and edit.
 ///
-/// Exactly one property is set.
-struct FloconPreferenceValue: Sendable, Equatable {
-    var stringValue: String?
-    var intValue: Int32?
-    var longValue: Int64?
-    var floatValue: Float?
-    var booleanValue: Bool?
-    var setStringValue: [String]?
+/// Set exactly one property.
+public struct FloconPreferenceValue: Sendable, Equatable {
+    public var stringValue: String?
+    public var intValue: Int32?
+    public var longValue: Int64?
+    public var floatValue: Float?
+    public var booleanValue: Bool?
+    /// A list of strings, shown and edited as a set.
+    public var setStringValue: [String]?
+
+    /// Creates a value. Set exactly one parameter.
+    public init(
+        stringValue: String? = nil,
+        intValue: Int32? = nil,
+        longValue: Int64? = nil,
+        floatValue: Float? = nil,
+        booleanValue: Bool? = nil,
+        setStringValue: [String]? = nil
+    ) {
+        self.stringValue = stringValue
+        self.intValue = intValue
+        self.longValue = longValue
+        self.floatValue = floatValue
+        self.booleanValue = booleanValue
+        self.setStringValue = setStringValue
+    }
 }

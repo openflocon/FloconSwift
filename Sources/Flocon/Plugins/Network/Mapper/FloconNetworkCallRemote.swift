@@ -20,6 +20,18 @@ struct FloconNetworkCallRequestRemote: Encodable {
         case requestHeaders, requestBody, requestSize, isMocked
     }
 
+    init(_ call: FloconNetworkCallRequest) {
+        floconCallId = call.callId
+        floconNetworkType = call.networkType
+        url = call.request.url
+        method = call.request.method
+        startTime = Int64(call.request.startTime.timeIntervalSince1970 * 1000)
+        requestHeaders = call.request.headers
+        requestBody = call.request.body
+        requestSize = call.request.size
+        isMocked = call.isMocked
+    }
+
     func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(floconCallId, forKey: .floconCallId)
@@ -34,19 +46,6 @@ struct FloconNetworkCallRequestRemote: Encodable {
     }
 }
 
-/// Content of a response, encoded through ``FloconNetworkCallResponseRemote``.
-struct FloconNetworkResponse {
-    let httpCode: Int?
-    let contentType: String?
-    let body: String?
-    let headers: [String: String]
-    let size: Int64?
-    let grpcStatus: String?
-    let error: String?
-    let requestHeaders: [String: String]?
-    let isImage: Bool
-}
-
 /// JSON format of a response sent to the desktop app: a flat object, matched with its
 /// request by `floconCallId`.
 struct FloconNetworkCallResponseRemote: Encodable {
@@ -55,6 +54,14 @@ struct FloconNetworkCallResponseRemote: Encodable {
     let floconNetworkType: String
     let isMocked: Bool
     let response: FloconNetworkResponse
+
+    init(_ call: FloconNetworkCallResponse) {
+        floconCallId = call.callId
+        durationMs = call.durationMs
+        floconNetworkType = call.networkType
+        isMocked = call.isMocked
+        response = call.response
+    }
 
     enum CodingKeys: String, CodingKey {
         case floconCallId, floconNetworkType, isMocked, durationMs, isImage
