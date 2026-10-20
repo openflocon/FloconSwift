@@ -21,9 +21,9 @@ final class FloconDevicePlugin: FloconPlugin, @unchecked Sendable {
     func onMessageReceived(_ message: FloconMessageFromServer) {
         switch message.method {
         case Self.methodGetAppIcon:
-            // UIImage and NSWorkspace are used on the main actor
-            Task { @MainActor [weak self] in
-                guard let self, let icon = FloconAppIcon.base64PNG() else {
+            // off the main thread on iOS, see FloconAppIcon
+            Task { [weak self] in
+                guard let self, let icon = await FloconAppIcon.base64PNG() else {
                     FloconLogger.log("App icon not found")
                     return
                 }

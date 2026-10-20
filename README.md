@@ -70,6 +70,12 @@ struct MyApp: App {
 
 `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are queued.
 
+The SDK works off the main thread: messages are encoded and sent in the background, and the logging calls (analytics, tables, database queries…) only queue their values. Its console logs are off by default; turn them on to debug the connection:
+
+```swift
+Flocon.isLoggingEnabled = true
+```
+
 ### On a physical device
 
 The default host, `localhost`, works from the iOS Simulator. On a device, use the local IP address of your Mac:
@@ -118,6 +124,12 @@ Flocon.setNetworkOptions(
 ```
 
 Responses with a `Content-Type: image/*` header are always treated as images.
+
+Bodies are sent up to 1 MB by default, and the desktop app shows the full size of longer ones. The SDK keeps at most that many bytes of each body in memory, while the app still gets the whole response. Change the limit with `maxBodySize`:
+
+```swift
+Flocon.setNetworkOptions(FloconNetworkOptions(maxBodySize: 256 * 1024))
+```
 
 ### Mocks and bad network
 
