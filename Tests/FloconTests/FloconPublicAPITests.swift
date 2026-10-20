@@ -23,6 +23,7 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
     @Test func pluginsAreNilBeforeInitialize() {
         #expect(Flocon.shared.networkPlugin == nil)
         #expect(Flocon.shared.analyticsPlugin == nil)
+        #expect(Flocon.shared.featureFlagsPlugin == nil)
         #expect(Flocon.shared.tablePlugin == nil)
         #expect(Flocon.shared.preferencesPlugin == nil)
         #expect(Flocon.shared.deeplinksPlugin == nil)
