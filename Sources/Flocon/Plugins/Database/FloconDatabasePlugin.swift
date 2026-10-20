@@ -72,7 +72,7 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
 
         case Self.methodQuery:
             guard let request = try? JSONDecoder().decode(ToDeviceDatabaseQueryMessage.self, from: Data(message.body.utf8)) else {
-                FloconLogger.log("Unreadable database query: \(message.body)")
+                FloconLogger.log(payload: message.body, "Unreadable database query:")
                 return
             }
             queue.async {
@@ -118,13 +118,9 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
         send(list, method: Self.methodDatabasesResult)
     }
 
-    private func send<T: Encodable>(_ value: T, method: String) {
-        do {
-            let data = try JSONEncoder().encode(value)
-            sender?.send(plugin: pluginName, method: method, body: String(decoding: data, as: UTF8.self))
-        } catch {
-            FloconLogger.logError("Database json mapping error", error)
-        }
+    /// Encoded off the calling thread: ``logQuery(dbName:sqlQuery:bindArgs:)`` is often called from the main thread.
+    private func send<T: Encodable & Sendable>(_ value: T, method: String) {
+        sender?.send(plugin: pluginName, method: method, value: value)
     }
 
     /// Path used as identifier, the same for every spelling of a file.

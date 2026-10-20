@@ -13,8 +13,17 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     private struct OutgoingMessage: Sendable {
         let plugin: String
         let method: String
-        let body: String
+        let body: Body
     }
+
+    private enum Body: Sendable {
+        case text(String)
+        /// Encoded by the outbox task, off the thread that sent it.
+        case value(any Encodable & Sendable)
+    }
+
+    /// Read once, on the main actor for `UIDevice`, and shared by the messages and the uploads.
+    private let appInfos: Task<FloconAppInfos, Never>
 
     // Serial outbox: keeps messages in order (one Task per message would not).
     private let outbox: AsyncStream<OutgoingMessage>.Continuation
@@ -28,12 +37,14 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         var continuation: AsyncStream<OutgoingMessage>.Continuation!
         let stream = AsyncStream<OutgoingMessage> { continuation = $0 }
         self.outbox = continuation
+        let appInfosTask = Task { await FloconAppInfos.current() }
+        self.appInfos = appInfosTask
         let ws = webSocketClient
         let appInstance = appInstance
         outboxTask = Task {
-            // Read once, without blocking the thread that called Flocon.initialize():
+            // Read without blocking the thread that called Flocon.initialize():
             // messages sent in the meantime wait in the stream, in order.
-            let appInfos = await FloconAppInfos.current()
+            let appInfos = await appInfosTask.value
             for await message in stream {
                 guard let json = Self.encode(message, appInfos: appInfos, appInstance: appInstance) else { continue }
                 _ = await ws.sendMessage(json)
@@ -135,7 +146,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
             let data = text.data(using: .utf8),
             let message = try? JSONDecoder().decode(FloconMessageFromServer.self, from: data)
         else {
-            FloconLogger.log("Unreadable message from the desktop: \(text)")
+            FloconLogger.log(payload: text, "Unreadable message from the desktop:")
             return
         }
         pluginsLock.lock()
@@ -147,13 +158,17 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     // MARK: Sending (FloconMessageSender)
 
     func send(plugin: String, method: String, body: String) {
-        outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: body))
+        outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: .text(body)))
+    }
+
+    func send<T: Encodable & Sendable>(plugin: String, method: String, value: T) {
+        outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: .value(value)))
     }
 
     // MARK: Sending files (FloconFileSender)
 
     func sendFile(at fileURL: URL, remotePath: String, requestId: String) async {
-        let appInfos = await FloconAppInfos.current()
+        let appInfos = await self.appInfos.value
         let uploader = FloconFileUploader(host: config.host, port: config.httpPort)
         await uploader.upload(
             fileAt: fileURL,
@@ -164,10 +179,18 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     }
 
     private static func encode(_ message: OutgoingMessage, appInfos: FloconAppInfos, appInstance: Int64) -> String? {
+        let body: String
+        switch message.body {
+        case .text(let text):
+            body = text
+        case .value(let value):
+            guard let encoded = FloconJSON.encode(value, plugin: message.plugin) else { return nil }
+            body = encoded
+        }
         let envelope = FloconMessageToServer(
             deviceId: appInfos.deviceId,
             plugin: message.plugin,
-            body: message.body,
+            body: body,
             appName: appInfos.appName,
             appPackageName: appInfos.appPackageName,
             method: message.method,

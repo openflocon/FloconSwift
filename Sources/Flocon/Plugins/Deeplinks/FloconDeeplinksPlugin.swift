@@ -36,13 +36,8 @@ public final class FloconDeeplinksPlugin: FloconPlugin, @unchecked Sendable {
     /// The desktop app sends nothing to this plugin: it opens the deeplinks itself.
     public func onMessageReceived(_ message: FloconMessageFromServer) {}
 
+    /// Encoded off the calling thread.
     private func send(_ remote: DeeplinksRemote) {
-        do {
-            let data = try JSONEncoder().encode(remote)
-            guard let json = String(data: data, encoding: .utf8) else { return }
-            sender?.send(plugin: pluginName, method: Self.methodGetDeeplinks, body: json)
-        } catch {
-            FloconLogger.logError("Deeplinks json mapping error", error)
-        }
+        sender?.send(plugin: pluginName, method: Self.methodGetDeeplinks, value: remote)
     }
 }

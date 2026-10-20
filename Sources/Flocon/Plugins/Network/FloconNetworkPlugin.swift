@@ -94,11 +94,8 @@ public final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
         send(FloconNetworkCallResponseRemote(call), method: Self.methodLogResponse)
     }
 
-    func send<T: Encodable>(_ value: T, method: String) {
-        guard
-            let data = try? JSONEncoder().encode(value),
-            let json = String(data: data, encoding: .utf8)
-        else { return }
-        sender?.send(plugin: pluginName, method: method, body: json)
+    /// Encoded by the client off this thread: bodies can be large.
+    func send<T: Encodable & Sendable>(_ value: T, method: String) {
+        sender?.send(plugin: pluginName, method: method, value: value)
     }
 }

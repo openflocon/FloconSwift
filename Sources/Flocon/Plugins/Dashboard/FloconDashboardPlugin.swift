@@ -90,13 +90,8 @@ public final class FloconDashboardPlugin: FloconPlugin, @unchecked Sendable {
         return callbacks[id]
     }
 
+    /// Encoded off the calling thread.
     private func send(_ remote: DashboardRemote) {
-        do {
-            let data = try JSONEncoder().encode(remote)
-            guard let json = String(data: data, encoding: .utf8) else { return }
-            sender?.send(plugin: Self.remotePluginName, method: Self.methodUpdate, body: json)
-        } catch {
-            FloconLogger.logError("Dashboard json mapping error", error)
-        }
+        sender?.send(plugin: Self.remotePluginName, method: Self.methodUpdate, value: remote)
     }
 }
