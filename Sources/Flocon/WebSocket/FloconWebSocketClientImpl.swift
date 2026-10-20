@@ -61,7 +61,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
                     let message = try await socket.receive()
                     switch message {
                     case .string(let text):
-                        FloconLogger.log("WEBSOCKET <----- Receiving \(text)")
+                        FloconLogger.log(payload: text, "WEBSOCKET <----- Receiving")
                         onMessageReceived(text)
                     case .data(let data):
                         if let text = String(data: data, encoding: .utf8) {
@@ -97,7 +97,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
             if queue.count > queueCapacity { queue.removeFirst(queue.count - queueCapacity) }
             return false
         }
-        FloconLogger.log("WEBSOCKET ----> send \(message)")
+        FloconLogger.log(payload: message, "WEBSOCKET ----> send")
         do {
             try await task.send(.string(message))
             return true
