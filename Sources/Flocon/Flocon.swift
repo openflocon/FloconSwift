@@ -75,7 +75,7 @@ public final class Flocon: @unchecked Sendable {
 
     /// Registers a custom plugin.
     ///
-    /// The built-in plugins (network, analytics, tables, preferences, files, databases, dashboards, deeplinks, crash reporter, device) are registered by
+    /// The built-in plugins (network, analytics, feature flags, tables, preferences, files, databases, dashboards, deeplinks, crash reporter, device) are registered by
     /// ``initialize(config:)``. Registering a plugin with the same ``FloconPlugin/pluginName``
     /// replaces the previous one. Has no effect before ``initialize(config:)``.
     ///
@@ -113,6 +113,7 @@ public final class Flocon: @unchecked Sendable {
         let newClient = FloconClient(config: config)
         newClient.register(plugin: FloconNetworkPlugin(sender: newClient))
         newClient.register(plugin: FloconAnalyticsPlugin(sender: newClient))
+        newClient.register(plugin: FloconFeatureFlagsPlugin(sender: newClient))
         newClient.register(plugin: FloconTablePlugin(sender: newClient))
         newClient.register(plugin: FloconDevicePlugin(sender: newClient))
         newClient.register(plugin: FloconPreferencesPlugin(sender: newClient))

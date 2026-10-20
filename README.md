@@ -6,6 +6,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 
 - **Network**: every HTTP call made through `URLSession` (headers, bodies, timing, redirects, images), and the WebSocket events you log; mocks and bad network simulation set from the desktop
 - **Analytics**: the events sent to your analytics providers, one table per provider
+- **Feature flags**: the flags evaluated by your app, with their provider, variant and payload
 - **Tables**: any structured data you want to inspect while the app runs
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
 - **Files**: browse, download and delete the files of the app container
@@ -157,6 +158,19 @@ floconAnalytics("firebase").logEvents(
 )
 ```
 
+## Feature flags
+
+Register the flags your app evaluated, one provider per feature flag system (Firebase Remote Config, Statsig, an in-house one…). No dependency on their SDKs: each call replaces the flags of the provider, and they are sent again when the app reconnects to the desktop:
+
+```swift
+floconFeatureFlags("firebase").register(
+    FloconFeatureFlag(name: "new_checkout", variant: "treatment", payload: #"{"steps": 3}"#),
+    FloconFeatureFlag(name: "dark_mode", variant: "on")
+)
+```
+
+The desktop lists them with a search, and shows the payload (formatted when it is json) when you click a flag.
+
 ## Tables
 
 Log rows in a table; its columns are created from the names you use:
@@ -306,7 +320,7 @@ Flocon.initialize(config: FloconConfig(isCrashReporterEnabled: false))
 
 ## Extending Flocon
 
-Each feature is a plugin of `Flocon.shared`: `networkPlugin`, `analyticsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin` and `deeplinksPlugin`. They are `nil` until `Flocon.initialize()`.
+Each feature is a plugin of `Flocon.shared`: `networkPlugin`, `analyticsPlugin`, `featureFlagsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin` and `deeplinksPlugin`. They are `nil` until `Flocon.initialize()`.
 
 ### Logging other network calls
 
@@ -335,23 +349,23 @@ Flocon.shared.networkPlugin?.logResponse(
 Implement `FloconPreference` to show and edit any key-value store in the Preferences section, then register it:
 
 ```swift
-final class FeatureFlagsPreference: FloconPreference {
-    let name = "Feature flags"
-    func keys() -> [String] { FeatureFlags.all.map(\.key) }
+final class DebugSettingsPreference: FloconPreference {
+    let name = "Debug settings"
+    func keys() -> [String] { DebugSettings.all.map(\.key) }
     func value(forKey key: String) -> FloconPreferenceValue? {
-        FloconPreferenceValue(booleanValue: FeatureFlags.isEnabled(key))
+        FloconPreferenceValue(booleanValue: DebugSettings.isEnabled(key))
     }
     func setValue(_ value: FloconPreferenceValue, forKey key: String) {
-        if let isEnabled = value.booleanValue { FeatureFlags.set(key, isEnabled) }
+        if let isEnabled = value.booleanValue { DebugSettings.set(key, isEnabled) }
     }
 }
 
-floconRegisterPreference(FeatureFlagsPreference())
+floconRegisterPreference(DebugSettingsPreference())
 ```
 
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, registers deeplinks handled by its `flocondemo://` URL scheme, and has buttons to try each kind of crash.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, registers feature flags, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, registers deeplinks handled by its `flocondemo://` URL scheme, and has buttons to try each kind of crash.
 
 ## Documentation
 

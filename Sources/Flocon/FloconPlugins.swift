@@ -13,6 +13,11 @@ extension Flocon {
     /// `nil` before ``initialize(config:)``.
     public var analyticsPlugin: FloconAnalyticsPlugin? { client?.analyticsPlugin }
 
+    /// Sends the feature flags of the app. Usually used through ``floconFeatureFlags(_:)``.
+    ///
+    /// `nil` before ``initialize(config:)``.
+    public var featureFlagsPlugin: FloconFeatureFlagsPlugin? { client?.featureFlagsPlugin }
+
     /// Sends table rows. Usually used through ``floconTable(_:)``.
     ///
     /// `nil` before ``initialize(config:)``.
