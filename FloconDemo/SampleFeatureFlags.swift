@@ -6,13 +6,13 @@ import Flocon
 enum SampleFeatureFlags {
     static func register() {
         floconFeatureFlags("firebase").register(
-            FloconFeatureFlag(name: "new_checkout", variant: "treatment", payload: ##"{"buttonColor":"#FF5722","steps":3}"##),
-            FloconFeatureFlag(name: "dark_mode", variant: "on"),
-            FloconFeatureFlag(name: "onboarding_v2", variant: "control")
+            FloconFeatureFlag(name: "new_checkout", state: .custom, variant: "treatment", payload: ##"{"buttonColor":"#FF5722","steps":3}"##),
+            FloconFeatureFlag(name: "dark_mode", state: .on, variant: "on"),
+            FloconFeatureFlag(name: "onboarding_v2", state: .off, variant: "control")
         )
         floconFeatureFlags("statsig").register(
-            FloconFeatureFlag(name: "search_ranking", variant: "variant_b", payload: #"{"algorithm":"bm25","boost":{"recent":1.5,"popular":2}}"#),
-            FloconFeatureFlag(name: "paywall_copy", variant: "short", payload: "Unlock everything")
+            FloconFeatureFlag(name: "search_ranking", state: .custom, variant: "variant_b", payload: #"{"algorithm":"bm25","boost":{"recent":1.5,"popular":2}}"#),
+            FloconFeatureFlag(name: "paywall_copy", state: .custom, variant: "short", payload: "Unlock everything")
         )
     }
 }

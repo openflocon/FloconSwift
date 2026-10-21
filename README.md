@@ -164,12 +164,13 @@ Register the flags your app evaluated, one provider per feature flag system (Fir
 
 ```swift
 floconFeatureFlags("firebase").register(
-    FloconFeatureFlag(name: "new_checkout", variant: "treatment", payload: #"{"steps": 3}"#),
-    FloconFeatureFlag(name: "dark_mode", variant: "on")
+    FloconFeatureFlag(name: "new_checkout", state: .custom, variant: "treatment", payload: #"{"steps": 3}"#),
+    FloconFeatureFlag(name: "dark_mode", state: .on, variant: "on"),
+    FloconFeatureFlag(name: "onboarding_v2", state: .off, variant: "control")
 )
 ```
 
-The desktop lists them with a search, and shows the payload (formatted when it is json) when you click a flag.
+`state` (`.on`, `.off` or `.custom` for an experiment arm or a value) colors the variant in the desktop. The desktop lists them with a search, and shows the payload (formatted when it is json) when you click a flag.
 
 ## Tables
 
