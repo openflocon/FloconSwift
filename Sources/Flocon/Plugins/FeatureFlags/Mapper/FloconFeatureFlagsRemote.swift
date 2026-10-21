@@ -7,12 +7,13 @@ struct FloconFeatureFlagsRemote: Encodable {
 
     struct Flag: Encodable {
         let name: String
+        let state: String
         let variant: String
         let payload: String?
     }
 
     init(provider: String, flags: [FloconFeatureFlag]) {
         self.provider = provider
-        self.flags = flags.map { Flag(name: $0.name, variant: $0.variant, payload: $0.payload) }
+        self.flags = flags.map { Flag(name: $0.name, state: $0.state.rawValue, variant: $0.variant, payload: $0.payload) }
     }
 }
