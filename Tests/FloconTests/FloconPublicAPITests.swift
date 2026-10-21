@@ -27,6 +27,15 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         #expect(Flocon.shared.tablePlugin == nil)
         #expect(Flocon.shared.preferencesPlugin == nil)
         #expect(Flocon.shared.deeplinksPlugin == nil)
+        #expect(Flocon.shared.filesPlugin == nil)
+    }
+
+    @Test func registersFoldersBeforeInitialize() {
+        // does nothing before initialize, but must compile and not crash
+        floconRegisterFolder(displayName: "Exports", url: FileManager.default.temporaryDirectory)
+        floconRegisterFolder(displayName: "Exports", absolutePath: NSTemporaryDirectory())
+        floconRegisterAppGroup("group.io.github.openflocon.tests")
+        Flocon.registerFolder(FloconFolder(displayName: "Exports", url: FileManager.default.temporaryDirectory))
     }
 
     @Test func buildsNetworkCalls() {

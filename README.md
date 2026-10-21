@@ -9,7 +9,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Feature flags**: the flags evaluated by your app, with their provider, variant and payload
 - **Tables**: any structured data you want to inspect while the app runs
 - **Preferences**: the content of your `UserDefaults` stores and, if you opt in, your keychain passwords, editable from the desktop
-- **Files**: browse, download and delete the files of the app container
+- **Files**: browse, download and delete the files of the app, and of the folders you register (App Groups…)
 - **Databases**: query the SQLite databases of the app (Core Data, GRDB, SQLite…), and see the queries it runs
 - **Dashboards**: values of your app updated live, and buttons, inputs and forms that run actions in it
 - **Deeplinks**: the deeplinks of your app, with their parameters
@@ -211,9 +211,14 @@ With `isEditable: true`, only existing items with a text value can be edited; it
 
 ## Files
 
-Nothing to set up: the Files section of the desktop app opens the root of the app container (with its `Documents`, `Library` and `tmp` folders), or its `Library/Caches` folder.
+The Files section of the desktop app shows `Documents`, `Application Support`, `Caches`, `tmp` and the whole app container without any setup. Register other folders, such as the container of an App Group shared with your widgets and extensions:
 
-Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside the app container are refused, and the root folders themselves can never be deleted.
+```swift
+floconRegisterAppGroup("group.com.example.app")
+floconRegisterFolder(displayName: "Exports", url: exportsURL)
+```
+
+Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside these folders are refused, and the folders themselves can never be deleted.
 
 ## Databases
 
