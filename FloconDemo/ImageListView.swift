@@ -26,6 +26,7 @@ struct ImageListView: View {
             }
             .padding()
         }
+        .background(SampleTheme.bg)
         .navigationTitle("Images")
         .toolbar {
             Button("Clear cache") {
