@@ -29,6 +29,11 @@ final class SampleDashboard {
 
     private init() {}
 
+    /// Changes the user name, shown live in the "User" section.
+    func randomizeUserName() {
+        user.userName = "flo-\(Int.random(in: 0..<100))"
+    }
+
     func start() {
         handle = floconDashboard(id: "main") {
             FloconSection("User", publisher: $user) { user in

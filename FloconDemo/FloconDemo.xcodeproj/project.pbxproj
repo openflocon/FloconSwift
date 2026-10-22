@@ -20,6 +20,18 @@
 		E56E386B3083E37B0063FCD8 /* FloconSampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56E38693083E1C70063FCD8 /* FloconSampleApp.swift */; };
 		E56E386C3083E37F0063FCD8 /* SampleNetworkClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56E386A3083E1C70063FCD8 /* SampleNetworkClient.swift */; };
 		E56E386D3083E37F0063FCD8 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E56E38683083E1C70063FCD8 /* ContentView.swift */; };
+		F10C00000000000000000101 /* SampleTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000100 /* SampleTheme.swift */; };
+		F10C00000000000000000103 /* SampleScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000102 /* SampleScreen.swift */; };
+		F10C00000000000000000105 /* SampleComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000104 /* SampleComponents.swift */; };
+		F10C00000000000000000107 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000106 /* HomeView.swift */; };
+		F10C00000000000000000109 /* NetworkScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000108 /* NetworkScreen.swift */; };
+		F10C0000000000000000010B /* DatabaseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C0000000000000000010A /* DatabaseScreen.swift */; };
+		F10C0000000000000000010D /* AnalyticsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C0000000000000000010C /* AnalyticsScreen.swift */; };
+		F10C0000000000000000010F /* FeatureFlagsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C0000000000000000010E /* FeatureFlagsScreen.swift */; };
+		F10C00000000000000000111 /* FilesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000110 /* FilesScreen.swift */; };
+		F10C00000000000000000113 /* DashboardScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000112 /* DashboardScreen.swift */; };
+		F10C00000000000000000115 /* DeeplinksScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000114 /* DeeplinksScreen.swift */; };
+		F10C00000000000000000117 /* CrashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000116 /* CrashScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +48,18 @@
 		E56E38683083E1C70063FCD8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		E56E38693083E1C70063FCD8 /* FloconSampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloconSampleApp.swift; sourceTree = SOURCE_ROOT; };
 		E56E386A3083E1C70063FCD8 /* SampleNetworkClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleNetworkClient.swift; sourceTree = "<group>"; };
+		F10C00000000000000000100 /* SampleTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleTheme.swift; sourceTree = "<group>"; };
+		F10C00000000000000000102 /* SampleScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleScreen.swift; sourceTree = "<group>"; };
+		F10C00000000000000000104 /* SampleComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleComponents.swift; sourceTree = "<group>"; };
+		F10C00000000000000000106 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		F10C00000000000000000108 /* NetworkScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkScreen.swift; sourceTree = "<group>"; };
+		F10C0000000000000000010A /* DatabaseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseScreen.swift; sourceTree = "<group>"; };
+		F10C0000000000000000010C /* AnalyticsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsScreen.swift; sourceTree = "<group>"; };
+		F10C0000000000000000010E /* FeatureFlagsScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeatureFlagsScreen.swift; sourceTree = "<group>"; };
+		F10C00000000000000000110 /* FilesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesScreen.swift; sourceTree = "<group>"; };
+		F10C00000000000000000112 /* DashboardScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardScreen.swift; sourceTree = "<group>"; };
+		F10C00000000000000000114 /* DeeplinksScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeeplinksScreen.swift; sourceTree = "<group>"; };
+		F10C00000000000000000116 /* CrashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +86,18 @@
 				F10C00000000000000000073 /* SampleDashboard.swift */,
 				F10C00000000000000000075 /* SampleFeatureFlags.swift */,
 				F10C00000000000000000061 /* DeeplinkScreens.swift */,
+				F10C00000000000000000100 /* SampleTheme.swift */,
+				F10C00000000000000000102 /* SampleScreen.swift */,
+				F10C00000000000000000104 /* SampleComponents.swift */,
+				F10C00000000000000000106 /* HomeView.swift */,
+				F10C00000000000000000108 /* NetworkScreen.swift */,
+				F10C0000000000000000010A /* DatabaseScreen.swift */,
+				F10C0000000000000000010C /* AnalyticsScreen.swift */,
+				F10C0000000000000000010E /* FeatureFlagsScreen.swift */,
+				F10C00000000000000000110 /* FilesScreen.swift */,
+				F10C00000000000000000112 /* DashboardScreen.swift */,
+				F10C00000000000000000114 /* DeeplinksScreen.swift */,
+				F10C00000000000000000116 /* CrashScreen.swift */,
 				F10C00000000000000000051 /* Info.plist */,
 				F10C00000000000000000021 /* Assets.xcassets */,
 				E56E385730838CBB0063FCD8 /* Frameworks */,
@@ -167,6 +203,18 @@
 				F10C00000000000000000074 /* SampleDashboard.swift in Sources */,
 				F10C00000000000000000076 /* SampleFeatureFlags.swift in Sources */,
 				F10C00000000000000000062 /* DeeplinkScreens.swift in Sources */,
+				F10C00000000000000000101 /* SampleTheme.swift in Sources */,
+				F10C00000000000000000103 /* SampleScreen.swift in Sources */,
+				F10C00000000000000000105 /* SampleComponents.swift in Sources */,
+				F10C00000000000000000107 /* HomeView.swift in Sources */,
+				F10C00000000000000000109 /* NetworkScreen.swift in Sources */,
+				F10C0000000000000000010B /* DatabaseScreen.swift in Sources */,
+				F10C0000000000000000010D /* AnalyticsScreen.swift in Sources */,
+				F10C0000000000000000010F /* FeatureFlagsScreen.swift in Sources */,
+				F10C00000000000000000111 /* FilesScreen.swift in Sources */,
+				F10C00000000000000000113 /* DashboardScreen.swift in Sources */,
+				F10C00000000000000000115 /* DeeplinksScreen.swift in Sources */,
+				F10C00000000000000000117 /* CrashScreen.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */

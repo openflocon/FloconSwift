@@ -371,7 +371,7 @@ floconRegisterPreference(DebugSettingsPreference())
 
 ## Sample app
 
-Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample triggers HTTP calls, loads an image list with Kingfisher, runs a WebSocket echo, logs analytics events and table rows, registers feature flags, shows `UserDefaults` values and keychain items that update live when you edit them in the desktop app, writes sample files to browse, registers deeplinks handled by its `flocondemo://` URL scheme, and has buttons to try each kind of crash.
+Open `FloconWorkspace.xcworkspace` and run the `FloconDemo` scheme. The sample has a home listing the plugins and one screen per plugin, in the colors of the Flocon desktop app: Network (HTTP calls, errors, a WebSocket echo, GraphQL), Database, Analytics, Feature flags, Preferences (`UserDefaults` and keychain items that update live when you edit them in the desktop app), Files, Dashboard & Tables, Deeplinks (handled by the `flocondemo://` URL scheme), Images (a list loaded with Kingfisher) and Crash reporter. Each row shows the duration or the error of its last run.
 
 ## Documentation
 
