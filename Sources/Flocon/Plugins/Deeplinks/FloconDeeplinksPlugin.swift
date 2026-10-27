@@ -17,7 +17,7 @@ public final class FloconDeeplinksPlugin: FloconPlugin, @unchecked Sendable {
         self.sender = sender
     }
 
-    /// Lists deeplinks in the desktop app, replacing the previous list. See ``floconRegisterDeeplinks(_:variables:)``.
+    /// Lists deeplinks in the desktop app, replacing the previous list. See ``FloconDeeplinksPlugin/register(deeplinks:variables:)``.
     ///
     /// - Parameters:
     ///   - deeplinks: The deeplinks of the app.

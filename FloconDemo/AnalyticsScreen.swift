@@ -18,7 +18,7 @@ struct AnalyticsScreen: View {
                     .font(.footnote)
                     .foregroundStyle(SampleTheme.inkMuted)
                 Button(sentCount == 0 ? "Send event" : "Send event (\(sentCount) sent)") {
-                    floconAnalytics("sample").logEvents(
+                    Flocon.analyticsPlugin.sender("sample").logEvents(
                         AnalyticsEvent(
                             eventName: eventName.trimmingCharacters(in: .whitespaces),
                             AnalyticsProperty("userId", "1024"),
@@ -37,7 +37,7 @@ struct AnalyticsScreen: View {
 
             SampleSection(title: "Presets") {
                 SampleActionRow(title: "Button tapped", detail: "One event in the stream \"sample\"", buttonTitle: "Send") {
-                    floconAnalytics("sample").logEvents(
+                    Flocon.analyticsPlugin.sender("sample").logEvents(
                         AnalyticsEvent(
                             eventName: "button_tapped",
                             AnalyticsProperty("screen", "AnalyticsScreen"),
@@ -47,7 +47,7 @@ struct AnalyticsScreen: View {
                     return nil
                 }
                 SampleActionRow(title: "Firebase-style events", detail: "Two events from one stream", buttonTitle: "Send") {
-                    floconAnalytics("firebase").logEvents(
+                    Flocon.analyticsPlugin.sender("firebase").logEvents(
                         AnalyticsEvent(eventName: "clicked user", AnalyticsProperty("userId", "1024"), AnalyticsProperty("username", "florent")),
                         AnalyticsEvent(eventName: "opened profile", AnalyticsProperty("userId", "2048"), AnalyticsProperty("username", "kevin"))
                     )

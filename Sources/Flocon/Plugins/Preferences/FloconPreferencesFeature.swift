@@ -30,10 +30,10 @@ extension FloconFeature where Options == FloconPreferencesOptions {
             kind: .preferences,
             makeOptions: { FloconPreferencesOptions() },
             apply: { options in
-                options.userDefaults.forEach { floconRegisterUserDefaults($0.defaults, suiteName: $0.suiteName) }
-                options.preferences.forEach(floconRegisterPreference)
+                options.userDefaults.forEach { Flocon.preferencesPlugin.registerUserDefaults($0.defaults, suiteName: $0.suiteName) }
+                options.preferences.forEach(Flocon.preferencesPlugin.register)
                 if let isEditable = options.keychain {
-                    floconRegisterKeychain(isEditable: isEditable)
+                    Flocon.preferencesPlugin.registerKeychain(isEditable: isEditable)
                 }
             }
         )

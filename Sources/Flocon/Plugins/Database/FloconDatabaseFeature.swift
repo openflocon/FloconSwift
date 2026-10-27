@@ -16,12 +16,12 @@ public struct FloconDatabaseOptions {
 }
 
 extension FloconFeature where Options == FloconDatabaseOptions {
-    /// Lists and queries the SQLite databases of the app. See ``floconLogDatabaseQuery(dbName:sqlQuery:bindArgs:)``.
+    /// Lists and queries the SQLite databases of the app. See ``Flocon.databasePlugin.logQuery(dbName:sqlQuery:bindArgs:)``.
     public static var database: FloconFeature<FloconDatabaseOptions> {
         .init(
             kind: .database,
             makeOptions: { FloconDatabaseOptions() },
-            apply: { $0.databases.forEach(floconRegisterDatabase) }
+            apply: { $0.databases.forEach(Flocon.databasePlugin.register) }
         )
     }
 }

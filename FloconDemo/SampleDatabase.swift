@@ -18,7 +18,7 @@ enum SampleDatabase {
         defer { sqlite3_close(db) }
 
         // found anyway in Documents: registering it gives it a clearer name
-        floconRegisterDatabase(displayName: name, url: url)
+        Flocon.databasePlugin.register(displayName: name, url: url)
 
         execute("CREATE TABLE IF NOT EXISTS dogs (id INTEGER PRIMARY KEY, name TEXT NOT NULL, breed TEXT, age INTEGER, weight REAL)", in: db)
         if count(in: db) == 0 {
@@ -49,13 +49,13 @@ enum SampleDatabase {
     }
 
     private static func execute(_ sql: String, in db: OpaquePointer?) {
-        floconLogDatabaseQuery(dbName: name, sqlQuery: sql)
+        Flocon.databasePlugin.logQuery(dbName: name, sqlQuery: sql)
         sqlite3_exec(db, sql, nil, nil, nil)
     }
 
     private static func insert(_ dog: (name: String, breed: String, age: Int, weight: Double), in db: OpaquePointer?) {
         let sql = "INSERT INTO dogs (name, breed, age, weight) VALUES (?, ?, ?, ?)"
-        floconLogDatabaseQuery(dbName: name, sqlQuery: sql, bindArgs: [dog.name, dog.breed, dog.age, dog.weight])
+        Flocon.databasePlugin.logQuery(dbName: name, sqlQuery: sql, bindArgs: [dog.name, dog.breed, dog.age, dog.weight])
 
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return }
@@ -71,7 +71,7 @@ enum SampleDatabase {
 
     private static func count(in db: OpaquePointer?) -> Int {
         let sql = "SELECT count(*) FROM dogs"
-        floconLogDatabaseQuery(dbName: name, sqlQuery: sql)
+        Flocon.databasePlugin.logQuery(dbName: name, sqlQuery: sql)
 
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return 0 }

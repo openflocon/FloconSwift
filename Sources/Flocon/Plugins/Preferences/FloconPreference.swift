@@ -3,7 +3,7 @@ import Foundation
 /// A key-value store shown in the Preferences section of the Flocon desktop app.
 ///
 /// `UserDefaults` and the keychain are supported by the SDK. Implement this protocol to show
-/// another store of the app, then register it with ``floconRegisterPreference(_:)``:
+/// another store of the app, then register it with ``Flocon.preferencesPlugin.register(_:)``:
 ///
 /// ```swift
 /// final class FeatureFlagsPreference: FloconPreference {

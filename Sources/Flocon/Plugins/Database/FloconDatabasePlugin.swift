@@ -49,7 +49,7 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
     ///   - dbName: Name of the database.
     ///   - sqlQuery: The SQL query.
     ///   - bindArgs: Values bound to the query; `nil` is shown as `null`.
-    public func logQuery(dbName: String, sqlQuery: String, bindArgs: [Any?]) {
+    public func logQuery(dbName: String, sqlQuery: String, bindArgs: [Any?] = []) {
         let model = DatabaseQueryLogRemote(
             dbName: dbName,
             sqlQuery: sqlQuery,

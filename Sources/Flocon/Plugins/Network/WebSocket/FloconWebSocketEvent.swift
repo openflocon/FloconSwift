@@ -2,7 +2,7 @@ import Foundation
 
 /// An event of a WebSocket connection, shown with the network calls in the Flocon desktop app.
 ///
-/// See ``floconLogWebSocketEvent(_:)``.
+/// See ``FloconNetworkPlugin/logWebSocketEvent(_:)``.
 public struct FloconWebSocketEvent: Sendable {
     /// Kind of WebSocket event.
     public enum Event: Sendable {
@@ -60,46 +60,12 @@ public struct FloconWebSocketEvent: Sendable {
     }
 }
 
-/// Sends a WebSocket event to the desktop app.
-///
-/// WebSocket traffic cannot be intercepted automatically: call this function for each
-/// event of the connections you want to inspect.
-///
-/// ```swift
-/// let task = URLSession.shared.webSocketTask(with: url)
-/// task.resume()
-/// floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: url.absoluteString, event: .open))
-///
-/// try await task.send(.string(text))
-/// floconLogWebSocketEvent(
-///     FloconWebSocketEvent(websocketUrl: url.absoluteString, event: .sendMessage, message: text)
-/// )
-/// ```
-///
-/// Does nothing if ``Flocon/initialize(config:)`` has not been called.
-///
-/// - Parameter event: The event to send.
-public func floconLogWebSocketEvent(_ event: FloconWebSocketEvent) {
-    Flocon.shared.client?.networkPlugin?.logWebSocketEvent(event)
-}
-
-extension Flocon {
-    /// Sends a WebSocket event to the desktop app.
-    ///
-    /// See ``floconLogWebSocketEvent(_:)``.
-    ///
-    /// - Parameter event: The event to send.
-    public static func logWebSocketEvent(_ event: FloconWebSocketEvent) {
-        floconLogWebSocketEvent(event)
-    }
-}
-
 // MARK: - Sending
 
 extension FloconNetworkPlugin {
     private static let methodLogWebSocketEvent = "logWebSocketEvent"
 
-    /// Logs an event of a WebSocket connection. See ``floconLogWebSocketEvent(_:)``.
+    /// Logs an event of a WebSocket connection. See ``FloconNetworkPlugin/logWebSocketEvent(_:)``.
     ///
     /// - Parameter event: The event.
     public func logWebSocketEvent(_ event: FloconWebSocketEvent) {

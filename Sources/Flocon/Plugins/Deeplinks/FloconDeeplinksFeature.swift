@@ -18,7 +18,7 @@ extension FloconFeature where Options == FloconDeeplinksOptions {
         .init(
             kind: .deeplinks,
             makeOptions: { FloconDeeplinksOptions() },
-            apply: { floconRegisterDeeplinks($0.deeplinks, variables: $0.variables) }
+            apply: { Flocon.deeplinksPlugin.register(deeplinks: $0.deeplinks, variables: $0.variables) }
         )
     }
 }

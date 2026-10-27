@@ -77,7 +77,7 @@ public struct FloconAnalyticsItem: Sendable {
 /// provider, so that you can check what each of them receives:
 ///
 /// ```swift
-/// floconAnalytics("firebase").logEvents(
+/// Flocon.analyticsPlugin.sender("firebase").logEvents(
 ///     AnalyticsEvent(
 ///         eventName: "button_clicked",
 ///         AnalyticsProperty("button_id", "checkout_pay")
@@ -85,6 +85,7 @@ public struct FloconAnalyticsItem: Sendable {
 /// )
 /// ```
 public struct FloconAnalytics: Sendable {
+    let plugin: FloconAnalyticsPlugin
     let streamName: String
 
     /// Logs events on the stream.
@@ -103,24 +104,6 @@ public struct FloconAnalytics: Sendable {
     /// - Parameter events: The events to log.
     public func logEvents(_ events: [AnalyticsEvent]) {
         let items = events.map { FloconAnalyticsItem(streamName: streamName, event: $0) }
-        Flocon.shared.client?.analyticsPlugin?.registerAnalytics(items)
-    }
-}
-
-/// Returns the analytics logger of a stream.
-///
-/// - Parameter streamName: Name of the stream, for example `"firebase"`.
-/// - Returns: A logger for that stream.
-public func floconAnalytics(_ streamName: String) -> FloconAnalytics {
-    FloconAnalytics(streamName: streamName)
-}
-
-extension Flocon {
-    /// Returns the analytics logger of a stream.
-    ///
-    /// - Parameter streamName: Name of the stream, for example `"firebase"`.
-    /// - Returns: A logger for that stream.
-    public static func analytics(_ streamName: String) -> FloconAnalytics {
-        floconAnalytics(streamName)
+        plugin.registerAnalytics(items)
     }
 }
