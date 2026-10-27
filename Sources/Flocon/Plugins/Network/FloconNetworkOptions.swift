@@ -1,14 +1,14 @@
 import Foundation
 
-/// Options of the network interception.
+/// Options of the network interception, set when installing ``FloconFeature/network``.
 ///
 /// ```swift
-/// Flocon.setNetworkOptions(
-///     FloconNetworkOptions(
-///         shouldLog: { request in request.url?.host != "analytics.example.com" },
-///         isImage: { request, _ in request.url?.path.hasPrefix("/images/") == true }
-///     )
-/// )
+/// startFlocon { flocon in
+///     flocon.install(.network) { options in
+///         options.shouldLog = { request in request.url?.host != "analytics.example.com" }
+///         options.isImage = { request, _ in request.url?.path.hasPrefix("/images/") == true }
+///     }
+/// }
 /// ```
 public struct FloconNetworkOptions: Sendable {
     /// Returns whether a request is sent to the desktop app. All requests are by default.
@@ -48,10 +48,10 @@ extension FloconNetworkOptions {
 // MARK: - Public API
 
 extension Flocon {
-    /// Sets the options of the network interception.
+    /// Sets the options of the network interception, used for the requests started after this call.
     ///
-    /// - Parameter options: The options, used for the requests started after this call.
-    public static func setNetworkOptions(_ options: FloconNetworkOptions) {
+    /// - Parameter options: The options given to ``FloconBuilder/install(_:_:)`` for ``FloconFeature/network``.
+    static func setNetworkOptions(_ options: FloconNetworkOptions) {
         FloconNetworkState.lock.lock(); defer { FloconNetworkState.lock.unlock() }
         FloconNetworkState.options = options
     }
