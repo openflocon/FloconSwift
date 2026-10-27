@@ -53,11 +53,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
 
         // The body of an upload is often a stream: read it once, to both log it and send it.
         let bodyData = Self.readBody(of: request)
-        var forwarded = request
-        if let bodyData {
-            forwarded.httpBody = bodyData
-            forwarded.httpBodyStream = nil
-        }
+        let forwarded = Self.forwardedRequest(request, body: bodyData)
 
         let url = request.url?.absoluteString ?? ""
         let method = request.httpMethod ?? "GET"
@@ -260,7 +256,17 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         return result
     }
 
-    private static func readBody(of request: URLRequest) -> Data? {
+    /// The request to perform in the inner session, with the body already read from its stream.
+    static func forwardedRequest(_ request: URLRequest, body: Data?) -> URLRequest {
+        var forwarded = request
+        if let body {
+            // also removes the stream: setting `httpBodyStream` to nil afterwards would remove the body
+            forwarded.httpBody = body
+        }
+        return forwarded
+    }
+
+    static func readBody(of request: URLRequest) -> Data? {
         if let body = request.httpBody { return body }
         guard let stream = request.httpBodyStream else { return nil }
 
