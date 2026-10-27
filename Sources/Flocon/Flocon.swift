@@ -20,6 +20,15 @@ public struct FloconConfig: Sendable {
     /// The crash handlers keep the handlers already installed, by another crash reporter for
     /// example, and call them. Turn this off if you prefer the SDK not to install any handler.
     public var isCrashReporterEnabled: Bool
+    /// Whether the SDK connects to ``host`` as soon as it starts.
+    ///
+    /// Set it to `false` when the address of the desktop app is not known yet: the messages are
+    /// kept in memory until ``Flocon/connect(to:)`` is called.
+    public var connectsAutomatically: Bool
+    /// Number of messages kept in memory while the SDK is not connected.
+    ///
+    /// Above it, the oldest messages are dropped.
+    public var bufferCapacity: Int
 
     /// Version of the SDK, reported to the desktop app.
     public static let sdkVersion = "0.3.0"
@@ -31,16 +40,22 @@ public struct FloconConfig: Sendable {
     ///   - webSocketPort: Port of the desktop WebSocket server. Defaults to `9023`.
     ///   - httpPort: Port of the desktop HTTP server. Defaults to `9024`.
     ///   - isCrashReporterEnabled: Whether the crashes are reported to the desktop app. Defaults to `true`.
+    ///   - connectsAutomatically: Whether to connect to `host` on start. Defaults to `true`.
+    ///   - bufferCapacity: Number of messages kept while not connected. Defaults to `5000`.
     public init(
         host: String = "localhost",
         webSocketPort: Int = 9023,
         httpPort: Int = 9024,
-        isCrashReporterEnabled: Bool = true
+        isCrashReporterEnabled: Bool = true,
+        connectsAutomatically: Bool = true,
+        bufferCapacity: Int = 5_000
     ) {
         self.host = host
         self.webSocketPort = webSocketPort
         self.httpPort = httpPort
         self.isCrashReporterEnabled = isCrashReporterEnabled
+        self.connectsAutomatically = connectsAutomatically
+        self.bufferCapacity = bufferCapacity
     }
 }
 
@@ -65,6 +80,9 @@ public struct FloconConfig: Sendable {
 ///
 /// The SDK then connects to the Flocon desktop app in the background and keeps retrying
 /// until it is reachable. Messages sent before the connection is up are queued.
+///
+/// If the address of the desktop app is only known later, start the SDK with
+/// ``FloconBuilder/connectLater(bufferCapacity:)`` and call ``connect(to:)`` when you have it.
 public final class Flocon: @unchecked Sendable {
     /// The shared SDK instance.
     public static let shared = Flocon()
@@ -76,6 +94,37 @@ public final class Flocon: @unchecked Sendable {
     /// - Parameter config: Where to find the desktop app. Defaults to `localhost`.
     public static func initialize(config: FloconConfig = FloconConfig()) {
         shared.initializeFlocon(config: config, features: nil)
+    }
+
+    /// Connects to the desktop app at the given address.
+    ///
+    /// Opens the WebSocket, introduces the app to the desktop, then sends everything that was
+    /// logged since the start, in the order it was logged, and sends the next messages right away.
+    /// If the connection is lost later, the messages are kept again and sent on reconnection,
+    /// which is retried every 3 seconds.
+    ///
+    /// Use it when the SDK was started with ``FloconBuilder/connectLater(bufferCapacity:)``, or to
+    /// point a started SDK to another address. Does nothing before the SDK is started.
+    ///
+    /// ```swift
+    /// try await Flocon.connect(to: URL(string: "ws://192.168.1.20:9023")!)
+    /// ```
+    ///
+    /// - Parameter url: The WebSocket address of the desktop app, such as `ws://192.168.1.20:9023`.
+    /// - Throws: The error of the connection attempt. The messages are kept, and can be sent by
+    ///   calling this method again.
+    public static func connect(to url: URL) async throws {
+        try await shared.connectClient(to: url)
+    }
+
+    /// The current state of the connection to the desktop app.
+    public static var connectionState: FloconConnectionState {
+        shared.connectionStateStore.state
+    }
+
+    /// The states of the connection: the current one first, then each change.
+    public static var connectionStates: AsyncStream<FloconConnectionState> {
+        shared.connectionStateStore.stream
     }
 
     /// Registers a custom plugin.
@@ -93,6 +142,7 @@ public final class Flocon: @unchecked Sendable {
     private var _client: FloconClient?
     private var _isInitialized = false
     private var _connectTask: Task<Void, Never>?
+    let connectionStateStore = FloconConnectionStateStore()
 
     private init() {}
 
@@ -142,15 +192,50 @@ public final class Flocon: @unchecked Sendable {
         }
         _client = newClient
         _isInitialized = true
-        _connectTask = Task { [weak self] in
-            await self?.start(client: newClient)
+        if config.connectsAutomatically {
+            connectionStateStore.set(.connecting)
+            _connectTask = Task { [weak self] in
+                await self?.start(client: newClient)
+            }
+        } else {
+            connectionStateStore.set(.buffering)
         }
         lock.unlock()
         return true
     }
 
+    /// Stops the retries to the previous address. `nil` if the SDK is not started.
+    private func cancelConnectTask() -> FloconClient? {
+        lock.lock(); defer { lock.unlock() }
+        _connectTask?.cancel()
+        _connectTask = nil
+        return _client
+    }
+
+    func connectClient(to url: URL) async throws {
+        guard let client = cancelConnectTask() else {
+            FloconLogger.log("connect(to:) ignored: the SDK is not started")
+            return
+        }
+        client.setServer(url: url)
+        await client.disconnect()
+        connectionStateStore.set(.connecting)
+        do {
+            try await client.connect(onClosed: { [weak self] in
+                self?.restartConnection(client: client)
+            })
+            connectionStateStore.set(.connected)
+        } catch {
+            FloconLogger.logError("Cannot connect to \(url)", error)
+            connectionStateStore.set(.failed(error.localizedDescription))
+            throw error
+        }
+    }
+
     /// Called from the WebSocket's `onClosed` callback, on another thread, hence the lock.
     private func restartConnection(client: FloconClient) {
+        // connection lost: the messages are kept until the next connection
+        connectionStateStore.set(.buffering)
         lock.lock(); defer { lock.unlock() }
         _connectTask = Task { [weak self] in
             await self?.start(client: client)
@@ -161,15 +246,16 @@ public final class Flocon: @unchecked Sendable {
     private func start(client: FloconClient) async {
         while !Task.isCancelled {
             do {
+                connectionStateStore.set(.connecting)
+                // once connected, the client says hello to the desktop and sends the queued messages
                 try await client.connect(onClosed: { [weak self] in
                     // connection lost: start connecting again
                     self?.restartConnection(client: client)
                 })
-                // connected: say hello to the desktop, then flush the queued messages
-                client.send(plugin: "bonjour", method: "bonjour", body: "bonjour")
-                client.sendPendingMessages()
+                connectionStateStore.set(.connected)
                 return
             } catch {
+                connectionStateStore.set(.failed(error.localizedDescription))
                 FloconLogger.logError("Cannot connect, retrying in 3s", error)
                 try? await Task.sleep(nanoseconds: 3_000_000_000)
             }

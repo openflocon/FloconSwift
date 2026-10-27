@@ -88,4 +88,15 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         #expect(options.shouldLog(URLRequest(url: URL(string: "https://example.com")!)))
         #expect(!options.shouldLog(URLRequest(url: URL(string: "https://analytics.example.com")!)))
     }
+
+    @Test func connectsLaterWithoutCrashingBeforeInitialize() async throws {
+        let config = FloconConfig(connectsAutomatically: false, bufferCapacity: 100)
+        #expect(!config.connectsAutomatically && config.bufferCapacity == 100)
+
+        // the SDK is not started: ignored
+        try await Flocon.connect(to: URL(string: "ws://localhost:9023")!)
+        #expect(Flocon.connectionState == .idle)
+        var states = Flocon.connectionStates.makeAsyncIterator()
+        #expect(await states.next() == .idle)
+    }
 }

@@ -76,7 +76,7 @@ Only the installed plugins are started: the others, such as `Flocon.analyticsPlu
 
 `Flocon.initialize()` is the short form that installs every plugin.
 
-`startFlocon` and `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are queued.
+`startFlocon` and `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are kept in memory (see [Connecting later](#connecting-later)).
 
 The SDK works off the main thread: messages are encoded and sent in the background, and the logging calls (analytics, tables, database queries…) only queue their values.
 
@@ -100,6 +100,39 @@ Flocon.initialize(config: FloconConfig(host: "192.168.1.20"))
 ```
 
 Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`, and an App Transport Security exception for the Mac, as the connection uses plain `ws://`.
+
+### Connecting later
+
+If the address of the Mac is not known when the app starts, for example because the user types it in or it is discovered, start the SDK without connecting, and give the address when you have it:
+
+```swift
+startFlocon { flocon in
+    flocon.connectLater() // or flocon.connectLater(bufferCapacity: 10_000)
+    flocon.install(.network)
+    flocon.install(.analytics)
+}
+
+// later, once the address is known
+try await Flocon.connect(to: URL(string: "ws://192.168.1.20:9023")!)
+```
+
+Until then, everything the app logs is kept in memory. `Flocon.connect(to:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It throws if the connection cannot be opened; the messages are kept, so you can call it again.
+
+Up to 5000 messages are kept (`bufferCapacity`): above that, the oldest are dropped. The same buffer is used when the connection to the desktop is lost: the messages are kept, the SDK reconnects to the same address every 3 seconds, and sends them once it is back. `Flocon.initialize(config: FloconConfig(connectsAutomatically: false))` does the same as `connectLater()`.
+
+Follow the connection with `Flocon.connectionState`, or with the `Flocon.connectionStates` stream, which starts with the current state:
+
+```swift
+for await state in Flocon.connectionStates {
+    switch state {
+    case .idle: break               // the SDK is not started
+    case .buffering: break          // not connected, the messages are kept
+    case .connecting: break
+    case .connected: break          // the messages are sent right away
+    case .failed(let reason): print(reason) // the messages are still kept
+    }
+}
+```
 
 ## Network
 

@@ -2,27 +2,18 @@ import Foundation
 
 /// WebSocket client based on `URLSessionWebSocketTask`.
 ///
-/// An actor, so that the connection state and the message queue are safe to use from any thread.
+/// An actor, so that the connection state is safe to use from any thread.
 actor FloconWebSocketClientImpl: FloconWebSocketClient {
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
 
-    // Messages sent while disconnected; only the most recent ones are kept.
-    private let queueCapacity = 200
-    private var queue: [String] = []
-
     func connect(
-        address: String,
-        port: Int,
+        url: URL,
         onMessageReceived: @escaping @Sendable (String) -> Void,
         onClosed: @escaping @Sendable () -> Void
     ) async throws {
         // already connected
         if task != nil { return }
-
-        guard let url = URL(string: "ws://\(address):\(port)") else {
-            throw URLError(.badURL)
-        }
 
         let delegate = ConnectionDelegate()
         let newSession = URLSession(configuration: .default, delegate: delegate, delegateQueue: nil)
@@ -91,12 +82,8 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
     }
 
     func sendMessage(_ message: String) async -> Bool {
-        guard let task else {
-            // not connected yet: queue the message
-            queue.append(message)
-            if queue.count > queueCapacity { queue.removeFirst(queue.count - queueCapacity) }
-            return false
-        }
+        // not connected: the caller keeps the message
+        guard let task else { return false }
         FloconLogger.log(payload: message, "WEBSOCKET ----> send")
         do {
             try await task.send(.string(message))
@@ -104,15 +91,6 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
         } catch {
             FloconLogger.logError("send failed", error)
             return false
-        }
-    }
-
-    func sendPendingMessages() async {
-        guard task != nil else { return }
-        let pending = queue
-        queue.removeAll()
-        for message in pending {
-            _ = await sendMessage(message)
         }
     }
 

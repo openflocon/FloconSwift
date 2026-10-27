@@ -22,32 +22,55 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         case value(any Encodable & Sendable)
     }
 
+    /// What the outbox task handles, in order: the connection changes go through the same
+    /// stream as the messages, so they are never reordered with them.
+    private enum OutboxItem: Sendable {
+        case message(OutgoingMessage)
+        case connected
+        case disconnected
+    }
+
     /// Read once, on the main actor for `UIDevice`, and shared by the messages and the uploads.
     private let appInfos: Task<FloconAppInfos, Never>
 
     // Serial outbox: keeps messages in order (one Task per message would not).
-    private let outbox: AsyncStream<OutgoingMessage>.Continuation
+    private let outbox: AsyncStream<OutboxItem>.Continuation
     private var outboxTask: Task<Void, Never>?
 
     private let pluginsLock = NSLock()
     private var plugins: [String: FloconPlugin] = [:]
 
+    private let serverLock = NSLock()
+    private var _serverURL: URL?
+
     init(config: FloconConfig) {
         self.config = config
-        var continuation: AsyncStream<OutgoingMessage>.Continuation!
-        let stream = AsyncStream<OutgoingMessage> { continuation = $0 }
+        _serverURL = config.connectsAutomatically ? URL(string: "ws://\(config.host):\(config.webSocketPort)") : nil
+        var continuation: AsyncStream<OutboxItem>.Continuation!
+        let stream = AsyncStream<OutboxItem> { continuation = $0 }
         self.outbox = continuation
         let appInfosTask = Task { await FloconAppInfos.current() }
         self.appInfos = appInfosTask
         let ws = webSocketClient
         let appInstance = appInstance
+        let pending = FloconOutbox(capacity: config.bufferCapacity) { await ws.sendMessage($0) }
         outboxTask = Task {
             // Read without blocking the thread that called Flocon.initialize():
             // messages sent in the meantime wait in the stream, in order.
             let appInfos = await appInfosTask.value
-            for await message in stream {
-                guard let json = Self.encode(message, appInfos: appInfos, appInstance: appInstance) else { continue }
-                _ = await ws.sendMessage(json)
+            for await item in stream {
+                switch item {
+                case .message(let message):
+                    guard let json = Self.encode(message, appInfos: appInfos, appInstance: appInstance) else { continue }
+                    await pending.enqueue(json)
+                case .connected:
+                    // say hello to the desktop, before the messages kept while disconnected
+                    let hello = OutgoingMessage(plugin: "bonjour", method: "bonjour", body: .text("bonjour"))
+                    guard let json = Self.encode(hello, appInfos: appInfos, appInstance: appInstance) else { continue }
+                    await pending.connected(handshake: json)
+                case .disconnected:
+                    await pending.disconnected()
+                }
             }
         }
     }
@@ -116,27 +139,40 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
 
     // MARK: Connection
 
-    /// Connects to the desktop app.
+    /// Address of the desktop WebSocket server, `nil` until it is known.
+    var serverURL: URL? {
+        serverLock.lock(); defer { serverLock.unlock() }
+        return _serverURL
+    }
+
+    func setServer(url: URL) {
+        serverLock.lock(); defer { serverLock.unlock() }
+        _serverURL = url
+    }
+
+    /// Connects to ``serverURL``, then sends the handshake and the messages kept so far.
     ///
     /// - Parameter onClosed: Called when an established connection is lost.
     /// - Throws: An error if the connection cannot be opened.
     func connect(onClosed: @escaping @Sendable () -> Void) async throws {
+        guard let url = serverURL else { throw URLError(.badURL) }
+        let outbox = outbox
         try await webSocketClient.connect(
-            address: config.host,
-            port: config.webSocketPort,
+            url: url,
             onMessageReceived: { [weak self] text in self?.onMessageReceived(text) },
-            onClosed: onClosed
+            onClosed: {
+                outbox.yield(.disconnected)
+                onClosed()
+            }
         )
+        // before the plugins: what they send on connection comes after the handshake
+        outbox.yield(.connected)
         allPlugins.forEach { $0.onConnectedToServer() }
     }
 
     func disconnect() async {
         await webSocketClient.disconnect()
-    }
-
-    func sendPendingMessages() {
-        let ws = webSocketClient
-        Task { await ws.sendPendingMessages() }
+        outbox.yield(.disconnected)
     }
 
     // MARK: Receiving
@@ -158,18 +194,18 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     // MARK: Sending (FloconMessageSender)
 
     func send(plugin: String, method: String, body: String) {
-        outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: .text(body)))
+        outbox.yield(.message(OutgoingMessage(plugin: plugin, method: method, body: .text(body))))
     }
 
     func send<T: Encodable & Sendable>(plugin: String, method: String, value: T) {
-        outbox.yield(OutgoingMessage(plugin: plugin, method: method, body: .value(value)))
+        outbox.yield(.message(OutgoingMessage(plugin: plugin, method: method, body: .value(value))))
     }
 
     // MARK: Sending files (FloconFileSender)
 
     func sendFile(at fileURL: URL, remotePath: String, requestId: String) async {
         let appInfos = await self.appInfos.value
-        let uploader = FloconFileUploader(host: config.host, port: config.httpPort)
+        let uploader = FloconFileUploader(host: serverURL?.host ?? config.host, port: config.httpPort)
         await uploader.upload(
             fileAt: fileURL,
             remotePath: remotePath,

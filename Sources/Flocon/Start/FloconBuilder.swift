@@ -20,6 +20,27 @@ public struct FloconBuilder {
         config.httpPort = httpPort
     }
 
+    /// Starts the SDK without connecting to the desktop app.
+    ///
+    /// Use it when the address of the desktop app is not known yet. What the app logs is kept in
+    /// memory, then sent when you call ``Flocon/connect(to:)``.
+    ///
+    /// ```swift
+    /// startFlocon { flocon in
+    ///     flocon.connectLater()
+    ///     flocon.install(.network)
+    /// }
+    /// // later
+    /// try await Flocon.connect(to: URL(string: "ws://192.168.1.20:9023")!)
+    /// ```
+    ///
+    /// - Parameter bufferCapacity: Number of messages kept while not connected. Above it, the oldest
+    ///   are dropped. Defaults to `5000`.
+    public mutating func connectLater(bufferCapacity: Int = 5_000) {
+        config.connectsAutomatically = false
+        config.bufferCapacity = bufferCapacity
+    }
+
     /// Installs a plugin with its default options.
     ///
     /// - Parameter feature: The plugin, such as ``FloconFeature/analytics``.

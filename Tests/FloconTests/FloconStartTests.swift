@@ -25,4 +25,19 @@ import Testing
         #expect(builder.config.host == "192.168.1.20")
         #expect(builder.config.webSocketPort == 9023)
     }
+
+    @Test func connectsAutomaticallyByDefault() {
+        let builder = FloconBuilder()
+
+        #expect(builder.config.connectsAutomatically)
+        #expect(builder.config.bufferCapacity == 5_000)
+    }
+
+    @Test func connectLaterKeepsTheMessagesInMemory() {
+        var builder = FloconBuilder()
+        builder.connectLater(bufferCapacity: 100)
+
+        #expect(!builder.config.connectsAutomatically)
+        #expect(builder.config.bufferCapacity == 100)
+    }
 }
