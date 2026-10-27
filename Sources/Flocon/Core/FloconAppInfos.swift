@@ -13,10 +13,11 @@ struct FloconAppInfos: Sendable {
 
     /// Reads the current app and device information.
     ///
-    /// `UIDevice` is main-actor isolated. The SDK awaits this from its outbox task, so that
-    /// ``Flocon/initialize(config:)`` can still be called from any thread.
-    @MainActor
-    static func current() -> FloconAppInfos {
+    /// Runs off the main actor: only the `UIDevice` properties, which are main-actor isolated,
+    /// are read there. On macOS, `Host.current()` can take a while to resolve the host name, so
+    /// it stays off the main thread. ``FloconClient`` reads this once per launch.
+    @concurrent
+    static func current() async -> FloconAppInfos {
         let bundle = Bundle.main
         let appName = (bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String)
             ?? (bundle.object(forInfoDictionaryKey: "CFBundleName") as? String)
@@ -24,12 +25,15 @@ struct FloconAppInfos: Sendable {
         let bundleId = bundle.bundleIdentifier ?? "unknown"
 
         #if canImport(UIKit)
-        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
-        let deviceName = UIDevice.current.name
+        let (vendorId, deviceName) = await MainActor.run {
+            (UIDevice.current.identifierForVendor?.uuidString, UIDevice.current.name)
+        }
+        let deviceId = vendorId ?? UUID().uuidString
         let platform = "ios"
         #else
-        let deviceId = Host.current().localizedName ?? UUID().uuidString
-        let deviceName = Host.current().localizedName ?? "mac"
+        let hostName = Host.current().localizedName
+        let deviceId = hostName ?? UUID().uuidString
+        let deviceName = hostName ?? "mac"
         let platform = "macos"
         #endif
 

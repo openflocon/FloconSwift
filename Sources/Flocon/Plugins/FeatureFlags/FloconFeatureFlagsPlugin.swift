@@ -37,13 +37,8 @@ public final class FloconFeatureFlagsPlugin: FloconPlugin, @unchecked Sendable {
     /// The desktop app is read only: it sends nothing to this plugin.
     public func onMessageReceived(_ message: FloconMessageFromServer) {}
 
+    /// Encoded off the calling thread.
     private func send(_ remote: FloconFeatureFlagsRemote) {
-        do {
-            let data = try JSONEncoder().encode(remote)
-            guard let json = String(data: data, encoding: .utf8) else { return }
-            sender?.send(plugin: pluginName, method: Self.methodRegister, body: json)
-        } catch {
-            FloconLogger.logError("Feature flags json mapping error", error)
-        }
+        sender?.send(plugin: pluginName, method: Self.methodRegister, value: remote)
     }
 }

@@ -8,22 +8,38 @@ import Foundation
 ///
 /// A request matched by a mock, or failed by the bad network simulation, is answered here,
 /// without reaching the server.
+///
+/// Its callbacks come from several threads: the loading thread (`startLoading`, `stopLoading`),
+/// the delegate queue of the inner session, and the queue of the simulated delays. The mutable
+/// state is therefore kept behind a lock.
 final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     private static let handledKey = "FloconURLProtocolHandled"
 
-    private var innerTask: URLSessionDataTask?
-
+    // Set in startLoading, before any other callback can run, then only read.
     private let callId = UUID().uuidString
     private var startNanos: UInt64 = 0
     private var originalRequest: URLRequest?
     private var plugin: FloconNetworkPlugin?
+    private var options = FloconNetworkOptions()
     private var isMocked = false
 
-    private var response: HTTPURLResponse?
-    private var receivedData = Data()
-    private var reported = false
-    private var redirected = false
-    private var stopped = false
+    private struct State {
+        var innerTask: URLSessionDataTask?
+        var response: HTTPURLResponse?
+        var body = FloconBody()
+        var isImage = false
+        var reported = false
+        var redirected = false
+        var stopped = false
+    }
+
+    private let lock = NSLock()
+    private var state = State()
+
+    private func withState<T>(_ body: (inout State) -> T) -> T {
+        lock.lock(); defer { lock.unlock() }
+        return body(&state)
+    }
 
     // MARK: URLProtocol
 
@@ -46,6 +62,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
             return
         }
         self.plugin = plugin
+        options = FloconNetworkOptions.current
         originalRequest = request
 
         let startTime = Date()
@@ -98,21 +115,32 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     override func stopLoading() {
-        stopped = true
+        let task = withState { state -> URLSessionDataTask? in
+            state.stopped = true
+            return state.innerTask
+        }
         // didComplete is then called with the cancellation error, which is logged
-        innerTask?.cancel()
+        task?.cancel()
     }
 
     private func startInnerTask(_ request: URLRequest) {
+        // under the lock, so that a stopLoading() called meanwhile cancels this task
+        lock.lock()
+        if state.stopped {
+            lock.unlock()
+            reportResponse(requestHeaders: nil, error: URLError(.cancelled))
+            return
+        }
         let task = FloconInnerSessionRouter.shared.makeTask(with: request, handler: self)
-        innerTask = task
+        state.innerTask = task
+        lock.unlock()
         task.resume()
     }
 
     /// Runs `work` after a delay, unless the loading is stopped in the meantime.
     private func after(delayMs: Int64, _ work: @escaping @Sendable (FloconURLProtocol) -> Void) {
         let run: @Sendable () -> Void = { [self] in
-            if stopped {
+            if withState({ $0.stopped }) {
                 reportResponse(requestHeaders: nil, error: URLError(.cancelled))
             } else {
                 work(self)
@@ -142,8 +170,10 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
                 return fail(with: URLError(.badServerResponse))
             }
             let data = Data(body.utf8)
-            self.response = response
-            receivedData = data
+            withState {
+                $0.response = response
+                $0.body.append(data)
+            }
             reportResponse(requestHeaders: nil, error: nil)
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: data)
@@ -164,13 +194,25 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         response: URLResponse,
         completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
     ) {
-        self.response = response as? HTTPURLResponse
+        let http = response as? HTTPURLResponse
+        // known before the first byte: the bytes of an image are counted, not kept
+        let isImage = http.map(looksLikeImage) ?? false
+        withState {
+            $0.response = http
+            $0.isImage = isImage
+        }
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         completionHandler(.allow)
     }
 
     func didReceive(data: Data) {
-        receivedData.append(data)
+        withState { state in
+            if state.isImage {
+                state.body.count(data.count)
+            } else {
+                state.body.append(data)
+            }
+        }
         client?.urlProtocol(self, didLoad: data)
     }
 
@@ -182,9 +224,9 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     ) {
         // Log the 3xx response, then let the original client follow the redirect:
         // the new request goes through this protocol again and is logged as a separate call.
-        self.response = response
+        withState { $0.response = response }
         reportResponse(requestHeaders: task.currentRequest?.allHTTPHeaderFields, error: nil)
-        redirected = true
+        withState { $0.redirected = true }
 
         let next = (request as NSURLRequest).mutableCopy() as! NSMutableURLRequest
         URLProtocol.removeProperty(forKey: Self.handledKey, in: next)
@@ -195,6 +237,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     func didComplete(task: URLSessionTask, error: Error?) {
+        let (redirected, stopped) = withState { ($0.redirected, $0.stopped) }
         if redirected { return }
 
         reportResponse(requestHeaders: task.currentRequest?.allHTTPHeaderFields, error: error)
@@ -209,9 +252,23 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
 
     // MARK: Logging
 
+    private func looksLikeImage(_ response: HTTPURLResponse) -> Bool {
+        if response.value(forHTTPHeaderField: "Content-Type")?.lowercased().hasPrefix("image/") == true {
+            return true
+        }
+        guard let custom = options.isImage, let originalRequest else { return false }
+        return custom(originalRequest, response)
+    }
+
     private func reportResponse(requestHeaders: [String: String]?, error: Error?) {
-        guard !reported, let plugin else { return }
-        reported = true
+        // reported once, whichever callback comes first
+        let snapshot = withState { state -> (HTTPURLResponse?, FloconBody, Bool)? in
+            guard !state.reported else { return nil }
+            state.reported = true
+            return (state.response, state.body, state.isImage)
+        }
+        guard let snapshot, let plugin else { return }
+        let (response, body, knownImage) = snapshot
 
         let durationMs = Double(DispatchTime.now().uptimeNanoseconds - startNanos) / 1_000_000
 
@@ -219,21 +276,15 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         if let error {
             payload = FloconNetworkResponse(error: error.localizedDescription)
         } else {
-            let contentType = response?.value(forHTTPHeaderField: "Content-Type")
-            var isImage = contentType?.lowercased().hasPrefix("image/") == true
-            if !isImage, let custom = FloconNetworkOptions.current.isImage,
-               let originalRequest, let response {
-                isImage = custom(originalRequest, response)
-            }
-            let headers = Self.headersMap(response?.allHeaderFields)
-
+            // mocked responses do not go through didReceive(response:)
+            let isImage = knownImage || response.map(looksLikeImage) == true
             payload = FloconNetworkResponse(
                 httpCode: response?.statusCode,
-                contentType: contentType,
+                contentType: response?.value(forHTTPHeaderField: "Content-Type"),
                 // image bytes are not sent
-                body: isImage ? nil : String(data: receivedData, encoding: .utf8),
-                size: Int64(receivedData.count),
-                headers: headers,
+                body: isImage ? nil : body.text,
+                size: body.totalSize,
+                headers: Self.headersMap(response?.allHeaderFields),
                 requestHeaders: requestHeaders,
                 isImage: isImage
             )
@@ -274,7 +325,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         defer { stream.close() }
 
         var result = Data()
-        let chunkSize = 16 * 1024
+        let chunkSize = 64 * 1024
         var buffer = [UInt8](repeating: 0, count: chunkSize)
         while stream.hasBytesAvailable {
             let count = stream.read(&buffer, maxLength: chunkSize)

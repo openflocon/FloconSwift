@@ -34,13 +34,7 @@ public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
             )
         }
 
-        // the desktop expects a JSON array of items
-        do {
-            let data = try JSONEncoder().encode(models)
-            guard let jsonArrayString = String(data: data, encoding: .utf8) else { return }
-            sender?.send(plugin: pluginName, method: Self.methodAddItems, body: jsonArrayString)
-        } catch {
-            FloconLogger.logError("error on sendAnalytics", error)
-        }
+        // the desktop expects a JSON array of items, encoded off the calling thread
+        sender?.send(plugin: pluginName, method: Self.methodAddItems, value: models)
     }
 }
