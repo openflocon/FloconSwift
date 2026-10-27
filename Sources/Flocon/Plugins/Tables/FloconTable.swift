@@ -50,12 +50,13 @@ public struct FloconTableItem: Sendable {
 /// from the names used in the logged rows:
 ///
 /// ```swift
-/// floconTable("users").log(
+/// Flocon.tablePlugin.table("users").log(
 ///     TableColumnConfig("name", "Florent"),
 ///     TableColumnConfig("age", "33")
 /// )
 /// ```
 public struct FloconTable: Sendable {
+    let plugin: FloconTablePlugin
     /// Name of the table.
     public let tableName: String
 
@@ -75,24 +76,6 @@ public struct FloconTable: Sendable {
     /// - Parameter columns: Values of the row, one per column.
     public func log(_ columns: [TableColumnConfig]) {
         let item = FloconTableItem(name: tableName, columns: columns)
-        Flocon.shared.client?.tablePlugin?.registerTable(item)
-    }
-}
-
-/// Returns the logger of a table.
-///
-/// - Parameter tableName: Name of the table.
-/// - Returns: A logger for that table.
-public func floconTable(_ tableName: String) -> FloconTable {
-    FloconTable(tableName: tableName)
-}
-
-extension Flocon {
-    /// Returns the logger of a table.
-    ///
-    /// - Parameter tableName: Name of the table.
-    /// - Returns: A logger for that table.
-    public static func table(_ tableName: String) -> FloconTable {
-        floconTable(tableName)
+        plugin.registerTable(item)
     }
 }

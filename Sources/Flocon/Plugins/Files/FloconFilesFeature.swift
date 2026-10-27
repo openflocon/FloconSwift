@@ -23,8 +23,8 @@ extension FloconFeature where Options == FloconFilesOptions {
             kind: .files,
             makeOptions: { FloconFilesOptions() },
             apply: { options in
-                options.folders.forEach(floconRegisterFolder)
-                options.appGroups.forEach(floconRegisterAppGroup)
+                options.folders.forEach(Flocon.filesPlugin.register)
+                options.appGroups.forEach(Flocon.filesPlugin.registerAppGroup)
             }
         )
     }

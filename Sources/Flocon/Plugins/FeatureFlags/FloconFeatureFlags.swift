@@ -42,12 +42,13 @@ public struct FloconFeatureFlag: Sendable, Equatable {
 /// Each call replaces the flags previously registered for the provider:
 ///
 /// ```swift
-/// floconFeatureFlags("firebase").register(
+/// Flocon.featureFlagsPlugin.sender("firebase").register(
 ///     FloconFeatureFlag(name: "new_checkout", state: .custom, variant: "treatment", payload: #"{"color":"red"}"#),
 ///     FloconFeatureFlag(name: "dark_mode", state: .on, variant: "on")
 /// )
 /// ```
 public struct FloconFeatureFlags: Sendable {
+    let plugin: FloconFeatureFlagsPlugin
     let provider: String
 
     /// Replaces the flags of the provider.
@@ -65,24 +66,6 @@ public struct FloconFeatureFlags: Sendable {
     ///
     /// - Parameter flags: All the flags of the provider.
     public func register(_ flags: [FloconFeatureFlag]) {
-        Flocon.shared.client?.featureFlagsPlugin?.register(provider: provider, flags: flags)
-    }
-}
-
-/// Returns the feature flags registry of a provider.
-///
-/// - Parameter provider: Name of the provider, for example `"firebase"`.
-/// - Returns: A registry for that provider.
-public func floconFeatureFlags(_ provider: String) -> FloconFeatureFlags {
-    FloconFeatureFlags(provider: provider)
-}
-
-extension Flocon {
-    /// Returns the feature flags registry of a provider.
-    ///
-    /// - Parameter provider: Name of the provider, for example `"firebase"`.
-    /// - Returns: A registry for that provider.
-    public static func featureFlags(_ provider: String) -> FloconFeatureFlags {
-        floconFeatureFlags(provider)
+        plugin.register(provider: provider, flags: flags)
     }
 }

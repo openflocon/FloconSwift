@@ -35,7 +35,7 @@ final class SampleDashboard {
     }
 
     func start() {
-        handle = floconDashboard(id: "main") {
+        handle = Flocon.dashboardPlugin.dashboard(id: "main") {
             FloconSection("User", publisher: $user) { user in
                 FloconText("username", user.userName)
                 FloconText("fullName", user.fullName, color: 0xFFFF0000)
@@ -67,7 +67,7 @@ final class SampleDashboard {
         }
 
         // static dashboards: no need to keep their handle
-        floconDashboard(id: "plainText") {
+        Flocon.dashboardPlugin.dashboard(id: "plainText") {
             FloconSection("Test") {
                 FloconPlainText(
                     "lorem",
@@ -93,7 +93,7 @@ final class SampleDashboard {
             }
         }
 
-        floconDashboard(id: "form") {
+        Flocon.dashboardPlugin.dashboard(id: "form") {
             FloconForm("Test form", submitText: "Submit form test button", onSubmitted: { values in
                 // ["input_1": "test", "checkbox_1": "true"]
                 print("[FloconDemo] form submitted: \(values)")
@@ -103,7 +103,7 @@ final class SampleDashboard {
             }
         }
 
-        floconDashboard(id: "markdown") {
+        Flocon.dashboardPlugin.dashboard(id: "markdown") {
             FloconSection("Markdown") {
                 FloconMarkdown(
                     "Release Note",
@@ -121,7 +121,7 @@ final class SampleDashboard {
             }
         }
 
-        floconDashboard(id: "html") {
+        Flocon.dashboardPlugin.dashboard(id: "html") {
             FloconSection("HTML Section") {
                 FloconHTML("HtmlTitle", "<h1>Title</h1><p>Paragraph with <b>bold</b> text.</p>")
             }

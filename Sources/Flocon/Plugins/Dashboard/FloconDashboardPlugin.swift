@@ -2,7 +2,7 @@ import Foundation
 
 /// Sends the dashboards of the app to the Flocon desktop app, and runs their actions.
 ///
-/// Create dashboards with ``floconDashboard(id:_:)`` rather than calling this plugin directly.
+/// Create dashboards with ``Flocon.dashboardPlugin.dashboard(id:_:)`` rather than calling this plugin directly.
 /// The last state of each dashboard is sent again on each connection.
 public final class FloconDashboardPlugin: FloconPlugin, @unchecked Sendable {
     /// Name of the messages received from the desktop.

@@ -68,18 +68,18 @@ struct SampleNetworkClient: Sendable {
     }
 
     /// WebSocket echo, logged by hand in Flocon:
-    /// each event of the connection is sent with `floconLogWebSocketEvent`.
+    /// each event of the connection is sent with `Flocon.networkPlugin.logWebSocketEvent`.
     func websocketEcho() async throws -> String {
         let url = URL(string: "wss://ws.postman-echo.com/raw")!
         let urlString = url.absoluteString
         let task = URLSession.shared.webSocketTask(with: url)
         task.resume()
-        floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .open))
+        Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .open))
 
         do {
             let text = "Hello \(UUID().uuidString)"
             try await task.send(.string(text))
-            floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .sendMessage, message: text))
+            Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .sendMessage, message: text))
 
             let received: String
             switch try await task.receive() {
@@ -87,13 +87,13 @@ struct SampleNetworkClient: Sendable {
             case .data(let data): received = "\(data.count) bytes"
             @unknown default: received = ""
             }
-            floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .receiveMessage, message: received))
+            Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .receiveMessage, message: received))
 
             task.cancel(with: .normalClosure, reason: nil)
-            floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .closed))
+            Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .closed))
             return "Echo: \(received)"
         } catch {
-            floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .error, error: error))
+            Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: urlString, event: .error, error: error))
             task.cancel(with: .abnormalClosure, reason: nil)
             throw error
         }

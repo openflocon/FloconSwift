@@ -2,7 +2,7 @@ import Foundation
 
 /// Sends table rows to the Flocon desktop app.
 ///
-/// Log rows with ``floconTable(_:)`` rather than calling this plugin directly.
+/// Log rows with ``FloconTablePlugin/table(_:)`` rather than calling this plugin directly.
 public final class FloconTablePlugin: FloconPlugin, @unchecked Sendable {
     static let name = "Table"
     private static let methodAddItems = "AddItems"
@@ -31,5 +31,15 @@ public final class FloconTablePlugin: FloconPlugin, @unchecked Sendable {
         )
         // the desktop expects a JSON array of items, even for a single row; encoded off the calling thread
         sender?.send(plugin: pluginName, method: Self.methodAddItems, value: [model])
+    }
+}
+
+extension FloconTablePlugin {
+    /// Returns the logger of a table.
+    ///
+    /// - Parameter tableName: Name of the table.
+    /// - Returns: A logger for that table.
+    public func table(_ tableName: String) -> FloconTable {
+        FloconTable(plugin: self, tableName: tableName)
     }
 }

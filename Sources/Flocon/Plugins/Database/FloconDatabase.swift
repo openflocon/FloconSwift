@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The SQLite files of `Documents` and `Library/Application Support` are shown without being
 /// registered. Register the other ones, or give a database a clearer name, with
-/// ``floconRegisterDatabase(displayName:url:)``.
+/// ``Flocon.databasePlugin.register(displayName:url:)``.
 public struct FloconDatabase: Sendable, Equatable {
     /// Name shown in the desktop app.
     public let displayName: String
@@ -22,77 +22,27 @@ public struct FloconDatabase: Sendable, Equatable {
     }
 }
 
-/// Shows a SQLite database in the Flocon desktop app, where it can be queried.
-///
-/// Registering the same file again replaces its name. A file that does not exist is not shown.
-/// Does nothing if ``Flocon/initialize(config:)`` has not been called.
-///
-/// - Parameter database: The database.
-public func floconRegisterDatabase(_ database: FloconDatabase) {
-    Flocon.shared.databasePlugin?.register(database)
-}
-
-/// Shows a SQLite database in the Flocon desktop app, where it can be queried.
-///
-/// ```swift
-/// let url = URL.documentsDirectory.appending(path: "app.sqlite")
-/// floconRegisterDatabase(displayName: "App", url: url)
-/// ```
-///
-/// - Parameters:
-///   - displayName: Name shown in the desktop app.
-///   - url: Location of the SQLite file.
-public func floconRegisterDatabase(displayName: String, url: URL) {
-    floconRegisterDatabase(FloconDatabase(displayName: displayName, url: url))
-}
-
-/// Shows a SQLite database in the Flocon desktop app, where it can be queried.
-///
-/// - Parameters:
-///   - displayName: Name shown in the desktop app.
-///   - absolutePath: Path of the SQLite file.
-public func floconRegisterDatabase(displayName: String, absolutePath: String) {
-    floconRegisterDatabase(displayName: displayName, url: URL(fileURLWithPath: absolutePath))
-}
-
-/// Shows a query run by the app in the Flocon desktop app.
-///
-/// Call it from the trace hook of your database library, for example with GRDB:
-///
-/// ```swift
-/// var configuration = Configuration()
-/// configuration.prepareDatabase { db in
-///     db.trace { event in
-///         floconLogDatabaseQuery(dbName: "app", sqlQuery: "\(event)")
-///     }
-/// }
-/// ```
-///
-/// Does nothing if ``Flocon/initialize(config:)`` has not been called.
-///
-/// - Parameters:
-///   - dbName: Name of the database, as shown in the desktop app.
-///   - sqlQuery: The SQL query.
-///   - bindArgs: Values bound to the query; `nil` is shown as `null`.
-public func floconLogDatabaseQuery(dbName: String, sqlQuery: String, bindArgs: [Any?] = []) {
-    Flocon.shared.databasePlugin?.logQuery(dbName: dbName, sqlQuery: sqlQuery, bindArgs: bindArgs)
-}
-
-extension Flocon {
-    /// Shows a SQLite database in the desktop app. See ``floconRegisterDatabase(_:)``.
+extension FloconDatabasePlugin {
+    /// Shows a SQLite database in the Flocon desktop app, where it can be queried.
     ///
-    /// - Parameter database: The database.
-    public static func registerDatabase(_ database: FloconDatabase) {
-        floconRegisterDatabase(database)
-    }
-
-    /// Shows a query run by the app in the desktop app. See ``floconLogDatabaseQuery(dbName:sqlQuery:bindArgs:)``.
+    /// ```swift
+    /// let url = URL.documentsDirectory.appending(path: "app.sqlite")
+    /// Flocon.databasePlugin.register(displayName: "App", url: url)
+    /// ```
     ///
     /// - Parameters:
-    ///   - dbName: Name of the database, as shown in the desktop app.
-    ///   - sqlQuery: The SQL query.
-    ///   - bindArgs: Values bound to the query.
-    public static func logDatabaseQuery(dbName: String, sqlQuery: String, bindArgs: [Any?] = []) {
-        floconLogDatabaseQuery(dbName: dbName, sqlQuery: sqlQuery, bindArgs: bindArgs)
+    ///   - displayName: Name shown in the desktop app.
+    ///   - url: Location of the SQLite file.
+    public func register(displayName: String, url: URL) {
+        register(FloconDatabase(displayName: displayName, url: url))
+    }
+
+    /// Shows a SQLite database in the Flocon desktop app, where it can be queried.
+    ///
+    /// - Parameters:
+    ///   - displayName: Name shown in the desktop app.
+    ///   - absolutePath: Path of the SQLite file.
+    public func register(displayName: String, absolutePath: String) {
+        register(displayName: displayName, url: URL(fileURLWithPath: absolutePath))
     }
 }

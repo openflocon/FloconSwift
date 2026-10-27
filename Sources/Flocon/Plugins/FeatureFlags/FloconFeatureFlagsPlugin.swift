@@ -17,7 +17,7 @@ public final class FloconFeatureFlagsPlugin: FloconPlugin, @unchecked Sendable {
         self.sender = sender
     }
 
-    /// Replaces the flags of a provider in the desktop app. See ``floconFeatureFlags(_:)``.
+    /// Replaces the flags of a provider in the desktop app. See ``FloconFeatureFlagsPlugin/sender(_:)``.
     ///
     /// - Parameters:
     ///   - provider: Name of the provider, for example `"firebase"`.
@@ -40,5 +40,15 @@ public final class FloconFeatureFlagsPlugin: FloconPlugin, @unchecked Sendable {
     /// Encoded off the calling thread.
     private func send(_ remote: FloconFeatureFlagsRemote) {
         sender?.send(plugin: pluginName, method: Self.methodRegister, value: remote)
+    }
+}
+
+extension FloconFeatureFlagsPlugin {
+    /// Returns a registrar bound to a feature flag provider.
+    ///
+    /// - Parameter provider: Name of the provider, for example `"firebase"`.
+    /// - Returns: A registrar for that provider.
+    public func sender(_ provider: String) -> FloconFeatureFlags {
+        FloconFeatureFlags(plugin: self, provider: provider)
     }
 }

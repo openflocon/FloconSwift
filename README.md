@@ -72,7 +72,7 @@ struct MyApp: App {
 }
 ```
 
-Only the installed plugins are started: the accessor of the others, such as `Flocon.shared.analyticsPlugin`, stays `nil`. The available plugins are `.network` (also intercepts `URLSession.shared`), `.analytics`, `.featureFlags`, `.tables`, `.preferences`, `.files`, `.database`, `.dashboard`, `.deeplinks` and `.crashReporter`. Those with options take a closure, for example `flocon.install(.preferences) { $0.userDefaults(suite, suiteName: "group") }`.
+Only the installed plugins are started: the others, such as `Flocon.analyticsPlugin`, do nothing: their calls can stay in the app. The available plugins are `.network` (also intercepts `URLSession.shared`), `.analytics`, `.featureFlags`, `.tables`, `.preferences`, `.files`, `.database`, `.dashboard`, `.deeplinks` and `.crashReporter`. Those with options take a closure, for example `flocon.install(.preferences) { $0.userDefaults(suite, suiteName: "group") }`.
 
 `Flocon.initialize()` is the short form that installs every plugin.
 
@@ -158,10 +158,10 @@ WebSocket traffic cannot be intercepted automatically. Log the events of the con
 ```swift
 let task = URLSession.shared.webSocketTask(with: url)
 task.resume()
-floconLogWebSocketEvent(FloconWebSocketEvent(websocketUrl: url.absoluteString, event: .open))
+Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: url.absoluteString, event: .open))
 
 try await task.send(.string(text))
-floconLogWebSocketEvent(
+Flocon.networkPlugin.logWebSocketEvent(
     FloconWebSocketEvent(websocketUrl: url.absoluteString, event: .sendMessage, message: text)
 )
 ```
@@ -171,7 +171,7 @@ floconLogWebSocketEvent(
 Log your events on one stream per analytics provider:
 
 ```swift
-floconAnalytics("firebase").logEvents(
+Flocon.analyticsPlugin.sender("firebase").logEvents(
     AnalyticsEvent(
         eventName: "button_clicked",
         AnalyticsProperty("button_id", "checkout_pay")
@@ -184,7 +184,7 @@ floconAnalytics("firebase").logEvents(
 Register the flags your app evaluated, one provider per feature flag system (Firebase Remote Config, Statsig, an in-house one…). No dependency on their SDKs: each call replaces the flags of the provider, and they are sent again when the app reconnects to the desktop:
 
 ```swift
-floconFeatureFlags("firebase").register(
+Flocon.featureFlagsPlugin.sender("firebase").register(
     FloconFeatureFlag(name: "new_checkout", state: .custom, variant: "treatment", payload: #"{"steps": 3}"#),
     FloconFeatureFlag(name: "dark_mode", state: .on, variant: "on"),
     FloconFeatureFlag(name: "onboarding_v2", state: .off, variant: "control")
@@ -198,7 +198,7 @@ floconFeatureFlags("firebase").register(
 Log rows in a table; its columns are created from the names you use:
 
 ```swift
-floconTable("users").log(
+Flocon.tablePlugin.table("users").log(
     TableColumnConfig("name", "Florent"),
     TableColumnConfig("age", "33")
 )
@@ -210,7 +210,7 @@ floconTable("users").log(
 
 ```swift
 let shared = UserDefaults(suiteName: "group.com.example.app")!
-floconRegisterUserDefaults(shared, suiteName: "group.com.example.app")
+Flocon.preferencesPlugin.registerUserDefaults(shared, suiteName: "group.com.example.app")
 ```
 
 Values of type `String`, `Bool`, number, `Date` and `[String]` can be edited from the desktop; an edit is applied only when its type matches the stored value. `Data`, dictionaries and mixed arrays are shown read-only.
@@ -221,8 +221,8 @@ The keychain is not shown by default. Opt in, in debug builds only: its values a
 
 ```swift
 #if DEBUG
-floconRegisterKeychain()                    // read-only
-// floconRegisterKeychain(isEditable: true) // also apply the edits made in the desktop
+Flocon.preferencesPlugin.registerKeychain()                    // read-only
+// Flocon.preferencesPlugin.registerKeychain(isEditable: true) // also apply the edits made in the desktop
 #endif
 ```
 
@@ -235,8 +235,8 @@ With `isEditable: true`, only existing items with a text value can be edited; it
 The Files section of the desktop app shows `Documents`, `Application Support`, `Caches`, `tmp` and the whole app container without any setup. Register other folders, such as the container of an App Group shared with your widgets and extensions:
 
 ```swift
-floconRegisterAppGroup("group.com.example.app")
-floconRegisterFolder(displayName: "Exports", url: exportsURL)
+Flocon.filesPlugin.registerAppGroup("group.com.example.app")
+Flocon.filesPlugin.register(displayName: "Exports", url: exportsURL)
 ```
 
 Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside these folders are refused, and the folders themselves can never be deleted.
@@ -251,7 +251,7 @@ Register the databases stored elsewhere, such as in an App Group, or give a data
 let url = FileManager.default
     .containerURL(forSecurityApplicationGroupIdentifier: "group.com.example.app")!
     .appendingPathComponent("shared.sqlite")
-floconRegisterDatabase(displayName: "Shared", url: url)
+Flocon.databasePlugin.register(displayName: "Shared", url: url)
 ```
 
 Only the listed databases can be queried, and a file that does not exist is not listed. Queries from the desktop run on their own connection: a write waits up to one second for the app to release its lock. Blobs are shown as hexadecimal, truncated after 64 bytes.
@@ -262,7 +262,7 @@ To see the queries run by the app, log them from the trace hook of your database
 var configuration = Configuration()
 configuration.prepareDatabase { db in
     db.trace { event in
-        floconLogDatabaseQuery(dbName: "app", sqlQuery: "\(event)")
+        Flocon.databasePlugin.logQuery(dbName: "app", sqlQuery: "\(event)")
     }
 }
 ```
@@ -277,7 +277,7 @@ final class DebugDashboard {
     private var handle: FloconDashboardHandle?
 
     func start(session: Session) {
-        handle = floconDashboard(id: "main") {
+        handle = Flocon.dashboardPlugin.dashboard(id: "main") {
             FloconSection("User", publisher: session.$user) { user in
                 FloconText("name", user.name)
                 FloconText("status", user.status, color: 0xFFFF0000) // ARGB
@@ -347,7 +347,7 @@ Flocon.initialize(config: FloconConfig(isCrashReporterEnabled: false))
 
 ## Extending Flocon
 
-Each feature is a plugin of `Flocon.shared`: `networkPlugin`, `analyticsPlugin`, `featureFlagsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin` and `deeplinksPlugin`. They are `nil` until `Flocon.initialize()`.
+Each feature is a plugin of `Flocon`: `Flocon.networkPlugin`, `analyticsPlugin`, `featureFlagsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin`, `filesPlugin`, `dashboardPlugin` and `deeplinksPlugin`. They are never `nil`: until `Flocon.initialize()`, or if the plugin is not installed, they do nothing. (`Flocon.shared.networkPlugin` and the like are optionals, `nil` in that case.)
 
 ### Logging other network calls
 
@@ -358,10 +358,10 @@ let call = FloconNetworkCallRequest(
     networkType: "http",
     request: FloconNetworkRequest(url: "https://api.example.com/users", method: "GET")
 )
-Flocon.shared.networkPlugin?.logRequest(call)
+Flocon.networkPlugin.logRequest(call)
 
 // once the response is received
-Flocon.shared.networkPlugin?.logResponse(
+Flocon.networkPlugin.logResponse(
     FloconNetworkCallResponse(
         callId: call.callId,
         networkType: "http",
@@ -387,7 +387,7 @@ final class DebugSettingsPreference: FloconPreference {
     }
 }
 
-floconRegisterPreference(DebugSettingsPreference())
+Flocon.preferencesPlugin.register(DebugSettingsPreference())
 ```
 
 ## Sample app

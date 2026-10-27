@@ -30,12 +30,26 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         #expect(Flocon.shared.filesPlugin == nil)
     }
 
+    @Test func staticPluginsDoNothingBeforeInitialize() {
+        // never nil, and every call is accepted without crashing
+        Flocon.analyticsPlugin.sender("firebase").logEvents(AnalyticsEvent(eventName: "app_opened"))
+        Flocon.featureFlagsPlugin.sender("firebase").register(FloconFeatureFlag(name: "a", state: .on, variant: "on"))
+        Flocon.tablePlugin.table("users").log(TableColumnConfig("id", "1"))
+        Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: "wss://example.com", event: .open))
+        Flocon.databasePlugin.register(displayName: "App", url: FileManager.default.temporaryDirectory)
+        Flocon.databasePlugin.logQuery(dbName: "App", sqlQuery: "SELECT 1")
+        Flocon.deeplinksPlugin.register(deeplinks: [FloconDeeplink("myapp://home", label: "Home")])
+        Flocon.preferencesPlugin.registerKeychain()
+        Flocon.dashboardPlugin.dashboard(id: "main") {}
+        #expect(Flocon.analyticsPlugin === Flocon.analyticsPlugin)
+    }
+
     @Test func registersFoldersBeforeInitialize() {
         // does nothing before initialize, but must compile and not crash
-        floconRegisterFolder(displayName: "Exports", url: FileManager.default.temporaryDirectory)
-        floconRegisterFolder(displayName: "Exports", absolutePath: NSTemporaryDirectory())
-        floconRegisterAppGroup("group.io.github.openflocon.tests")
-        Flocon.registerFolder(FloconFolder(displayName: "Exports", url: FileManager.default.temporaryDirectory))
+        Flocon.filesPlugin.register(displayName: "Exports", url: FileManager.default.temporaryDirectory)
+        Flocon.filesPlugin.register(displayName: "Exports", absolutePath: NSTemporaryDirectory())
+        Flocon.filesPlugin.registerAppGroup("group.io.github.openflocon.tests")
+        Flocon.filesPlugin.register(FloconFolder(displayName: "Exports", url: FileManager.default.temporaryDirectory))
     }
 
     @Test func buildsNetworkCalls() {
@@ -54,14 +68,14 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         #expect(!request.isMocked && !response.response.isImage)
 
         // no client yet: must not crash
-        Flocon.shared.networkPlugin?.logRequest(request)
-        Flocon.shared.networkPlugin?.logResponse(response)
+        Flocon.networkPlugin.logRequest(request)
+        Flocon.networkPlugin.logResponse(response)
     }
 
     @Test func implementsACustomPreference() {
         let preference = FeatureFlagsPreference()
         preference.setValue(FloconPreferenceValue(booleanValue: false), forKey: "new_onboarding")
         #expect(preference.value(forKey: "new_onboarding") == FloconPreferenceValue(booleanValue: false))
-        floconRegisterPreference(preference)
+        Flocon.preferencesPlugin.register(preference)
     }
 }

@@ -19,13 +19,13 @@ extension FloconFeature where Options == Void {
         self.init(kind: kind, makeOptions: { () }, apply: { _ in })
     }
 
-    /// Sends analytics events. See ``floconAnalytics(_:)``.
+    /// Sends analytics events. See ``FloconAnalyticsPlugin/sender(_:)``.
     public static var analytics: FloconFeature<Void> { .init(.analytics) }
-    /// Sends the feature flags of the app. See ``floconFeatureFlags(_:)``.
+    /// Sends the feature flags of the app. See ``FloconFeatureFlagsPlugin/sender(_:)``.
     public static var featureFlags: FloconFeature<Void> { .init(.featureFlags) }
-    /// Sends table rows. See ``floconTable(_:)``.
+    /// Sends table rows. See ``FloconTablePlugin/table(_:)``.
     public static var tables: FloconFeature<Void> { .init(.tables) }
-    /// Shows the dashboards of the app. See ``floconDashboard(id:_:)``.
+    /// Shows the dashboards of the app. See ``Flocon.dashboardPlugin.dashboard(id:_:)``.
     public static var dashboard: FloconFeature<Void> { .init(.dashboard) }
     /// Reports the crashes of the app on the next launch.
     ///
