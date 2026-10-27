@@ -32,12 +32,17 @@ struct SampleNetworkClient: Sendable {
     }
 
     /// GraphQL request.
+    ///
+    /// The desktop app shows a call as GraphQL only when its `query` starts with an operation
+    /// keyword (`query`, `mutation` or `subscription`): the `{ … }` shorthand is shown as HTTP.
     func graphQL() async throws -> String {
         var request = URLRequest(url: URL(string: "https://countries.trevorblades.com/graphql")!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
-            "query": "{ country(code: \"FR\") { name capital currency } }",
+            "operationName": "GetCountry",
+            "query": "query GetCountry($code: ID!) { country(code: $code) { name capital currency } }",
+            "variables": ["code": "FR"],
         ])
         return try await perform(request)
     }

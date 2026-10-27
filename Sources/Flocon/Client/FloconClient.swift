@@ -184,7 +184,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         case .text(let text):
             body = text
         case .value(let value):
-            guard let encoded = FloconJSON.encode(value, plugin: message.plugin) else { return nil }
+            guard let encoded = FloconMessageEncoder.encode(value, plugin: message.plugin) else { return nil }
             body = encoded
         }
         let envelope = FloconMessageToServer(

@@ -27,13 +27,13 @@ public protocol FloconMessageSender: AnyObject {
 extension FloconMessageSender {
     /// Encodes the value on the calling thread, then sends it with ``send(plugin:method:body:)``.
     public func send<T: Encodable & Sendable>(plugin: String, method: String, value: T) {
-        guard let body = FloconJSON.encode(value, plugin: plugin) else { return }
+        guard let body = FloconMessageEncoder.encode(value, plugin: plugin) else { return }
         send(plugin: plugin, method: method, body: body)
     }
 }
 
 /// JSON encoding of the messages sent to the desktop app.
-enum FloconJSON {
+enum FloconMessageEncoder {
     static func encode<T: Encodable>(_ value: T, plugin: String) -> String? {
         do {
             return String(decoding: try JSONEncoder().encode(value), as: UTF8.self)

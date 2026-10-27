@@ -159,6 +159,8 @@ struct PreferencesView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(SampleTheme.bg)
         .navigationTitle("Preferences")
         .onAppear(perform: reload)
         .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)) { _ in

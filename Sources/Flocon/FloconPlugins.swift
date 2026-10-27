@@ -34,6 +34,12 @@ extension Flocon {
     /// `nil` before ``initialize(config:)``.
     public var databasePlugin: FloconDatabasePlugin? { client?.databasePlugin }
 
+    /// Lets the desktop app browse the files of the app. Usually used through
+    /// ``floconRegisterFolder(displayName:url:)`` and ``floconRegisterAppGroup(_:)``.
+    ///
+    /// `nil` before ``initialize(config:)``.
+    public var filesPlugin: FloconFilesPlugin? { client?.filesPlugin }
+
     /// Shows the dashboards of the app. Usually used through ``floconDashboard(id:_:)``.
     ///
     /// `nil` before ``initialize(config:)``.

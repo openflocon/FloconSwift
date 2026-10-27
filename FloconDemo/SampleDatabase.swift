@@ -33,6 +33,21 @@ enum SampleDatabase {
         _ = count(in: db)
     }
 
+    /// Inserts a random dog.
+    ///
+    /// - Returns: The number of dogs in the table.
+    @discardableResult
+    static func addDog() -> Int {
+        var db: OpaquePointer?
+        guard sqlite3_open(url.path, &db) == SQLITE_OK else { return 0 }
+        defer { sqlite3_close(db) }
+        execute("CREATE TABLE IF NOT EXISTS dogs (id INTEGER PRIMARY KEY, name TEXT NOT NULL, breed TEXT, age INTEGER, weight REAL)", in: db)
+        let names = ["Rex", "Médor", "Pluto", "Idéfix", "Milou", "Volt"]
+        let breeds = ["Labrador", "Beagle", "Husky", "Corgi", "Poodle"]
+        insert((names.randomElement()!, breeds.randomElement()!, Int.random(in: 1...15), Double.random(in: 5...40).rounded()), in: db)
+        return count(in: db)
+    }
+
     private static func execute(_ sql: String, in db: OpaquePointer?) {
         floconLogDatabaseQuery(dbName: name, sqlQuery: sql)
         sqlite3_exec(db, sql, nil, nil, nil)
