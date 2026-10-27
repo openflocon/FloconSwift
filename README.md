@@ -59,7 +59,11 @@ import Flocon
 @main
 struct MyApp: App {
     init() {
-        Flocon.initialize()
+        startFlocon { flocon in
+            flocon.install(.network)
+            flocon.install(.analytics)
+            flocon.install(.database) { $0.register(displayName: "App", url: databaseURL) }
+        }
     }
 
     var body: some Scene {
@@ -68,7 +72,11 @@ struct MyApp: App {
 }
 ```
 
-`Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are queued.
+Only the installed plugins are started: the accessor of the others, such as `Flocon.shared.analyticsPlugin`, stays `nil`. The available plugins are `.network` (also intercepts `URLSession.shared`), `.analytics`, `.featureFlags`, `.tables`, `.preferences`, `.files`, `.database`, `.dashboard`, `.deeplinks` and `.crashReporter`. Those with options take a closure, for example `flocon.install(.preferences) { $0.userDefaults(suite, suiteName: "group") }`.
+
+`Flocon.initialize()` is the short form that installs every plugin.
+
+`startFlocon` and `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are queued.
 
 The SDK works off the main thread: messages are encoded and sent in the background, and the logging calls (analytics, tables, database queries…) only queue their values.
 
@@ -78,7 +86,7 @@ The SDK prints nothing in the Xcode console by default. To see what it does, for
 
 ```swift
 Flocon.isLoggingEnabled = true
-Flocon.initialize()
+startFlocon { flocon in /* ... */ }
 ```
 
 The logs are prefixed with `[Flocon]`: connection, messages sent and received, errors. Long payloads, such as network bodies, are cut to 500 characters in the console; the desktop app still receives them in full.
