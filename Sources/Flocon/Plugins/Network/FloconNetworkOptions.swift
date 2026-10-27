@@ -17,14 +17,6 @@ public struct FloconNetworkOptions: Sendable {
     ///
     /// The body of an image is not sent: the desktop app downloads the image from its URL.
     public var isImage: (@Sendable (URLRequest, HTTPURLResponse) -> Bool)?
-    /// Largest request or response body sent to the desktop app, in bytes.
-    ///
-    /// Longer bodies are cut, and the desktop shows their full size. The SDK keeps at most this
-    /// many bytes of each body in memory: the app still receives the whole response.
-    public var maxBodySize: Int
-
-    /// Default of ``maxBodySize``: 1 MB.
-    public static let defaultMaxBodySize = 1024 * 1024
 
     /// Creates network options.
     ///
@@ -32,15 +24,12 @@ public struct FloconNetworkOptions: Sendable {
     ///   - shouldLog: Returns whether a request is sent to the desktop app. Defaults to all requests.
     ///   - isImage: Returns whether a response is an image, in addition to the
     ///     `Content-Type: image/*` check. Defaults to `nil`.
-    ///   - maxBodySize: Largest body sent to the desktop app, in bytes. Defaults to 1 MB.
     public init(
         shouldLog: @escaping @Sendable (URLRequest) -> Bool = { _ in true },
-        isImage: (@Sendable (URLRequest, HTTPURLResponse) -> Bool)? = nil,
-        maxBodySize: Int = FloconNetworkOptions.defaultMaxBodySize
+        isImage: (@Sendable (URLRequest, HTTPURLResponse) -> Bool)? = nil
     ) {
         self.shouldLog = shouldLog
         self.isImage = isImage
-        self.maxBodySize = max(0, maxBodySize)
     }
 }
 

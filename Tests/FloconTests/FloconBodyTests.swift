@@ -3,90 +3,40 @@ import Testing
 @testable import Flocon
 
 @Suite struct FloconBodyTests {
-    // MARK: FloconCappedBody
+    // MARK: FloconBody
 
-    @Test func keepsAShortBodyAsIs() {
-        var body = FloconCappedBody(limit: 10)
-        body.append(Data("hello".utf8))
+    @Test func keepsTheWholeBody() {
+        var body = FloconBody()
+        body.append(Data("hello ".utf8))
+        body.append(Data(String(repeating: "x", count: 2 * 1024 * 1024).utf8))
 
-        #expect(!body.isTruncated)
-        #expect(body.totalSize == 5)
-        #expect(body.text == "hello")
-    }
-
-    @Test func keepsOnlyTheLimitButCountsEverything() {
-        var body = FloconCappedBody(limit: 4)
-        body.append(Data("abc".utf8))
-        body.append(Data("defgh".utf8))
-
-        #expect(body.data == Data("abcd".utf8))
-        #expect(body.totalSize == 8)
-        #expect(body.isTruncated)
-        #expect(body.text?.hasPrefix("abcd\n… [truncated by Flocon: 8 bytes in total]") == true)
-    }
-
-    @Test func doesNotCutAUTF8Character() {
-        // "é" is 2 bytes: a limit of 2 cuts it after "a"
-        let body = FloconCappedBody(limit: 2, data: Data("aé".utf8))
-
-        #expect(body.isTruncated)
-        #expect(body.text?.hasPrefix("a\n…") == true)
+        #expect(body.totalSize == 6 + 2 * 1024 * 1024)
+        #expect(body.data.count == 6 + 2 * 1024 * 1024)
+        #expect(body.text?.hasPrefix("hello x") == true)
     }
 
     @Test func countsWithoutKeeping() {
-        var body = FloconCappedBody(limit: 100)
-        body.count(1_000)
+        var body = FloconBody()
+        body.count(9_244)
 
+        #expect(body.totalSize == 9_244)
         #expect(body.data.isEmpty)
-        #expect(body.totalSize == 1_000)
     }
 
     @Test func binaryIsNotText() {
-        let body = FloconCappedBody(limit: 100, data: Data([0xFF, 0xFE, 0xFD]))
+        let body = FloconBody(data: Data([0xFF, 0xFE, 0xFD]))
 
         #expect(body.text == nil)
     }
 
-    // MARK: FloconRequestBody
+    // MARK: Request body
 
-    @Test func logsTheBodyOfARequestWithoutTouchingIt() {
+    @Test func readsAWholeStream() {
+        let content = Data(String(repeating: "y", count: 200_000).utf8)
         var request = URLRequest(url: URL(string: "https://example.com")!)
-        request.httpBody = Data("0123456789".utf8)
+        request.httpBodyStream = InputStream(data: content)
 
-        let body = FloconRequestBody.read(from: request, limit: 4)
-
-        #expect(body.forwarded == nil)
-        #expect(body.logged?.data == Data("0123".utf8))
-        #expect(body.logged?.totalSize == 10)
-    }
-
-    @Test func keepsAShortStreamInMemory() throws {
-        let stream = InputStream(data: Data("short".utf8))
-
-        let body = FloconRequestBody.read(stream: stream, limit: 100, temporaryDirectory: FileManager.default.temporaryDirectory)
-
-        guard case .data(let data) = body.forwarded else {
-            Issue.record("expected bytes, got \(String(describing: body.forwarded))")
-            return
-        }
-        #expect(data == Data("short".utf8))
-        #expect(body.logged?.text == "short")
-    }
-
-    @Test func copiesALongStreamToAFile() throws {
-        let content = Data((0..<200_000).map { UInt8($0 % 251) })
-        let stream = InputStream(data: content)
-
-        let body = FloconRequestBody.read(stream: stream, limit: 1_000, temporaryDirectory: FileManager.default.temporaryDirectory)
-
-        guard case .file(let url) = body.forwarded else {
-            Issue.record("expected a file, got \(String(describing: body.forwarded))")
-            return
-        }
-        defer { try? FileManager.default.removeItem(at: url) }
-        #expect(try Data(contentsOf: url) == content)
-        #expect(body.logged?.data.count == 1_000)
-        #expect(body.logged?.totalSize == 200_000)
+        #expect(FloconURLProtocol.readBody(of: request) == content)
     }
 
     // MARK: Logger

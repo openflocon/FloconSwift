@@ -125,12 +125,6 @@ Flocon.setNetworkOptions(
 
 Responses with a `Content-Type: image/*` header are always treated as images.
 
-Bodies are sent up to 1 MB by default, and the desktop app shows the full size of longer ones. The SDK keeps at most that many bytes of each body in memory, while the app still gets the whole response. Change the limit with `maxBodySize`:
-
-```swift
-Flocon.setNetworkOptions(FloconNetworkOptions(maxBodySize: 256 * 1024))
-```
-
 ### Mocks and bad network
 
 The mocks and the bad network simulation set in the desktop app apply to the intercepted calls, with nothing to add to your code:

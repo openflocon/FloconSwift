@@ -22,13 +22,11 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     private var plugin: FloconNetworkPlugin?
     private var options = FloconNetworkOptions()
     private var isMocked = false
-    /// Temporary copy of a long upload stream, deleted with this protocol.
-    private var bodyFileURL: URL?
 
     private struct State {
         var innerTask: URLSessionDataTask?
         var response: HTTPURLResponse?
-        var body: FloconCappedBody
+        var body = FloconBody()
         var isImage = false
         var reported = false
         var redirected = false
@@ -36,17 +34,11 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     private let lock = NSLock()
-    private var state = State(body: FloconCappedBody(limit: 0))
+    private var state = State()
 
     private func withState<T>(_ body: (inout State) -> T) -> T {
         lock.lock(); defer { lock.unlock() }
         return body(&state)
-    }
-
-    deinit {
-        if let bodyFileURL {
-            try? FileManager.default.removeItem(at: bodyFileURL)
-        }
     }
 
     // MARK: URLProtocol
@@ -72,17 +64,13 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         self.plugin = plugin
         options = FloconNetworkOptions.current
         originalRequest = request
-        withState { $0.body = FloconCappedBody(limit: options.maxBodySize) }
 
         let startTime = Date()
         startNanos = DispatchTime.now().uptimeNanoseconds
 
         // The body of an upload is often a stream: read it once, to both log it and send it.
-        let body = FloconRequestBody.read(from: request, limit: options.maxBodySize)
-        if case .file(let url) = body.forwarded {
-            bodyFileURL = url
-        }
-        let forwarded = Self.forwardedRequest(request, body: body.forwarded)
+        let bodyData = Self.readBody(of: request)
+        let forwarded = Self.forwardedRequest(request, body: bodyData)
 
         let url = request.url?.absoluteString ?? ""
         let method = request.httpMethod ?? "GET"
@@ -99,8 +87,8 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
                     method: method,
                     startTime: startTime,
                     headers: request.allHTTPHeaderFields ?? [:],
-                    body: body.logged?.text,
-                    size: body.logged?.totalSize
+                    body: bodyData.flatMap { String(data: $0, encoding: .utf8) },
+                    size: bodyData.map { Int64($0.count) }
                 )
             )
         )
@@ -274,7 +262,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
 
     private func reportResponse(requestHeaders: [String: String]?, error: Error?) {
         // reported once, whichever callback comes first
-        let snapshot = withState { state -> (HTTPURLResponse?, FloconCappedBody, Bool)? in
+        let snapshot = withState { state -> (HTTPURLResponse?, FloconBody, Bool)? in
             guard !state.reported else { return nil }
             state.reported = true
             return (state.response, state.body, state.isImage)
@@ -320,17 +308,30 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     /// The request to perform in the inner session, with the body already read from its stream.
-    static func forwardedRequest(_ request: URLRequest, body: FloconRequestBody.Forwarded?) -> URLRequest {
+    static func forwardedRequest(_ request: URLRequest, body: Data?) -> URLRequest {
         var forwarded = request
-        switch body {
-        case .data(let data):
+        if let body {
             // also removes the stream: setting `httpBodyStream` to nil afterwards would remove the body
-            forwarded.httpBody = data
-        case .file(let url):
-            forwarded.httpBodyStream = InputStream(url: url)
-        case nil:
-            break
+            forwarded.httpBody = body
         }
         return forwarded
+    }
+
+    static func readBody(of request: URLRequest) -> Data? {
+        if let body = request.httpBody { return body }
+        guard let stream = request.httpBodyStream else { return nil }
+
+        stream.open()
+        defer { stream.close() }
+
+        var result = Data()
+        let chunkSize = 64 * 1024
+        var buffer = [UInt8](repeating: 0, count: chunkSize)
+        while stream.hasBytesAvailable {
+            let count = stream.read(&buffer, maxLength: chunkSize)
+            if count <= 0 { break }
+            result.append(buffer, count: count)
+        }
+        return result
     }
 }
