@@ -78,4 +78,14 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         #expect(preference.value(forKey: "new_onboarding") == FloconPreferenceValue(booleanValue: false))
         Flocon.preferencesPlugin.register(preference)
     }
+
+    @Test func configuresTheNetworkOptionsWhenInstalling() {
+        // only the builder is exercised: the singleton cannot be started in tests
+        var options = FloconNetworkOptions()
+        options.shouldLog = { $0.url?.host != "analytics.example.com" }
+        options.isImage = { request, _ in request.url?.path.hasPrefix("/images/") == true }
+
+        #expect(options.shouldLog(URLRequest(url: URL(string: "https://example.com")!)))
+        #expect(!options.shouldLog(URLRequest(url: URL(string: "https://analytics.example.com")!)))
+    }
 }

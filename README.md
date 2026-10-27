@@ -130,12 +130,12 @@ Flocon.interceptSharedSession()
 Choose which requests are sent, and which responses are images (their body is not sent, the desktop app downloads them from their URL):
 
 ```swift
-Flocon.setNetworkOptions(
-    FloconNetworkOptions(
-        shouldLog: { request in request.url?.host != "analytics.example.com" },
-        isImage: { request, _ in request.url?.path.hasPrefix("/images/") == true }
-    )
-)
+startFlocon { flocon in
+    flocon.install(.network) { options in
+        options.shouldLog = { request in request.url?.host != "analytics.example.com" }
+        options.isImage = { request, _ in request.url?.path.hasPrefix("/images/") == true }
+    }
+}
 ```
 
 Responses with a `Content-Type: image/*` header are always treated as images.
