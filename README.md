@@ -70,11 +70,18 @@ struct MyApp: App {
 
 `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are queued.
 
-The SDK works off the main thread: messages are encoded and sent in the background, and the logging calls (analytics, tables, database queries…) only queue their values. Its console logs are off by default; turn them on to debug the connection:
+The SDK works off the main thread: messages are encoded and sent in the background, and the logging calls (analytics, tables, database queries…) only queue their values.
+
+### Console logs
+
+The SDK prints nothing in the Xcode console by default. To see what it does, for example when the app does not show up in the desktop app, turn its logs on before starting it:
 
 ```swift
 Flocon.isLoggingEnabled = true
+Flocon.initialize()
 ```
+
+The logs are prefixed with `[Flocon]`: connection, messages sent and received, errors. Long payloads, such as network bodies, are cut to 500 characters in the console; the desktop app still receives them in full.
 
 ### On a physical device
 
