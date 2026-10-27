@@ -46,17 +46,22 @@ public struct FloconConfig: Sendable {
 
 /// Entry point of the Flocon SDK.
 ///
-/// Call ``initialize(config:)`` once, as early as possible in the app lifecycle:
+/// Call ``startFlocon(_:)`` once, as early as possible in the app lifecycle, to choose the plugins:
 ///
 /// ```swift
 /// @main
 /// struct MyApp: App {
 ///     init() {
-///         Flocon.initialize()
+///         startFlocon { flocon in
+///             flocon.install(.network)
+///             flocon.install(.analytics)
+///         }
 ///     }
 ///     // ...
 /// }
 /// ```
+///
+/// ``initialize(config:)`` is the short form, which installs every plugin.
 ///
 /// The SDK then connects to the Flocon desktop app in the background and keeps retrying
 /// until it is reachable. Messages sent before the connection is up are queued.
@@ -70,7 +75,7 @@ public final class Flocon: @unchecked Sendable {
     ///
     /// - Parameter config: Where to find the desktop app. Defaults to `localhost`.
     public static func initialize(config: FloconConfig = FloconConfig()) {
-        shared.initializeFlocon(config: config)
+        shared.initializeFlocon(config: config, features: nil)
     }
 
     /// Registers a custom plugin.
@@ -104,28 +109,36 @@ public final class Flocon: @unchecked Sendable {
 
     // MARK: Connection
 
-    private func initializeFlocon(config: FloconConfig) {
+    /// - Parameter features: The plugins to register, or `nil` for all of them.
+    /// - Returns: `false` if the SDK was already initialized, and nothing was done.
+    @discardableResult
+    func initializeFlocon(config: FloconConfig, features: Set<FloconFeatureKind>?) -> Bool {
         lock.lock()
         if _isInitialized {
             lock.unlock()
-            return
+            return false
         }
+        let features = features ?? Set(FloconFeatureKind.allCases)
         let newClient = FloconClient(config: config)
-        newClient.register(plugin: FloconNetworkPlugin(sender: newClient))
-        newClient.register(plugin: FloconAnalyticsPlugin(sender: newClient))
-        newClient.register(plugin: FloconFeatureFlagsPlugin(sender: newClient))
-        newClient.register(plugin: FloconTablePlugin(sender: newClient))
+        if features.contains(.network) { newClient.register(plugin: FloconNetworkPlugin(sender: newClient)) }
+        if features.contains(.analytics) { newClient.register(plugin: FloconAnalyticsPlugin(sender: newClient)) }
+        if features.contains(.featureFlags) { newClient.register(plugin: FloconFeatureFlagsPlugin(sender: newClient)) }
+        if features.contains(.tables) { newClient.register(plugin: FloconTablePlugin(sender: newClient)) }
         newClient.register(plugin: FloconDevicePlugin(sender: newClient))
-        newClient.register(plugin: FloconPreferencesPlugin(sender: newClient))
-        newClient.register(plugin: FloconFilesPlugin(sender: newClient, fileSender: newClient))
-        newClient.register(plugin: FloconDatabasePlugin(sender: newClient))
-        newClient.register(plugin: FloconDashboardPlugin(sender: newClient))
-        newClient.register(plugin: FloconDeeplinksPlugin(sender: newClient))
-        let crashReporter = FloconCrashReporterPlugin(sender: newClient)
-        newClient.register(plugin: crashReporter)
-        // before connecting: it also prepares the crash of the previous launch, sent on connection
-        if config.isCrashReporterEnabled {
-            crashReporter.installCrashHandlers()
+        if features.contains(.preferences) { newClient.register(plugin: FloconPreferencesPlugin(sender: newClient)) }
+        if features.contains(.files) {
+            newClient.register(plugin: FloconFilesPlugin(sender: newClient, fileSender: newClient))
+        }
+        if features.contains(.database) { newClient.register(plugin: FloconDatabasePlugin(sender: newClient)) }
+        if features.contains(.dashboard) { newClient.register(plugin: FloconDashboardPlugin(sender: newClient)) }
+        if features.contains(.deeplinks) { newClient.register(plugin: FloconDeeplinksPlugin(sender: newClient)) }
+        if features.contains(.crashReporter) {
+            let crashReporter = FloconCrashReporterPlugin(sender: newClient)
+            newClient.register(plugin: crashReporter)
+            // before connecting: it also prepares the crash of the previous launch, sent on connection
+            if config.isCrashReporterEnabled {
+                crashReporter.installCrashHandlers()
+            }
         }
         _client = newClient
         _isInitialized = true
@@ -133,7 +146,7 @@ public final class Flocon: @unchecked Sendable {
             await self?.start(client: newClient)
         }
         lock.unlock()
-
+        return true
     }
 
     /// Called from the WebSocket's `onClosed` callback, on another thread, hence the lock.
