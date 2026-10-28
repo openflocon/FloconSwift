@@ -37,10 +37,10 @@ import Testing
 
     @Test func connectSetsTheOptions() {
         var builder = FloconBuilder()
-        builder.connect {
-            $0.bufferCapacity = 100
-            $0.address = "192.168.1.20"
-            $0.rememberLastAddress = false
+        builder.connect { setup in
+            setup.bufferCapacity = 100
+            setup.address = "192.168.1.20"
+            setup.rememberLastAddress = false
         }
 
         #expect(builder.config.bufferCapacity == 100)

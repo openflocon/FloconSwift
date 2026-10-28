@@ -28,8 +28,8 @@ public struct FloconBuilder {
     ///
     /// ```swift
     /// startFlocon { flocon in
-    ///     flocon.connect {
-    ///         $0.address = "192.168.1.20" // also tried at start, next to localhost
+    ///     flocon.connect { setup in
+    ///         setup.address = "192.168.1.20" // also tried at start, next to localhost
     ///     }
     ///     flocon.install(.network)
     /// }

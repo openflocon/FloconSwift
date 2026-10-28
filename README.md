@@ -121,10 +121,10 @@ The options are set with `connect` in the `startFlocon` block:
 
 ```swift
 startFlocon { flocon in
-    flocon.connect {
-        $0.bufferCapacity = 10_000       // messages kept while no desktop is reachable
-        $0.address = "192.168.1.20"      // also tried at start, for a Mac with a fixed IP
-        $0.rememberLastAddress = true    // the last connected address is tried again at the next launch
+    flocon.connect { setup in
+        setup.bufferCapacity = 10_000       // messages kept while no desktop is reachable
+        setup.address = "192.168.1.20"      // also tried at start, for a Mac with a fixed IP
+        setup.rememberLastAddress = true    // the last connected address is tried again at the next launch
     }
     flocon.install(.network)
 }
