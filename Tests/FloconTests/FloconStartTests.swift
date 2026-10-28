@@ -25,4 +25,40 @@ import Testing
         #expect(builder.config.host == "192.168.1.20")
         #expect(builder.config.webSocketPort == 9023)
     }
+
+    @Test func connectKeepsTheDefaultOptionsWithoutABlock() {
+        var builder = FloconBuilder()
+        builder.connect()
+
+        #expect(builder.config.bufferCapacity == 5_000)
+        #expect(builder.config.additionalAddress == nil)
+        #expect(builder.config.rememberLastAddress)
+    }
+
+    @Test func connectSetsTheOptions() {
+        var builder = FloconBuilder()
+        builder.connect { setup in
+            setup.bufferCapacity = 100
+            setup.address = "192.168.1.20"
+            setup.rememberLastAddress = false
+        }
+
+        #expect(builder.config.bufferCapacity == 100)
+        #expect(builder.config.additionalAddress == "192.168.1.20")
+        #expect(!builder.config.rememberLastAddress)
+    }
+}
+
+@Suite struct FloconAddressTests {
+    @Test func readsAnIpAddressOrAHostWithThePort9023() throws {
+        #expect(try floconWebSocketURL(address: "192.168.1.20", port: 9023) == URL(string: "ws://192.168.1.20:9023")!)
+        #expect(try floconWebSocketURL(address: " my-mac.local ", port: 9023) == URL(string: "ws://my-mac.local:9023")!)
+        #expect(try floconWebSocketURL(address: "localhost", port: 9023) == URL(string: "ws://localhost:9023")!)
+    }
+
+    @Test func refusesAPortASchemeAPathOrAnEmptyAddress() {
+        for address in ["", "192.168.1.20:9023", "192.168.1.20:9100", "ws://192.168.1.20", "192.168.1.20/path", "my mac"] {
+            #expect(throws: FloconAddressError.self) { try floconWebSocketURL(address: address, port: 9023) }
+        }
+    }
 }

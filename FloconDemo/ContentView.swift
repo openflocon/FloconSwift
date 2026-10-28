@@ -12,6 +12,9 @@ struct ContentView: View {
                 .navigationDestination(for: SampleScreen.self) { screen in
                     screen.destination
                 }
+                .navigationDestination(for: SampleConnectionRoute.self) { _ in
+                    ConnectionScreen()
+                }
                 .navigationDestination(for: DeeplinkRoute.self) { route in
                     route.screen
                 }

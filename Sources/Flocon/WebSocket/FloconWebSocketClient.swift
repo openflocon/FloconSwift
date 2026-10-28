@@ -1,15 +1,14 @@
 import Foundation
 
 /// WebSocket connection to the Flocon desktop app.
-protocol FloconWebSocketClient: AnyObject {
+protocol FloconWebSocketClient: AnyObject, Sendable {
     func connect(
-        address: String,
-        port: Int,
+        url: URL,
         onMessageReceived: @escaping @Sendable (String) -> Void,
         onClosed: @escaping @Sendable () -> Void
     ) async throws
 
-    func sendPendingMessages() async
+    /// - Returns: `false` if the message could not be sent, for example when not connected.
     func sendMessage(_ message: String) async -> Bool
     func disconnect() async
 }

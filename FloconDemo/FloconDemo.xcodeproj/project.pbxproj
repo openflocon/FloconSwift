@@ -32,6 +32,7 @@
 		F10C00000000000000000113 /* DashboardScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000112 /* DashboardScreen.swift */; };
 		F10C00000000000000000115 /* DeeplinksScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000114 /* DeeplinksScreen.swift */; };
 		F10C00000000000000000117 /* CrashScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000116 /* CrashScreen.swift */; };
+		F10C000000000000000001F2 /* ConnectionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C000000000000000001F1 /* ConnectionScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -60,6 +61,7 @@
 		F10C00000000000000000112 /* DashboardScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardScreen.swift; sourceTree = "<group>"; };
 		F10C00000000000000000114 /* DeeplinksScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeeplinksScreen.swift; sourceTree = "<group>"; };
 		F10C00000000000000000116 /* CrashScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashScreen.swift; sourceTree = "<group>"; };
+		F10C000000000000000001F1 /* ConnectionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +100,7 @@
 				F10C00000000000000000112 /* DashboardScreen.swift */,
 				F10C00000000000000000114 /* DeeplinksScreen.swift */,
 				F10C00000000000000000116 /* CrashScreen.swift */,
+				F10C000000000000000001F1 /* ConnectionScreen.swift */,
 				F10C00000000000000000051 /* Info.plist */,
 				F10C00000000000000000021 /* Assets.xcassets */,
 				E56E385730838CBB0063FCD8 /* Frameworks */,
@@ -215,6 +218,7 @@
 				F10C00000000000000000113 /* DashboardScreen.swift in Sources */,
 				F10C00000000000000000115 /* DeeplinksScreen.swift in Sources */,
 				F10C00000000000000000117 /* CrashScreen.swift in Sources */,
+				F10C000000000000000001F2 /* ConnectionScreen.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */
