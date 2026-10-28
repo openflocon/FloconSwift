@@ -7,8 +7,6 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     // Start time of this app launch, lets the desktop group messages by session.
     private let appInstance = Int64(Date().timeIntervalSince1970 * 1000)
 
-    private let webSocketClient: FloconWebSocketClient = buildFloconWebSocketClient()
-
     /// A message waiting for its envelope, which needs the app infos read on the main actor.
     private struct OutgoingMessage: Sendable {
         let plugin: String
@@ -26,8 +24,10 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     /// stream as the messages, so they are never reordered with them.
     private enum OutboxItem: Sendable {
         case message(OutgoingMessage)
-        case connected
-        case disconnected
+        case connected(FloconLink)
+        case disconnected(FloconLink)
+        case addLink(FloconLink)
+        case removeLink(FloconLink)
     }
 
     /// Read once, on the main actor for `UIDevice`, and shared by the messages and the uploads.
@@ -40,20 +40,24 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     private let pluginsLock = NSLock()
     private var plugins: [String: FloconPlugin] = [:]
 
-    private let serverLock = NSLock()
-    private var _serverURL: URL?
+    /// The connection to the default address of the desktop app, always tried.
+    let defaultLink: FloconLink
+
+    private let linkLock = NSLock()
+    private var _extraLink: FloconLink?
 
     init(config: FloconConfig) {
         self.config = config
-        _serverURL = config.connectsAutomatically ? URL(string: "ws://\(config.host):\(config.webSocketPort)") : nil
+        let defaultURL = URL(string: "ws://\(config.host):\(config.webSocketPort)") ?? URL(string: "ws://localhost:9023")!
+        self.defaultLink = FloconLink(url: defaultURL)
         var continuation: AsyncStream<OutboxItem>.Continuation!
         let stream = AsyncStream<OutboxItem> { continuation = $0 }
         self.outbox = continuation
         let appInfosTask = Task { await FloconAppInfos.current() }
         self.appInfos = appInfosTask
-        let ws = webSocketClient
         let appInstance = appInstance
-        let pending = FloconOutbox(capacity: config.bufferCapacity) { await ws.sendMessage($0) }
+        let pending = FloconOutbox(capacity: config.bufferCapacity)
+        outbox.yield(.addLink(defaultLink))
         outboxTask = Task {
             // Read without blocking the thread that called Flocon.initialize():
             // messages sent in the meantime wait in the stream, in order.
@@ -63,13 +67,17 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
                 case .message(let message):
                     guard let json = Self.encode(message, appInfos: appInfos, appInstance: appInstance) else { continue }
                     await pending.enqueue(json)
-                case .connected:
+                case .connected(let link):
                     // say hello to the desktop, before the messages kept while disconnected
                     let hello = OutgoingMessage(plugin: "bonjour", method: "bonjour", body: .text("bonjour"))
                     guard let json = Self.encode(hello, appInfos: appInfos, appInstance: appInstance) else { continue }
-                    await pending.connected(handshake: json)
-                case .disconnected:
-                    await pending.disconnected()
+                    await pending.connected(link.outboxLink, handshake: json)
+                case .disconnected(let link):
+                    await pending.disconnected(link.outboxLink)
+                case .addLink(let link):
+                    await pending.add(link.outboxLink)
+                case .removeLink(let link):
+                    await pending.remove(link.outboxLink)
                 }
             }
         }
@@ -139,40 +147,58 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
 
     // MARK: Connection
 
-    /// Address of the desktop WebSocket server, `nil` until it is known.
-    var serverURL: URL? {
-        serverLock.lock(); defer { serverLock.unlock() }
-        return _serverURL
+    /// The connection to the address given with ``Flocon/connect(address:)``, in addition to the default one.
+    var extraLink: FloconLink? {
+        linkLock.lock(); defer { linkLock.unlock() }
+        return _extraLink
     }
 
-    func setServer(url: URL) {
-        serverLock.lock(); defer { serverLock.unlock() }
-        _serverURL = url
+    /// Adds a connection to `url`, next to the default one.
+    func addExtraLink(url: URL) -> FloconLink {
+        let link = FloconLink(url: url)
+        outbox.yield(.addLink(link))
+        linkLock.lock(); defer { linkLock.unlock() }
+        _extraLink = link
+        return link
     }
 
-    /// Connects to ``serverURL``, then sends the handshake and the messages kept so far.
+    /// Closes and forgets `link`, which must be the extra one.
+    func removeExtraLink(_ link: FloconLink) async {
+        await disconnect(link)
+        forgetExtraLink(link)
+        outbox.yield(.removeLink(link))
+    }
+
+    private func forgetExtraLink(_ link: FloconLink) {
+        linkLock.lock(); defer { linkLock.unlock() }
+        if _extraLink === link { _extraLink = nil }
+    }
+
+    /// Connects `link`, then sends the handshake and the messages kept so far.
     ///
     /// - Parameter onClosed: Called when an established connection is lost.
     /// - Throws: An error if the connection cannot be opened.
-    func connect(onClosed: @escaping @Sendable () -> Void) async throws {
-        guard let url = serverURL else { throw URLError(.badURL) }
+    func connect(_ link: FloconLink, onClosed: @escaping @Sendable () -> Void) async throws {
         let outbox = outbox
-        try await webSocketClient.connect(
-            url: url,
+        try await link.webSocketClient.connect(
+            url: link.url,
             onMessageReceived: { [weak self] text in self?.onMessageReceived(text) },
             onClosed: {
-                outbox.yield(.disconnected)
+                link.isConnected = false
+                outbox.yield(.disconnected(link))
                 onClosed()
             }
         )
+        link.isConnected = true
         // before the plugins: what they send on connection comes after the handshake
-        outbox.yield(.connected)
+        outbox.yield(.connected(link))
         allPlugins.forEach { $0.onConnectedToServer() }
     }
 
-    func disconnect() async {
-        await webSocketClient.disconnect()
-        outbox.yield(.disconnected)
+    func disconnect(_ link: FloconLink) async {
+        link.isConnected = false
+        await link.webSocketClient.disconnect()
+        outbox.yield(.disconnected(link))
     }
 
     // MARK: Receiving
@@ -205,7 +231,8 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
 
     func sendFile(at fileURL: URL, remotePath: String, requestId: String) async {
         let appInfos = await self.appInfos.value
-        let uploader = FloconFileUploader(host: serverURL?.host ?? config.host, port: config.httpPort)
+        let connected = [extraLink, defaultLink].compactMap { $0 }.first { $0.isConnected }
+        let uploader = FloconFileUploader(host: (connected ?? defaultLink).url.host ?? config.host, port: config.httpPort)
         await uploader.upload(
             fileAt: fileURL,
             remotePath: remotePath,
@@ -237,5 +264,36 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         )
         guard let data = try? JSONEncoder().encode(envelope) else { return nil }
         return String(data: data, encoding: .utf8)
+    }
+}
+
+/// The connection to one address of the desktop app, with its own WebSocket.
+///
+/// The messages are shared between the links, see ``FloconOutbox``.
+final class FloconLink: @unchecked Sendable {
+    let url: URL
+    let id = UUID()
+    let webSocketClient: FloconWebSocketClient = buildFloconWebSocketClient()
+    let outboxLink: FloconOutbox.Link
+
+    private let lock = NSLock()
+    private var _isConnected = false
+    private var _task: Task<Void, Never>?
+
+    init(url: URL) {
+        self.url = url
+        let webSocketClient = webSocketClient
+        self.outboxLink = FloconOutbox.Link { await webSocketClient.sendMessage($0) }
+    }
+
+    var isConnected: Bool {
+        get { lock.lock(); defer { lock.unlock() }; return _isConnected }
+        set { lock.lock(); _isConnected = newValue; lock.unlock() }
+    }
+
+    /// The task connecting, or retrying to connect, this link.
+    var task: Task<Void, Never>? {
+        get { lock.lock(); defer { lock.unlock() }; return _task }
+        set { lock.lock(); _task = newValue; lock.unlock() }
     }
 }

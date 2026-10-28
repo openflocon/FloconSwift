@@ -8,8 +8,7 @@ public enum FloconConnectionState: Sendable, Equatable {
     case idle
     /// Not connected: the messages are kept in memory until the connection is up.
     ///
-    /// This is the state after ``startFlocon(_:)`` with ``FloconBuilder/connectLater(bufferCapacity:)``
-    /// until ``Flocon/connect(to:)`` is called, and right after a connection is lost.
+    /// This is the state while no desktop app is reachable, and right after a connection is lost.
     case buffering
     /// Opening the connection to the desktop app.
     case connecting
@@ -19,9 +18,11 @@ public enum FloconConnectionState: Sendable, Equatable {
     case failed(String)
 }
 
-/// Holds the current ``FloconConnectionState`` and feeds the streams that follow it.
+/// Holds the state of each connection (one per address), and the ``FloconConnectionState`` published
+/// to the app: connected as soon as one address is, else the most advanced state of the addresses.
 final class FloconConnectionStateStore: @unchecked Sendable {
     private let lock = NSLock()
+    private var linkStates: [UUID: FloconConnectionState] = [:]
     private var _state = FloconConnectionState.idle
     private var continuations: [UUID: AsyncStream<FloconConnectionState>.Continuation] = [:]
 
@@ -30,9 +31,28 @@ final class FloconConnectionStateStore: @unchecked Sendable {
         return _state
     }
 
-    /// Updates the state and tells the streams. Setting the current state again does nothing.
-    func set(_ newState: FloconConnectionState) {
+    /// Updates the state of one connection.
+    func set(_ newState: FloconConnectionState, for link: UUID) {
         lock.lock(); defer { lock.unlock() }
+        linkStates[link] = newState
+        publish()
+    }
+
+    /// Forgets a connection that was closed on purpose.
+    func clear(_ link: UUID) {
+        lock.lock(); defer { lock.unlock() }
+        linkStates[link] = nil
+        publish()
+    }
+
+    /// Tells the streams if the state changed. Setting the current state again does nothing.
+    private func publish() {
+        let states = Array(linkStates.values)
+        let newState = states.first { $0 == .connected }
+            ?? states.first { $0 == .connecting }
+            ?? states.first { if case .failed = $0 { true } else { false } }
+            ?? states.first
+            ?? .idle
         guard newState != _state else { return }
         _state = newState
         // inside the lock, so that every stream sees the changes in the same order

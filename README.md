@@ -76,7 +76,7 @@ Only the installed plugins are started: the others, such as `Flocon.analyticsPlu
 
 `Flocon.initialize()` is the short form that installs every plugin.
 
-`startFlocon` and `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are kept in memory (see [Connecting later](#connecting-later)).
+`startFlocon` and `Flocon.initialize()` can be called from any thread. The SDK connects in the background and keeps retrying until the desktop app is reachable; messages sent in the meantime are kept in memory (see [Connecting to another address](#connecting-to-another-address)).
 
 The SDK works off the main thread: messages are encoded and sent in the background, and the logging calls (analytics, tables, database queries…) only queue their values.
 
@@ -101,26 +101,40 @@ Flocon.initialize(config: FloconConfig(host: "192.168.1.20"))
 
 Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`, and an App Transport Security exception for the Mac, as the connection uses plain `ws://`.
 
-### Connecting later
+### Connecting to another address
 
-If the address of the Mac is not known when the app starts, for example because the user types it in or it is discovered, start the SDK without connecting, and give the address when you have it:
+By default the SDK tries `localhost` (the simulator) and keeps retrying every 3 seconds. If the address of the Mac is not known when the app starts, for example because the user types it in, call `Flocon.connect(address:)` when you have it, from a debug menu for instance. The SDK keeps trying `localhost` and also connects to this address:
 
 ```swift
 startFlocon { flocon in
-    flocon.connectLater() // or flocon.connectLater(bufferCapacity: 10_000)
     flocon.install(.network)
     flocon.install(.analytics)
 }
 
 // later, once the address is known
-try await Flocon.connect(to: URL(string: "ws://192.168.1.20:9023")!)
+let result = await Flocon.connect(address: "192.168.1.20")
 ```
 
-Until then, everything the app logs is kept in memory. `Flocon.connect(to:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It throws if the connection cannot be opened; the messages are kept, so you can call it again.
+Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
 
-Up to 5000 messages are kept (`bufferCapacity`): above that, the oldest are dropped. The same buffer is used when the connection to the desktop is lost: the messages are kept, the SDK reconnects to the same address every 3 seconds, and sends them once it is back. `Flocon.initialize(config: FloconConfig(connectsAutomatically: false))` does the same as `connectLater()`.
+The options are set with `connect` in the `startFlocon` block:
 
-Follow the connection with `Flocon.connectionState`, or with the `Flocon.connectionStates` stream, which starts with the current state:
+```swift
+startFlocon { flocon in
+    flocon.connect {
+        $0.bufferCapacity = 10_000       // messages kept while no desktop is reachable
+        $0.address = "192.168.1.20"      // also tried at start, for a Mac with a fixed IP
+        $0.rememberLastAddress = true    // the last connected address is tried again at the next launch
+    }
+    flocon.install(.network)
+}
+```
+
+Up to 5000 messages are kept (`bufferCapacity`): above that, the oldest are dropped. The same buffer is used when a connection to the desktop is lost: the messages are kept, the SDK reconnects every 3 seconds, and sends them once it is back.
+
+The last address the SDK connected to is kept in the `UserDefaults` of the app (`rememberLastAddress`, `true` by default) and tried again at the next launch, next to `localhost`. It wins over `address`. `FloconConfig` has the same options (`bufferCapacity`, `additionalAddress`, `rememberLastAddress`) for `Flocon.initialize(config:)`.
+
+Follow the connection with `Flocon.connectionState`, or with the `Flocon.connectionStates` stream, which starts with the current state (`.connected` as soon as one address is connected):
 
 ```swift
 for await state in Flocon.connectionStates {
