@@ -43,3 +43,12 @@ Run it with the Flocon desktop app open; on the simulator the default host `loca
 - Console logging goes through `FloconLogger` and is off unless `Flocon.isLoggingEnabled` is set before starting.
 - Public API changes need a README update (`README.md` has one section per plugin) and a test in `Tests/FloconTests/FloconPublicAPITests.swift`, which deliberately does not use `@testable` so it checks that the API is really public.
 - The branch `main` is consumed by SPM users directly (no tagged release yet).
+
+## Git and pull requests
+
+- Never push to `main`: work on a branch (`claude/<short-name>`) and bring `main` in with a merge, never a rebase or force-push on a branch someone else owns.
+- One logical change per commit, with a short imperative summary and no prefix (`Add CLAUDE.md`, `Split FloconStart.swift: builder, feature kinds...`). Pull requests are merged with a merge commit: the title follows the same style.
+- Only open a pull request when asked to, against `main`.
+- Fill `.github/pull_request_template.md`: keep its headings, remove the sections that do not apply. Describe what changed and why, not the file list.
+- There is no CI, so the `Verification` section is the only proof: tick only what was actually run, and say plainly what could not be run (for example no Swift toolchain in a cloud session) instead of claiming it passed.
+- Never commit secrets, `local.properties`, signing keys or build outputs (`.build/`, derived data).
