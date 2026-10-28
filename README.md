@@ -115,7 +115,7 @@ startFlocon { flocon in
 let result = await Flocon.connect(address: "192.168.1.20")
 ```
 
-Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
+Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
 
 The options are set with `connect` in the `startFlocon` block:
 

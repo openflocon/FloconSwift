@@ -56,6 +56,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         let appInfosTask = Task { await FloconAppInfos.current() }
         self.appInfos = appInfosTask
         let appInstance = appInstance
+        let defaultLink = defaultLink
         let pending = FloconOutbox(capacity: config.bufferCapacity)
         outbox.yield(.addLink(defaultLink))
         outboxTask = Task {
@@ -69,7 +70,9 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
                     await pending.enqueue(json)
                 case .connected(let link):
                     // say hello to the desktop, before the messages kept while disconnected
-                    let hello = OutgoingMessage(plugin: "bonjour", method: "bonjour", body: .text("bonjour"))
+                    let connectionType: FloconBonjourBody.ConnectionType = link === defaultLink ? .default : .wifi
+                    guard let body = FloconBonjourBody(connectionType: connectionType).json() else { continue }
+                    let hello = OutgoingMessage(plugin: "bonjour", method: "bonjour", body: .text(body))
                     guard let json = Self.encode(hello, appInfos: appInfos, appInstance: appInstance) else { continue }
                     await pending.connected(link.outboxLink, handshake: json)
                 case .disconnected(let link):
