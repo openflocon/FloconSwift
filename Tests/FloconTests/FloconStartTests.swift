@@ -51,9 +51,9 @@ import Testing
 
 @Suite struct FloconAddressTests {
     @Test func readsAnIpAddressOrAHostWithThePort9023() throws {
-        #expect(try floconWebSocketURL(address: "192.168.1.20", port: 9023) == URL(string: "ws://192.168.1.20:9023")!)
-        #expect(try floconWebSocketURL(address: " my-mac.local ", port: 9023) == URL(string: "ws://my-mac.local:9023")!)
-        #expect(try floconWebSocketURL(address: "localhost", port: 9023) == URL(string: "ws://localhost:9023")!)
+        #expect(try floconWebSocketURL(address: "192.168.1.20", port: 9023) == URL(string: "wss://192.168.1.20:9023")!)
+        #expect(try floconWebSocketURL(address: " my-mac.local ", port: 9023) == URL(string: "wss://my-mac.local:9023")!)
+        #expect(try floconWebSocketURL(address: "localhost", port: 9023) == URL(string: "wss://localhost:9023")!)
     }
 
     @Test func refusesAPortASchemeAPathOrAnEmptyAddress() {
