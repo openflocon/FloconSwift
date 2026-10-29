@@ -138,7 +138,7 @@ private func message(_ method: String, _ body: String) -> FloconMessageFromServe
         plugin.onMessageReceived(message("on_check_box_value_changed", #"{"id":"main_dark","value":true}"#))
         #expect(await iterator.next() == "check true")
         plugin.onMessageReceived(message(
-            "onFormSubmitted",
+            "on_form_submitted",
             #"{"id":"main_form_Create","values":{"main_input":"hello","main_admin":"true"}}"#
         ))
         #expect(await iterator.next() == "form admin=true,input=hello")
