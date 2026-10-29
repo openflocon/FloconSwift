@@ -6,15 +6,15 @@ import Foundation
 /// The last state of each dashboard is sent again on each connection.
 public final class FloconDashboardPlugin: FloconPlugin, @unchecked Sendable {
     /// Name of the messages received from the desktop.
-    static let name = "Dashboard"
+    static let name = "dashboard"
     /// Name of the messages sent to the desktop, lowercased unlike ``name``.
     private static let remotePluginName = "dashboard"
     private static let methodUpdate = "update"
 
-    private static let methodOnClick = "onClick"
-    private static let methodOnFormSubmitted = "onFormSubmitted"
-    private static let methodOnTextFieldSubmitted = "onTextFieldSubmitted"
-    private static let methodOnCheckBoxValueChanged = "onCheckBoxValueChanged"
+    private static let methodOnClick = "on_click"
+    private static let methodOnFormSubmitted = "on_form_submitted"
+    private static let methodOnTextFieldSubmitted = "on_text_field_submitted"
+    private static let methodOnCheckBoxValueChanged = "on_check_box_value_changed"
 
     public let pluginName = FloconDashboardPlugin.name
     private weak var sender: FloconMessageSender?

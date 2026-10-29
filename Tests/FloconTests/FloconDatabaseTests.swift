@@ -170,7 +170,7 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
 
         plugin.onConnectedToServer()
 
-        let message = try #require(await sender.waitFor(method: "getdatabases").first)
+        let message = try #require(await sender.waitFor(method: "get_databases").first)
         let list = try JSONSerialization.jsonObject(with: Data(message.body.utf8)) as? [[String: String]]
         #expect(list?.map { $0["name"] } == ["Documents/dogs.sqlite"])
     }
@@ -189,7 +189,7 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         plugin.register(FloconDatabase(displayName: "Missing", url: outsideFolder.appendingPathComponent("missing.db")))
 
         #expect(plugin.databases().map(\.displayName) == ["Dogs", "Other"])
-        #expect(await sender.waitFor(method: "getdatabases", count: 3).count == 3)
+        #expect(await sender.waitFor(method: "get_databases", count: 3).count == 3)
         #expect(query("SELECT count(*) FROM dogs", on: outside, plugin: plugin) == .select(columns: ["count(*)"], values: [["2"]]))
     }
 
@@ -200,7 +200,7 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         plugin.logQuery(dbName: "app", sqlQuery: "SELECT * FROM dogs WHERE id = ?", bindArgs: [1, nil, "Rex"])
 
         let message = try #require(sender.messages.first)
-        #expect(message.method == "logquery")
+        #expect(message.method == "log_query")
         let log = try JSONSerialization.jsonObject(with: Data(message.body.utf8)) as? [String: Any]
         #expect(log?["dbName"] as? String == "app")
         #expect(log?["sqlQuery"] as? String == "SELECT * FROM dogs WHERE id = ?")

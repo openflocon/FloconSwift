@@ -40,7 +40,7 @@ private func sorted(_ json: String) throws -> String {
         ])
 
         let message = try #require(sender.messages.single)
-        #expect(message.plugin == "featureflags")
+        #expect(message.plugin == "feature_flags")
         #expect(message.method == "register")
         #expect(try sorted(message.body) == #"{"flags":[{"name":"new_checkout","payload":"{\"color\":\"red\"}","state":"custom","variant":"treatment"},{"name":"dark_mode","state":"on","variant":"on"}],"provider":"firebase"}"#)
     }

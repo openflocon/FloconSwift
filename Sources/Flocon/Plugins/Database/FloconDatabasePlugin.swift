@@ -8,12 +8,12 @@ import Foundation
 public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
     static let name = "database"
     // desktop -> app
-    private static let methodGetDatabases = "getDatabases"
+    private static let methodGetDatabases = "get_databases"
     private static let methodQuery = "query"
     // app -> desktop
-    private static let methodDatabasesResult = "getdatabases"
+    private static let methodDatabasesResult = "get_databases"
     private static let methodQueryResult = "query"
-    private static let methodLogQuery = "logquery"
+    private static let methodLogQuery = "log_query"
 
     public let pluginName = FloconDatabasePlugin.name
     private weak var sender: FloconMessageSender?

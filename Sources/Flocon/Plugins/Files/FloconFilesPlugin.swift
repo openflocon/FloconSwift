@@ -9,15 +9,15 @@ import Foundation
 public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "files"
     // desktop -> app
-    private static let methodGetRoots = "getRoots"
-    private static let methodListFiles = "listFiles"
-    private static let methodGetFile = "getFile"
-    private static let methodDeleteFile = "deleteFile"
-    private static let methodDeleteFiles = "deleteFiles"
-    private static let methodDeleteFolderContent = "deleteFolderContent"
+    private static let methodGetRoots = "get_roots"
+    private static let methodListFiles = "list_files"
+    private static let methodGetFile = "get_file"
+    private static let methodDeleteFile = "delete_file"
+    private static let methodDeleteFiles = "delete_files"
+    private static let methodDeleteFolderContent = "delete_folder_content"
     // app -> desktop: older desktop versions compare method names case-sensitively
-    private static let methodListFilesResult = "listFiles"
-    private static let methodGetRootsResult = "getRoots"
+    private static let methodListFilesResult = "list_files"
+    private static let methodGetRootsResult = "get_roots"
 
     public let pluginName = FloconFilesPlugin.name
     private weak var sender: FloconMessageSender?

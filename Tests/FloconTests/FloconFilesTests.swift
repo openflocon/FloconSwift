@@ -147,8 +147,8 @@ private final class RecordingSender: FloconMessageSender, FloconFileSender, @unc
         plugin.register(FloconFolder(displayName: "Group", url: group))
         plugin.register(FloconFolder(displayName: "Missing", url: base.appendingPathComponent("missing")))
 
-        plugin.onMessageReceived(try message("getRoots", #"{"requestId":"1"}"#))
-        let body = try #require(await sender.waitFor(method: "getRoots"))
+        plugin.onMessageReceived(try message("get_roots", #"{"requestId":"1"}"#))
+        let body = try #require(await sender.waitFor(method: "get_roots"))
         let result = try JSONDecoder().decode(RootsResult.self, from: Data(body.utf8))
 
         #expect(result.requestId == "1")

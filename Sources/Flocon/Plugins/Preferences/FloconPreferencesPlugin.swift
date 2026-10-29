@@ -5,12 +5,12 @@ import Foundation
 /// The list of stores is sent on each connection. The desktop then asks for the content
 /// of the store being displayed, and sends the edited values.
 public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
-    static let name = "sharedPreferences"
+    static let name = "shared_preferences"
     // app -> desktop, and desktop -> app for the two requests
-    private static let methodGetSharedPreferences = "getSharedPreferences"
-    private static let methodGetSharedPreferenceValue = "getSharedPreferenceValue"
+    private static let methodGetSharedPreferences = "get_shared_preferences"
+    private static let methodGetSharedPreferenceValue = "get_shared_preference_value"
     // desktop -> app
-    private static let methodSetSharedPreferenceValue = "setSharedPreferenceValue"
+    private static let methodSetSharedPreferenceValue = "set_shared_preference_value"
 
     public let pluginName = FloconPreferencesPlugin.name
     private weak var sender: FloconMessageSender?

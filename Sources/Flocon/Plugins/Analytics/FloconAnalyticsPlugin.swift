@@ -4,8 +4,8 @@ import Foundation
 ///
 /// Log events with ``FloconAnalyticsPlugin/sender(_:)`` rather than calling this plugin directly.
 public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
-    static let name = "Analytics"
-    private static let methodAddItems = "AddItems"
+    static let name = "analytics"
+    private static let methodAddItems = "add_items"
 
     public let pluginName = FloconAnalyticsPlugin.name
     private weak var sender: FloconMessageSender?
