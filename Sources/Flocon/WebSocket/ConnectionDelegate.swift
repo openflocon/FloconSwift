@@ -30,6 +30,15 @@ final class ConnectionDelegate: NSObject, URLSessionWebSocketDelegate, @unchecke
         }
     }
 
+    func urlSession(
+        _ session: URLSession,
+        didReceive challenge: URLAuthenticationChallenge,
+        completionHandler: @escaping @Sendable (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+    ) {
+        let (disposition, credential) = floconServerTrustResponse(for: challenge)
+        completionHandler(disposition, credential)
+    }
+
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol _: String?) {
         lock.lock()
         let pending = openContinuation

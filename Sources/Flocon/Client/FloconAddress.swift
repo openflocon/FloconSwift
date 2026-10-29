@@ -12,7 +12,7 @@ struct FloconAddressError: Error, Equatable {
 func floconWebSocketURL(address: String, port: Int) throws -> URL {
     let host = address.trimmingCharacters(in: .whitespacesAndNewlines)
     let isReadable = !host.isEmpty && !host.contains { $0 == ":" || $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
-    guard isReadable, let url = URL(string: "ws://\(host):\(port)") else {
+    guard isReadable, let url = URL(string: "wss://\(host):\(port)") else {
         throw FloconAddressError(
             message: "Cannot read '\(address)', enter only the IP address of the computer, such as 192.168.1.20 "
                 + "(no port: it is always \(port))"

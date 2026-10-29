@@ -1,6 +1,6 @@
 import Foundation
 
-/// Uploads files to the HTTP server of the desktop app, as `multipart/form-data`.
+/// Uploads files to the HTTPS server of the desktop app, as `multipart/form-data`.
 ///
 /// The body is written to a temporary file and uploaded from there, so that large files are
 /// never loaded in memory.
@@ -17,10 +17,10 @@ struct FloconFileUploader: Sendable {
 
     /// Session used for the uploads. Ephemeral and not intercepted by Flocon, so that uploads
     /// do not show up as network calls of the app.
-    private static let session = URLSession(configuration: .ephemeral)
+    private static let session = URLSession(configuration: .ephemeral, delegate: FloconTrustDelegate(), delegateQueue: nil)
 
     func upload(fileAt fileURL: URL, remotePath: String, requestId: String, identity: Identity) async {
-        guard let url = URL(string: "http://\(host):\(port)/upload") else { return }
+        guard let url = URL(string: "https://\(host):\(port)/upload") else { return }
         let boundary = "Flocon-\(UUID().uuidString)"
         let bodyURL = FileManager.default.temporaryDirectory.appendingPathComponent("flocon-upload-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: bodyURL) }

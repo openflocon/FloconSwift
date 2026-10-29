@@ -99,7 +99,7 @@ The default host, `localhost`, works from the iOS Simulator. On a device, use th
 Flocon.initialize(config: FloconConfig(host: "192.168.1.20"))
 ```
 
-Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`, and an App Transport Security exception for the Mac, as the connection uses plain `ws://`.
+Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`. The connection uses `wss://` with the self-signed certificate of the desktop app, which is accepted without being verified (the connection is encrypted, not authenticated), so no App Transport Security exception is needed.
 
 ### Connecting to another address
 
