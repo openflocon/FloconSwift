@@ -6,10 +6,14 @@ struct HomeView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("FLOCON SAMPLE")
-                        .font(.footnote.weight(.bold))
-                        .tracking(1.2)
-                        .foregroundStyle(SampleTheme.inkMuted)
+                    HStack {
+                        Text("FLOCON SAMPLE")
+                            .font(.footnote.weight(.bold))
+                            .tracking(1.2)
+                            .foregroundStyle(SampleTheme.inkMuted)
+                        Spacer()
+                        ConnectionChip()
+                    }
                     Text("Try every plugin,\none screen each")
                         .font(.largeTitle.bold())
                         .foregroundStyle(SampleTheme.ink)
