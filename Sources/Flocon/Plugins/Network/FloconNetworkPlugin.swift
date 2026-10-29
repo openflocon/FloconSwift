@@ -26,10 +26,10 @@ import Foundation
 /// with `URLSession`. They are saved, and apply from the next launch too.
 public final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "network"
-    private static let methodLogRequest = "logNetworkCallRequest"
-    private static let methodLogResponse = "logNetworkCallResponse"
-    private static let methodSetupMocks = "setupMocks"
-    private static let methodSetupBadNetworkConfig = "setupBadNetworkConfig"
+    private static let methodLogRequest = "log_network_call_request"
+    private static let methodLogResponse = "log_network_call_response"
+    private static let methodSetupMocks = "setup_mocks"
+    private static let methodSetupBadNetworkConfig = "setup_bad_network_config"
 
     public let pluginName = FloconNetworkPlugin.name
     private weak var sender: FloconMessageSender?

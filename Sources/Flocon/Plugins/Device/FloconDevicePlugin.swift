@@ -6,8 +6,8 @@ import Foundation
 /// Restarting the app (`restartApp`) is not possible on iOS and is ignored.
 final class FloconDevicePlugin: FloconPlugin, @unchecked Sendable {
     static let name = "device"
-    private static let methodGetAppIcon = "getAppIcon"  // desktop -> app
-    private static let methodAppIcon = "appIcon"        // app -> desktop
+    private static let methodGetAppIcon = "get_app_icon"  // desktop -> app
+    private static let methodAppIcon = "app_icon"        // app -> desktop
 
     let pluginName = FloconDevicePlugin.name
     private weak var sender: FloconMessageSender?

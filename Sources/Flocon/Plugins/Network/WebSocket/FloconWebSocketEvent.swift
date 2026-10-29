@@ -63,7 +63,7 @@ public struct FloconWebSocketEvent: Sendable {
 // MARK: - Sending
 
 extension FloconNetworkPlugin {
-    private static let methodLogWebSocketEvent = "logWebSocketEvent"
+    private static let methodLogWebSocketEvent = "log_websocket_event"
 
     /// Logs an event of a WebSocket connection. See ``FloconNetworkPlugin/logWebSocketEvent(_:)``.
     ///

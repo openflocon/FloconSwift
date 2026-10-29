@@ -4,8 +4,8 @@ import Foundation
 ///
 /// Log rows with ``FloconTablePlugin/table(_:)`` rather than calling this plugin directly.
 public final class FloconTablePlugin: FloconPlugin, @unchecked Sendable {
-    static let name = "Table"
-    private static let methodAddItems = "AddItems"
+    static let name = "table"
+    private static let methodAddItems = "add_items"
 
     public let pluginName = FloconTablePlugin.name
     private weak var sender: FloconMessageSender?

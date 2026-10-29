@@ -5,8 +5,8 @@ import Foundation
 /// A crash cannot be sent while the app crashes: it is saved on disk, and sent on the next
 /// connection, after which it is deleted. See ``FloconConfig/isCrashReporterEnabled``.
 final class FloconCrashReporterPlugin: FloconPlugin, @unchecked Sendable {
-    static let name = "crashreporter"
-    private static let methodReportCrash = "reportcrash"
+    static let name = "crash_reporter"
+    private static let methodReportCrash = "report_crash"
 
     let pluginName = FloconCrashReporterPlugin.name
     private weak var sender: FloconMessageSender?

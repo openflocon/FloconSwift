@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The flags of a provider are sent when they are registered, and again on each connection.
 public final class FloconFeatureFlagsPlugin: FloconPlugin, @unchecked Sendable {
-    static let name = "featureflags"
+    static let name = "feature_flags"
     private static let methodRegister = "register"
 
     public let pluginName = FloconFeatureFlagsPlugin.name

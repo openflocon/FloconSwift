@@ -47,7 +47,7 @@ private func encode(_ config: FloconDashboardConfig) throws -> String {
 }
 
 private func message(_ method: String, _ body: String) -> FloconMessageFromServer {
-    let json = try! JSONSerialization.data(withJSONObject: ["plugin": "Dashboard", "method": method, "body": body])
+    let json = try! JSONSerialization.data(withJSONObject: ["plugin": "dashboard", "method": method, "body": body])
     return try! JSONDecoder().decode(FloconMessageFromServer.self, from: json)
 }
 
@@ -131,14 +131,14 @@ private func message(_ method: String, _ body: String) -> FloconMessageFromServe
         ).cancel()
 
         var iterator = events.makeAsyncIterator()
-        plugin.onMessageReceived(message("onClick", "main_logout"))
+        plugin.onMessageReceived(message("on_click", "main_logout"))
         #expect(await iterator.next() == "clicked")
-        plugin.onMessageReceived(message("onTextFieldSubmitted", #"{"id":"main_rename","value":"Flo"}"#))
+        plugin.onMessageReceived(message("on_text_field_submitted", #"{"id":"main_rename","value":"Flo"}"#))
         #expect(await iterator.next() == "text Flo")
-        plugin.onMessageReceived(message("onCheckBoxValueChanged", #"{"id":"main_dark","value":true}"#))
+        plugin.onMessageReceived(message("on_check_box_value_changed", #"{"id":"main_dark","value":true}"#))
         #expect(await iterator.next() == "check true")
         plugin.onMessageReceived(message(
-            "onFormSubmitted",
+            "on_form_submitted",
             #"{"id":"main_form_Create","values":{"main_input":"hello","main_admin":"true"}}"#
         ))
         #expect(await iterator.next() == "form admin=true,input=hello")

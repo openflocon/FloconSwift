@@ -4,8 +4,8 @@ import Foundation
 ///
 /// The list is sent when it is registered, and again on each connection.
 public final class FloconDeeplinksPlugin: FloconPlugin, @unchecked Sendable {
-    static let name = "Deeplink"
-    private static let methodGetDeeplinks = "GetDeeplinks"
+    static let name = "deeplink"
+    private static let methodGetDeeplinks = "get_deeplinks"
 
     public let pluginName = FloconDeeplinksPlugin.name
     private weak var sender: FloconMessageSender?

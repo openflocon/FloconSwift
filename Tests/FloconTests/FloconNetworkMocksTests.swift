@@ -144,8 +144,8 @@ private struct FixedGenerator: RandomNumberGenerator {
         #expect(plugin.mocks.isEmpty)
         #expect(plugin.badNetworkConfig == nil)
 
-        plugin.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setupMocks", body: mocksJSON))
-        plugin.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setupBadNetworkConfig", body: badNetworkJSON))
+        plugin.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setup_mocks", body: mocksJSON))
+        plugin.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setup_bad_network_config", body: badNetworkJSON))
 
         #expect(plugin.mock(url: "https://example.com/login", method: "POST")?.response == .error(exception: "java.net.UnknownHostException"))
         #expect(plugin.mock(url: "https://example.com/other", method: "GET") == nil)
@@ -156,8 +156,8 @@ private struct FixedGenerator: RandomNumberGenerator {
         #expect(relaunched.mocks == plugin.mocks)
         #expect(relaunched.badNetworkConfig == plugin.badNetworkConfig)
 
-        relaunched.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setupMocks", body: "[]"))
-        relaunched.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setupBadNetworkConfig", body: "{}"))
+        relaunched.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setup_mocks", body: "[]"))
+        relaunched.onMessageReceived(FloconMessageFromServer(plugin: "network", method: "setup_bad_network_config", body: "{}"))
         let cleared = FloconNetworkPlugin(sender: SilentSender(), store: store)
         #expect(cleared.mocks.isEmpty)
         #expect(cleared.badNetworkConfig == nil)
