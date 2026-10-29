@@ -108,6 +108,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
             }
         }
 
+        // swiftlint:disable:next force_cast
         let marked = (forwarded as NSURLRequest).mutableCopy() as! NSMutableURLRequest
         URLProtocol.setProperty(true, forKey: Self.handledKey, in: marked)
         let next = marked as URLRequest
@@ -228,6 +229,7 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         reportResponse(requestHeaders: task.currentRequest?.allHTTPHeaderFields, error: nil)
         withState { $0.redirected = true }
 
+        // swiftlint:disable:next force_cast
         let next = (request as NSURLRequest).mutableCopy() as! NSMutableURLRequest
         URLProtocol.removeProperty(forKey: Self.handledKey, in: next)
         client?.urlProtocol(self, wasRedirectedTo: next as URLRequest, redirectResponse: response)

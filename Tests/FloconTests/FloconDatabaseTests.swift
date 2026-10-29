@@ -205,7 +205,7 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         #expect(log?["dbName"] as? String == "app")
         #expect(log?["sqlQuery"] as? String == "SELECT * FROM dogs WHERE id = ?")
         #expect(log?["bindArgs"] as? [String] == ["1", "null", "Rex"])
-        #expect(log?["timestamp"] as? Int64 != nil)
+        #expect(log?["timestamp"] is Int64)
     }
 
     // MARK: Discovery
