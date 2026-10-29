@@ -57,7 +57,8 @@ struct ConnectionScreen: View {
                 }
 
                 SampleInfoCard(
-                    text: "The SDK keeps trying its default address (localhost on the simulator) and also connects to this one. The port is always 9023. The last address that worked is tried again at the next launch.",
+                    text: "The SDK keeps trying its default address (localhost on the simulator) and also connects to this one. "
+                        + "The port is always 9023. The last address that worked is tried again at the next launch.",
                     tint: SampleTheme.accent
                 )
             }

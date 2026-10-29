@@ -129,6 +129,8 @@ struct FloconMessageLog {
 
     var count: Int { items.count - head }
 
+    var isEmpty: Bool { head == items.count }
+
     /// Adds a message at the end.
     ///
     /// - Returns: `true` if the log was full, and its oldest message was dropped.
@@ -149,7 +151,7 @@ struct FloconMessageLog {
 
     /// Removes the messages before this sequence number.
     mutating func trim(upTo sequence: Int) {
-        while firstSequence < sequence, count > 0 {
+        while firstSequence < sequence, !isEmpty {
             removeFirst()
         }
     }

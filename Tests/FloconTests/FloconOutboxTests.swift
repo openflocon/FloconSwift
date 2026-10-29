@@ -226,7 +226,7 @@ private actor FakeTransport {
                 log.trim(upTo: expected)
             }
         }
-        while log.count > 0 {
+        while !log.isEmpty {
             #expect(log.message(at: expected) == "\(expected)")
             expected += 1
             log.trim(upTo: expected)
