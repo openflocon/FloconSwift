@@ -97,7 +97,7 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
     func disconnect() async {
         let socket = task
         task = nil // before closing, so that onClosed is not triggered
-        socket?.cancel(with: .normalClosure, reason: "Client disconnecting".data(using: .utf8))
+        socket?.cancel(with: .normalClosure, reason: Data("Client disconnecting".utf8))
         session?.invalidateAndCancel()
         session = nil
     }

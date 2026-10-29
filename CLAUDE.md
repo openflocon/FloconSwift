@@ -24,7 +24,7 @@ xcodebuild -workspace FloconWorkspace.xcworkspace -scheme FloconDemo \
   -destination 'id=<simulator-udid>' -derivedDataPath <dir> build
 ```
 
-Run it with the Flocon desktop app open; on the simulator the default host `localhost` works. There is no CI and no linter.
+Run it with the Flocon desktop app open; on the simulator the default host `localhost` works. Code style is checked by SwiftLint (`brew install swiftlint`, then `swiftlint lint --strict`; config in `.swiftlint.yml`, relaxed for tests in `Tests/.swiftlint.yml`). The `SwiftLint` GitHub Action runs it on every pull request that touches Swift files. There is no other CI.
 
 ## Architecture
 
