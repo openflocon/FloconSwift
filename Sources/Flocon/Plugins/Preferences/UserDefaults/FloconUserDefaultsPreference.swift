@@ -48,6 +48,10 @@ final class FloconUserDefaultsPreference: FloconPreference, @unchecked Sendable 
         defaults.set(newValue, forKey: key)
     }
 
+    func removeValue(forKey key: String) {
+        defaults.removeObject(forKey: key)
+    }
+
     // MARK: Conversions
 
     /// Converts a stored value to a value the desktop can show.

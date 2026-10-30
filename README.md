@@ -260,7 +260,7 @@ let shared = UserDefaults(suiteName: "group.com.example.app")!
 Flocon.preferencesPlugin.registerUserDefaults(shared, suiteName: "group.com.example.app")
 ```
 
-Values of type `String`, `Bool`, number, `Date` and `[String]` can be edited from the desktop; an edit is applied only when its type matches the stored value. `Data`, dictionaries and mixed arrays are shown read-only.
+Values of type `String`, `Bool`, number, `Date` and `[String]` can be edited from the desktop; an edit is applied only when its type matches the stored value. `Data`, dictionaries and mixed arrays are shown read-only. Any key can be deleted from the desktop (right-click on a row, then Delete).
 
 ### Keychain
 
@@ -275,7 +275,7 @@ Flocon.preferencesPlugin.registerKeychain()                    // read-only
 
 Generic and internet passwords appear as two stores, with one key per item (`service / account`, `server / account`). Values are shown as text when they are UTF-8, as their size otherwise. Items protected by Face ID, Touch ID or the passcode, or unreadable while the device is locked, are shown as `<protected>`: reading them never shows an authentication prompt. The Simulator does not enforce these protections, so it shows their values.
 
-With `isEditable: true`, only existing items with a text value can be edited; items are never added or deleted.
+With `isEditable: true`, only existing items with a text value can be edited, and items deleted in the desktop are removed from the keychain; items are never added.
 
 ## Files
 
@@ -431,6 +431,10 @@ final class DebugSettingsPreference: FloconPreference {
     }
     func setValue(_ value: FloconPreferenceValue, forKey key: String) {
         if let isEnabled = value.booleanValue { DebugSettings.set(key, isEnabled) }
+    }
+    // optional: called when a key is deleted in the desktop app (does nothing by default)
+    func removeValue(forKey key: String) {
+        DebugSettings.reset(key)
     }
 }
 

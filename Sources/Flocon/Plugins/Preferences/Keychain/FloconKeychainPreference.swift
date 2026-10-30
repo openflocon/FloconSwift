@@ -58,7 +58,7 @@ final class FloconKeychainPreference: FloconPreference, @unchecked Sendable {
     ///
     /// - Parameters:
     ///   - itemClass: The kind of items to show.
-    ///   - isEditable: Whether the values edited in the desktop app are written to the keychain.
+    ///   - isEditable: Whether the values edited, and the items deleted, in the desktop app are applied to the keychain.
     init(itemClass: ItemClass, isEditable: Bool) {
         self.itemClass = itemClass
         self.isEditable = isEditable
@@ -114,6 +114,18 @@ final class FloconKeychainPreference: FloconPreference, @unchecked Sendable {
         let status = SecItemUpdate(itemQuery(for: attributes) as CFDictionary, update as CFDictionary)
         if status != errSecSuccess {
             FloconLogger.log("Keychain update of \(name).\(key) failed: OSStatus \(status)")
+        }
+    }
+
+    func removeValue(forKey key: String) {
+        guard isEditable else {
+            FloconLogger.log("Ignored deletion of \(name).\(key): the keychain is registered as read-only")
+            return
+        }
+        guard let attributes = attributes(forKey: key) else { return }
+        let status = SecItemDelete(itemQuery(for: attributes) as CFDictionary)
+        if status != errSecSuccess && status != errSecItemNotFound {
+            FloconLogger.log("Keychain deletion of \(name).\(key) failed: OSStatus \(status)")
         }
     }
 

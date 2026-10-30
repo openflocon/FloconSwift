@@ -67,3 +67,10 @@ struct ToDeviceEditSharedPreferenceValueMessage: Decodable {
         )
     }
 }
+
+/// Desktop request to remove a key.
+struct ToDeviceRemovePreferenceValueMessage: Decodable {
+    let requestId: String
+    let sharedPreferenceName: String
+    let key: String
+}

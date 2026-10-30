@@ -62,6 +62,16 @@ import Testing
         #expect(defaults.object(forKey: "date") as? Date == Date(timeIntervalSince1970: 1_792_324_800))
     }
 
+    @Test func removesAKey() {
+        defaults.set("value", forKey: "string")
+        defaults.set(true, forKey: "bool")
+
+        preference.removeValue(forKey: "string")
+
+        #expect(defaults.object(forKey: "string") == nil)
+        #expect(preference.keys() == ["bool"])
+    }
+
     @Test func ignoresEditsOfAnotherType() {
         defaults.set(true, forKey: "bool")
 
