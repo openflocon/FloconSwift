@@ -3,7 +3,7 @@ import Foundation
 /// Shows the preference stores of the app in the Flocon desktop app, and applies the edits made there.
 ///
 /// The list of stores is sent on each connection. The desktop then asks for the content
-/// of the store being displayed, and sends the edited values.
+/// of the store being displayed, and sends the edited values and the deleted keys.
 public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
     static let name = "shared_preferences"
     // app -> desktop, and desktop -> app for the two requests
@@ -11,6 +11,7 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
     private static let methodGetSharedPreferenceValue = "get_shared_preference_value"
     // desktop -> app
     private static let methodSetSharedPreferenceValue = "set_shared_preference_value"
+    private static let methodRemoveSharedPreferenceValue = "remove_shared_preference_value"
 
     public let pluginName = FloconPreferencesPlugin.name
     private weak var sender: FloconMessageSender?
@@ -65,6 +66,12 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
                   let preference = preference(named: request.sharedPreferenceName) else { return }
             preference.setValue(request.value, forKey: request.key)
             // send the content again, so that the desktop shows what was actually stored
+            sendContent(of: preference, requestId: request.requestId)
+
+        case Self.methodRemoveSharedPreferenceValue:
+            guard let request = try? JSONDecoder().decode(ToDeviceRemovePreferenceValueMessage.self, from: body),
+                  let preference = preference(named: request.sharedPreferenceName) else { return }
+            preference.removeValue(forKey: request.key)
             sendContent(of: preference, requestId: request.requestId)
 
         default:

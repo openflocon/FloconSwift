@@ -19,8 +19,8 @@ extension FloconPreferencesPlugin {
     /// Items protected by Face ID, Touch ID or the passcode, or unreadable while the device is
     /// locked, are shown as `<protected>`: reading them never shows an authentication prompt.
     ///
-    /// - Parameter isEditable: Whether the values edited in the desktop app are written to the keychain.
-    ///   Only existing items with a readable text value can be edited; items are never added or deleted.
+    /// - Parameter isEditable: Whether the values edited, and the items deleted, in the desktop app are applied
+    ///   to the keychain. Only existing items with a readable text value can be edited; items are never added.
     ///   Defaults to `false`.
     public func registerKeychain(isEditable: Bool = false) {
         add(FloconKeychainPreference(itemClass: .genericPassword, isEditable: isEditable))

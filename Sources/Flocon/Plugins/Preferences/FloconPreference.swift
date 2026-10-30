@@ -39,10 +39,17 @@ public protocol FloconPreference: AnyObject, Sendable {
     ///
     /// Only write the value when its type matches the stored one.
     func setValue(_ value: FloconPreferenceValue, forKey key: String)
+
+    /// Removes a key deleted in the desktop app.
+    ///
+    /// Does nothing by default: implement it to let the desktop delete keys of the store.
+    func removeValue(forKey key: String)
 }
 
 public extension FloconPreference {
     var type: String { FloconPreferenceType.custom }
+
+    func removeValue(forKey key: String) {}
 }
 
 /// A preference value, in one of the types the Flocon desktop app can show and edit.

@@ -25,6 +25,19 @@ private final class InMemoryPreference: FloconPreference, @unchecked Sendable {
     func setValue(_ value: FloconPreferenceValue, forKey key: String) {}
 }
 
+private final class DictionaryPreference: FloconPreference, @unchecked Sendable {
+    let name = "dictionary"
+    private let lock = NSLock()
+    private var values = ["token": "abc", "age": "34"]
+    func keys() -> [String] { lock.lock(); defer { lock.unlock() }; return values.keys.sorted() }
+    func value(forKey key: String) -> FloconPreferenceValue? {
+        lock.lock(); defer { lock.unlock() }
+        return values[key].map { FloconPreferenceValue(stringValue: $0) }
+    }
+    func setValue(_ value: FloconPreferenceValue, forKey key: String) {}
+    func removeValue(forKey key: String) { lock.lock(); values[key] = nil; lock.unlock() }
+}
+
 private final class RealmPreference: FloconPreference, @unchecked Sendable {
     let name = "realm"
     let type = "Realm"
@@ -50,6 +63,25 @@ private final class RealmPreference: FloconPreference, @unchecked Sendable {
         #expect(types["memory"] == FloconPreferenceType.custom)
         #expect(types["realm"] == "Realm")
         #expect(types[suiteName] == FloconPreferenceType.userDefaults)
+    }
+
+    @Test func removesAKeyAndSendsTheContent() throws {
+        let sender = RecordingSender()
+        let plugin = FloconPreferencesPlugin(sender: sender)
+        let preference = DictionaryPreference()
+        plugin.register(preference)
+
+        plugin.onMessageReceived(FloconMessageFromServer(
+            plugin: "shared_preferences",
+            method: "remove_shared_preference_value",
+            body: #"{"requestId":"1","sharedPreferenceName":"dictionary","key":"token"}"#
+        ))
+
+        #expect(preference.keys() == ["age"])
+        let body = try #require(sender.bodies.last)
+        #expect(body.contains(#""requestId":"1""#))
+        #expect(body.contains(#""key":"age""#))
+        #expect(!body.contains("token"))
     }
 
     @Test func theKeychainIsTyped() {

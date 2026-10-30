@@ -17,6 +17,18 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
     func setValue(_ value: FloconPreferenceValue, forKey key: String) {
         if let isEnabled = value.booleanValue { flags[key] = isEnabled }
     }
+
+    func removeValue(forKey key: String) {
+        flags[key] = nil
+    }
+}
+
+/// A read-only store: it relies on the default ``FloconPreference/removeValue(forKey:)``.
+final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
+    let name = "Read only"
+    func keys() -> [String] { ["version"] }
+    func value(forKey key: String) -> FloconPreferenceValue? { FloconPreferenceValue(stringValue: "1.0") }
+    func setValue(_ value: FloconPreferenceValue, forKey key: String) {}
 }
 
 @Suite struct FloconPublicAPITests {
@@ -78,6 +90,16 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         #expect(preference.value(forKey: "new_onboarding") == FloconPreferenceValue(booleanValue: false))
         #expect(preference.type == FloconPreferenceType.custom)
         Flocon.preferencesPlugin.register(preference)
+    }
+
+    @Test func removesAKeyOfACustomPreference() {
+        let preference = FeatureFlagsPreference()
+        preference.removeValue(forKey: "new_onboarding")
+        #expect(preference.keys().isEmpty)
+
+        let readOnly = ReadOnlyPreference()
+        readOnly.removeValue(forKey: "version")
+        #expect(readOnly.keys() == ["version"])
     }
 
     @Test func configuresTheNetworkOptionsWhenInstalling() {
