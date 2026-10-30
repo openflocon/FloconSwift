@@ -76,6 +76,7 @@ final class FeatureFlagsPreference: FloconPreference, @unchecked Sendable {
         let preference = FeatureFlagsPreference()
         preference.setValue(FloconPreferenceValue(booleanValue: false), forKey: "new_onboarding")
         #expect(preference.value(forKey: "new_onboarding") == FloconPreferenceValue(booleanValue: false))
+        #expect(preference.type == FloconPreferenceType.custom)
         Flocon.preferencesPlugin.register(preference)
     }
 

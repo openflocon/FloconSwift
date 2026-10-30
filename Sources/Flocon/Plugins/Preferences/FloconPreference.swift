@@ -8,6 +8,7 @@ import Foundation
 /// ```swift
 /// final class FeatureFlagsPreference: FloconPreference {
 ///     let name = "Feature flags"
+///     let type = "Remote config"
 ///     func keys() -> [String] { FeatureFlags.all.map(\.key) }
 ///     func value(forKey key: String) -> FloconPreferenceValue? {
 ///         FloconPreferenceValue(booleanValue: FeatureFlags.isEnabled(key))
@@ -23,6 +24,11 @@ public protocol FloconPreference: AnyObject, Sendable {
     /// Name of the store in the desktop app. Must be unique.
     var name: String { get }
 
+    /// Storage of the store, shown next to its name in the desktop app.
+    ///
+    /// One of the ``FloconPreferenceType`` values or any other string. Defaults to ``FloconPreferenceType/custom``.
+    var type: String { get }
+
     /// Returns the keys of the store.
     func keys() -> [String]
 
@@ -33,6 +39,10 @@ public protocol FloconPreference: AnyObject, Sendable {
     ///
     /// Only write the value when its type matches the stored one.
     func setValue(_ value: FloconPreferenceValue, forKey key: String)
+}
+
+public extension FloconPreference {
+    var type: String { FloconPreferenceType.custom }
 }
 
 /// A preference value, in one of the types the Flocon desktop app can show and edit.

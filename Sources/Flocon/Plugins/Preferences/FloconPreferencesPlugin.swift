@@ -76,9 +76,11 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
 
     private func sendPreferenceList() {
         lock.lock()
-        let names = preferences.keys.sorted()
+        let descriptors = preferences.values
+            .sorted { $0.name < $1.name }
+            .map { PreferencesDescriptorRemote(name: $0.name, type: $0.type) }
         lock.unlock()
-        send(names.map(PreferencesDescriptorRemote.init(name:)), method: Self.methodGetSharedPreferences)
+        send(descriptors, method: Self.methodGetSharedPreferences)
     }
 
     private func sendContent(of preference: FloconPreference, requestId: String) {
