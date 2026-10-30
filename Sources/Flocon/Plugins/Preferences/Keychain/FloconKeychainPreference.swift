@@ -40,6 +40,7 @@ final class FloconKeychainPreference: FloconPreference, @unchecked Sendable {
     static let protectedValue = "<protected>"
 
     let name: String
+    let type = FloconPreferenceType.keychain
     private let itemClass: ItemClass
     private let isEditable: Bool
 

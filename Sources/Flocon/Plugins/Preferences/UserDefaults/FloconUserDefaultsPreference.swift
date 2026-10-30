@@ -6,6 +6,7 @@ import Foundation
 /// that `dictionaryRepresentation()` also returns.
 final class FloconUserDefaultsPreference: FloconPreference, @unchecked Sendable {
     let name: String
+    let type = FloconPreferenceType.userDefaults
     private let defaults: UserDefaults
     /// Name of the persistent domain that holds the values of `defaults`.
     private let domainName: String?

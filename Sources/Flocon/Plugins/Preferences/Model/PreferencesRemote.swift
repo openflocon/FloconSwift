@@ -5,6 +5,7 @@ import Foundation
 /// JSON format of a store in the list sent to the desktop app.
 struct PreferencesDescriptorRemote: Encodable {
     let name: String
+    let type: String
 }
 
 /// JSON format of the content of a store, sent in answer to a desktop request.
