@@ -43,20 +43,31 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
         queue.async { self.sendDatabases() }
     }
 
-    /// Shows a query run by the app in the desktop app.
+    /// Shows a query run by the app in the desktop app, with the database it ran on.
     ///
     /// - Parameters:
-    ///   - dbName: Name of the database.
+    ///   - dbId: The ``FloconDatabase/id`` of the database, the one sent to the desktop in its list of databases.
     ///   - sqlQuery: The SQL query.
     ///   - bindArgs: Values bound to the query; `nil` is shown as `null`.
-    public func logQuery(dbName: String, sqlQuery: String, bindArgs: [Any?] = []) {
+    public func logQuery(dbId: String, sqlQuery: String, bindArgs: [Any?] = []) {
         let model = DatabaseQueryLogRemote(
-            dbName: dbName,
+            dbId: dbId,
+            dbName: dbId,
             sqlQuery: sqlQuery,
             bindArgs: bindArgs.map { $0.map { String(describing: $0) } ?? "null" },
             timestamp: Int64(Date().timeIntervalSince1970 * 1000)
         )
         send(model, method: Self.methodLogQuery)
+    }
+
+    /// Shows a query run by the app in the desktop app, with the database it ran on.
+    ///
+    /// - Parameters:
+    ///   - url: Location of the SQLite file of the database.
+    ///   - sqlQuery: The SQL query.
+    ///   - bindArgs: Values bound to the query; `nil` is shown as `null`.
+    public func logQuery(database url: URL, sqlQuery: String, bindArgs: [Any?] = []) {
+        logQuery(dbId: FloconDatabase.id(of: url), sqlQuery: sqlQuery, bindArgs: bindArgs)
     }
 
     // MARK: FloconPlugin
@@ -118,13 +129,12 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
         send(list, method: Self.methodDatabasesResult)
     }
 
-    /// Encoded off the calling thread: ``logQuery(dbName:sqlQuery:bindArgs:)`` is often called from the main thread.
+    /// Encoded off the calling thread: ``logQuery(dbId:sqlQuery:bindArgs:)`` is often called from the main thread.
     private func send<T: Encodable & Sendable>(_ value: T, method: String) {
         sender?.send(plugin: pluginName, method: method, value: value)
     }
 
-    /// Path used as identifier, the same for every spelling of a file.
     private static func path(of url: URL) -> String {
-        url.standardizedFileURL.resolvingSymlinksInPath().path
+        FloconDatabase.id(of: url)
     }
 }

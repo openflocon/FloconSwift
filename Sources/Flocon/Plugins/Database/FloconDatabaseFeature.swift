@@ -16,7 +16,7 @@ public struct FloconDatabaseOptions {
 }
 
 extension FloconFeature where Options == FloconDatabaseOptions {
-    /// Lists and queries the SQLite databases of the app. See ``Flocon.databasePlugin.logQuery(dbName:sqlQuery:bindArgs:)``.
+    /// Lists and queries the SQLite databases of the app. See ``Flocon.databasePlugin.logQuery(dbId:sqlQuery:bindArgs:)``.
     public static var database: FloconFeature<FloconDatabaseOptions> {
         .init(
             kind: .database,

@@ -11,6 +11,16 @@ public struct FloconDatabase: Sendable, Equatable {
     /// Location of the SQLite file.
     public let url: URL
 
+    /// Identifier of the database, unique: the absolute path of its file, the same for every spelling of it.
+    ///
+    /// The desktop uses it to query the database and to link the queries logged with
+    /// ``Flocon.databasePlugin.logQuery(dbId:sqlQuery:bindArgs:)`` to it.
+    public var id: String { Self.id(of: url) }
+
+    static func id(of url: URL) -> String {
+        url.standardizedFileURL.resolvingSymlinksInPath().path
+    }
+
     /// Creates a database.
     ///
     /// - Parameters:

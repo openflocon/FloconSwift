@@ -49,13 +49,13 @@ enum SampleDatabase {
     }
 
     private static func execute(_ sql: String, in db: OpaquePointer?) {
-        Flocon.databasePlugin.logQuery(dbName: name, sqlQuery: sql)
+        Flocon.databasePlugin.logQuery(database: url, sqlQuery: sql)
         sqlite3_exec(db, sql, nil, nil, nil)
     }
 
     private static func insert(_ dog: (name: String, breed: String, age: Int, weight: Double), in db: OpaquePointer?) {
         let sql = "INSERT INTO dogs (name, breed, age, weight) VALUES (?, ?, ?, ?)"
-        Flocon.databasePlugin.logQuery(dbName: name, sqlQuery: sql, bindArgs: [dog.name, dog.breed, dog.age, dog.weight])
+        Flocon.databasePlugin.logQuery(database: url, sqlQuery: sql, bindArgs: [dog.name, dog.breed, dog.age, dog.weight])
 
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return }
@@ -71,7 +71,7 @@ enum SampleDatabase {
 
     private static func count(in db: OpaquePointer?) -> Int {
         let sql = "SELECT count(*) FROM dogs"
-        Flocon.databasePlugin.logQuery(dbName: name, sqlQuery: sql)
+        Flocon.databasePlugin.logQuery(database: url, sqlQuery: sql)
 
         var statement: OpaquePointer?
         guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else { return 0 }

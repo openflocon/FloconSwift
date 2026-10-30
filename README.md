@@ -303,13 +303,13 @@ Flocon.databasePlugin.register(displayName: "Shared", url: url)
 
 Only the listed databases can be queried, and a file that does not exist is not listed. Queries from the desktop run on their own connection: a write waits up to one second for the app to release its lock. Blobs are shown as hexadecimal, truncated after 64 bytes.
 
-To see the queries run by the app, log them from the trace hook of your database library, for example with GRDB:
+To see the queries run by the app, log them from the trace hook of your database library, for example with GRDB. A query is linked to its database by the database `id` (the absolute path of its file, `FloconDatabase.id`): pass the URL of the file, or the id with `logQuery(dbId:sqlQuery:bindArgs:)`. A query logged without a known database is not shown.
 
 ```swift
 var configuration = Configuration()
 configuration.prepareDatabase { db in
     db.trace { event in
-        Flocon.databasePlugin.logQuery(dbName: "app", sqlQuery: "\(event)")
+        Flocon.databasePlugin.logQuery(database: databaseURL, sqlQuery: "\(event)")
     }
 }
 ```
