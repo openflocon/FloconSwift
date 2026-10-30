@@ -52,7 +52,6 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
     public func logQuery(dbId: String, sqlQuery: String, bindArgs: [Any?] = []) {
         let model = DatabaseQueryLogRemote(
             dbId: dbId,
-            dbName: dbId,
             sqlQuery: sqlQuery,
             bindArgs: bindArgs.map { $0.map { String(describing: $0) } ?? "null" },
             timestamp: Int64(Date().timeIntervalSince1970 * 1000)

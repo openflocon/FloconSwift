@@ -203,7 +203,6 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         #expect(message.method == "log_query")
         let log = try JSONSerialization.jsonObject(with: Data(message.body.utf8)) as? [String: Any]
         #expect(log?["dbId"] as? String == "/data/app.sqlite")
-        #expect(log?["dbName"] as? String == "/data/app.sqlite")
         #expect(log?["sqlQuery"] as? String == "SELECT * FROM dogs WHERE id = ?")
         #expect(log?["bindArgs"] as? [String] == ["1", "null", "Rex"])
         #expect(log?["timestamp"] is Int64)

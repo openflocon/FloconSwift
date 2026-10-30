@@ -19,8 +19,6 @@ struct QueryResultRemote: Encodable {
 struct DatabaseQueryLogRemote: Encodable {
     /// The `id` of a database of the list.
     let dbId: String
-    /// Same value as `dbId`, for the desktop apps that don't know `dbId` yet.
-    let dbName: String
     let sqlQuery: String
     let bindArgs: [String]?
     /// When the query ran, in milliseconds since 1970.
