@@ -49,7 +49,7 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         Flocon.tablePlugin.table("users").log(TableColumnConfig("id", "1"))
         Flocon.networkPlugin.logWebSocketEvent(FloconWebSocketEvent(websocketUrl: "wss://example.com", event: .open))
         Flocon.databasePlugin.register(displayName: "App", url: FileManager.default.temporaryDirectory)
-        Flocon.databasePlugin.logQuery(dbName: "App", sqlQuery: "SELECT 1")
+        Flocon.databasePlugin.logQuery(dbId: FloconDatabase(displayName: "App", url: FileManager.default.temporaryDirectory).id, sqlQuery: "SELECT 1")
         Flocon.deeplinksPlugin.register(deeplinks: [FloconDeeplink("myapp://home", label: "Home")])
         Flocon.preferencesPlugin.registerKeychain()
         Flocon.dashboardPlugin.dashboard(id: "main") {}

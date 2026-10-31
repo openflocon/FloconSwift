@@ -197,15 +197,27 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         let sender = RecordingSender()
         let plugin = makePlugin(sender: sender)
 
-        plugin.logQuery(dbName: "app", sqlQuery: "SELECT * FROM dogs WHERE id = ?", bindArgs: [1, nil, "Rex"])
+        plugin.logQuery(dbId: "/data/app.sqlite", sqlQuery: "SELECT * FROM dogs WHERE id = ?", bindArgs: [1, nil, "Rex"])
 
         let message = try #require(sender.messages.first)
         #expect(message.method == "log_query")
         let log = try JSONSerialization.jsonObject(with: Data(message.body.utf8)) as? [String: Any]
-        #expect(log?["dbName"] as? String == "app")
+        #expect(log?["dbId"] as? String == "/data/app.sqlite")
         #expect(log?["sqlQuery"] as? String == "SELECT * FROM dogs WHERE id = ?")
         #expect(log?["bindArgs"] as? [String] == ["1", "null", "Rex"])
         #expect(log?["timestamp"] is Int64)
+    }
+
+    @Test func logsQueriesWithTheIdOfTheDatabaseFile() throws {
+        let sender = RecordingSender()
+        let plugin = makePlugin(sender: sender)
+        let url = URL(fileURLWithPath: "/tmp/../tmp/app.sqlite")
+
+        plugin.logQuery(database: url, sqlQuery: "SELECT 1")
+
+        let message = try #require(sender.messages.first)
+        let log = try JSONSerialization.jsonObject(with: Data(message.body.utf8)) as? [String: Any]
+        #expect(log?["dbId"] as? String == FloconDatabase(displayName: "App", url: url).id)
     }
 
     // MARK: Discovery
