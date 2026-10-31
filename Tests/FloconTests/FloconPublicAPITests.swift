@@ -120,6 +120,7 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
 
         // the SDK is not started
         #expect(await Flocon.connect(address: "192.168.1.20") == .notStarted)
+        #expect(await Flocon.connect(qrCode: "flocon://192.168.1.20") == .notStarted)
         #expect(Flocon.connectionState == .idle)
         var states = Flocon.connectionStates.makeAsyncIterator()
         #expect(await states.next() == .idle)

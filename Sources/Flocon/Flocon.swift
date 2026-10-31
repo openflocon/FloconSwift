@@ -131,6 +131,24 @@ public final class Flocon: @unchecked Sendable {
         return await connections.connect(address: address)
     }
 
+    /// Connects to the desktop app at the address held by a scanned QR code.
+    ///
+    /// Same as ``connect(address:)``, for the raw content of a QR code. The content is either the IP address
+    /// (or host) of the Mac, or a URL whose host is that address, such as `flocon://192.168.1.20`: the scheme,
+    /// the port and the path are ignored. On iOS, ``FloconQRScannerView`` scans the code and calls this method.
+    ///
+    /// ```swift
+    /// let result = await Flocon.connect(qrCode: scannedText)
+    /// ```
+    ///
+    /// - Parameter qrCode: The text read from the QR code.
+    /// - Returns: ``FloconConnectResult/connected``, or why it could not connect. The messages are
+    ///   kept in every case, call it again to retry.
+    @discardableResult
+    public static func connect(qrCode: String) async -> FloconConnectResult {
+        await connect(address: floconAddress(fromQRCode: qrCode))
+    }
+
     /// The current state of the connection to the desktop app.
     public static var connectionState: FloconConnectionState {
         shared.connectionStateStore.state
