@@ -10,6 +10,7 @@ struct ConnectionScreen: View {
     @State private var result: FloconConnectResult?
     @State private var isConnecting = false
     @State private var isScanning = false
+    @AppStorage("flocon.sample.qrContent") private var qrContent = ""
 
     var body: some View {
         ScrollView {
@@ -59,6 +60,29 @@ struct ConnectionScreen: View {
                     .padding(16)
                 }
 
+                SampleSection(title: "Without a camera (simulator)") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 12) {
+                            TextField("flocon://192.168.1.20", text: $qrContent)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .keyboardType(.URL)
+                                .submitLabel(.go)
+                                .onSubmit(simulateScan)
+                                .padding(14)
+                                .background(SampleTheme.surfaceHigh, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(SampleTheme.line))
+                            Button(isConnecting ? "…" : "Simulate", action: simulateScan)
+                                .buttonStyle(SampleButtonStyle())
+                                .disabled(qrContent.trimmingCharacters(in: .whitespaces).isEmpty || isConnecting)
+                        }
+                        Text("Paste what the QR code of Flocon Desktop holds: this calls Flocon.connect(qrCode:), as a scan does.")
+                            .font(.footnote)
+                            .foregroundStyle(SampleTheme.inkMuted)
+                    }
+                    .padding(16)
+                }
+
                 SampleInfoCard(
                     text: "The SDK keeps trying its default address (localhost on the simulator) and also connects to this one. "
                         + "The port is always 9023. The last address that worked is tried again at the next launch.",
@@ -78,6 +102,16 @@ struct ConnectionScreen: View {
                 result = scanResult
                 if scanResult == .connected { isScanning = false }
             }
+        }
+    }
+
+    private func simulateScan() {
+        let content = qrContent.trimmingCharacters(in: .whitespaces)
+        guard !content.isEmpty, !isConnecting else { return }
+        Task {
+            isConnecting = true
+            result = await Flocon.connect(qrCode: content)
+            isConnecting = false
         }
     }
 
