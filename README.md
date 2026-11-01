@@ -129,7 +129,7 @@ On iOS, `FloconQRScannerView` scans a QR code with the camera and connects the a
 }
 ```
 
-The view calls `Flocon.connect(qrCode:)` and gives you its `FloconConnectResult`; after a failure it keeps scanning, so the user can try again. The content of the code is the IP address (or host) of the Mac, or a URL whose host is that address, such as `flocon://192.168.1.20` (the scheme, the port and the path are ignored). To use your own camera screen, pass the text you read to `Flocon.connect(qrCode:)`, which is also available on macOS.
+The view calls `Flocon.connect(qrCode:)` and gives you its `FloconConnectResult`; after a failure it keeps scanning, so the user can try again. The QR code of Flocon Desktop holds only the IP address of the Mac, such as `192.168.1.20`. To use your own camera screen, pass the text you read to `Flocon.connect(qrCode:)`, which is also available on macOS.
 
 Your app must add `NSCameraUsageDescription` to its `Info.plist`. The view asks for the permission the first time it is shown, and shows a message instead of the camera if it is denied or if there is no camera (the simulator has none: use `Flocon.connect(address:)` there).
 

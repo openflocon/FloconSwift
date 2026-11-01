@@ -63,7 +63,7 @@ struct ConnectionScreen: View {
                 SampleSection(title: "Without a camera (simulator)") {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 12) {
-                            TextField("flocon://192.168.1.20", text: $qrContent)
+                            TextField("192.168.1.20", text: $qrContent)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .keyboardType(.URL)
