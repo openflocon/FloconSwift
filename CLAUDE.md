@@ -44,6 +44,17 @@ Run it with the Flocon desktop app open; on the simulator the default host `loca
 - Public API changes need a README update (`README.md` has one section per plugin) and a test in `Tests/FloconTests/FloconPublicAPITests.swift`, which deliberately does not use `@testable` so it checks that the API is really public.
 - The branch `main` is consumed by SPM users directly (no tagged release yet).
 
+## Who does what
+
+Subagents live in `.claude/agents/`. The main session plans and writes code; delegate these jobs:
+
+- **Explore** (haiku): finding where something is (files, symbols, usages). Use it instead of reading many files yourself. It returns paths, line numbers and one sentence each.
+- **architect** (opus): before implementing a new plugin, a connection or outbox change, or a public API change, send it the plan. Apply its changes before starting.
+- **test-runner** (haiku): running `swift build`, `swift test`, SwiftLint or the demo build after a change. It returns PASS/FAIL and only the failures.
+- **reviewer** (sonnet): reviewing the diff before committing or opening a pull request. Fix what it reports, or say why it isn't a problem.
+
+Explore only locates code; design questions go to architect.
+
 ## Git and pull requests
 
 - Never push to `main`: work on a branch (`claude/<short-name>`) and bring `main` in with a merge, never a rebase or force-push on a branch someone else owns.
