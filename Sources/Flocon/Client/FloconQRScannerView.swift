@@ -4,7 +4,7 @@ import SwiftUI
 
 /// A camera view that scans the QR code shown by Flocon Desktop and connects the app to it.
 ///
-/// When a code is read, ``Flocon/connect(qrCode:)`` is called and its result is given to `onResult`.
+/// When a code is read, ``Flocon/connect(address:)`` is called and its result is given to `onResult`.
 /// The scan resumes after a failure so the user can try again, and stops once connected.
 ///
 /// The app must declare `NSCameraUsageDescription` in its `Info.plist`. The view asks for the permission
@@ -71,7 +71,7 @@ private struct FloconQRScannerRepresentable: UIViewControllerRepresentable {
         let controller = FloconQRScannerController()
         controller.onCode = { [weak controller, onResult] code in
             Task { @MainActor in
-                let result = await Flocon.connect(qrCode: code)
+                let result = await Flocon.connect(address: code)
                 onResult(result)
                 if result != .connected {
                     try? await Task.sleep(for: .seconds(1.5))
