@@ -44,18 +44,27 @@ struct SampleCard<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        Group(subviews: content) { subviews in
-            VStack(spacing: 0) {
-                ForEach(subviews.indices, id: \.self) { index in
-                    if index > 0 {
-                        Divider().overlay(SampleTheme.line)
+        rows
+            .background(SampleTheme.surface, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(SampleTheme.line))
+    }
+
+    @ViewBuilder private var rows: some View {
+        if #available(iOS 18, *) {
+            Group(subviews: content) { subviews in
+                VStack(spacing: 0) {
+                    ForEach(subviews.indices, id: \.self) { index in
+                        if index > 0 {
+                            Divider().overlay(SampleTheme.line)
+                        }
+                        subviews[index]
                     }
-                    subviews[index]
                 }
             }
+        } else {
+            // Without `Group(subviews:)` the rows cannot be separated by dividers.
+            VStack(spacing: 0) { content }
         }
-        .background(SampleTheme.surface, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).stroke(SampleTheme.line))
     }
 }
 
