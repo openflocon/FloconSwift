@@ -9,6 +9,7 @@ struct ConnectionScreen: View {
     @State private var state = Flocon.connectionState
     @State private var result: FloconConnectResult?
     @State private var isConnecting = false
+    @State private var isScanning = false
 
     var body: some View {
         ScrollView {
@@ -47,6 +48,8 @@ struct ConnectionScreen: View {
                                 .buttonStyle(SampleButtonStyle())
                                 .disabled(address.trimmingCharacters(in: .whitespaces).isEmpty || isConnecting)
                         }
+                        Button("Scan QR code", systemImage: "qrcode.viewfinder") { isScanning = true }
+                            .buttonStyle(SampleButtonStyle())
                         if let message = result?.sampleMessage {
                             Text(message.text)
                                 .font(.footnote)
@@ -69,6 +72,12 @@ struct ConnectionScreen: View {
         .navigationBarTitleDisplayMode(.inline)
         .task {
             for await newState in Flocon.connectionStates { state = newState }
+        }
+        .sheet(isPresented: $isScanning) {
+            FloconQRScannerView { scanResult in
+                result = scanResult
+                if scanResult == .connected { isScanning = false }
+            }
         }
     }
 

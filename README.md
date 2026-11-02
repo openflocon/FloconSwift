@@ -117,6 +117,22 @@ let result = await Flocon.connect(address: "192.168.1.20")
 
 Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
 
+#### Scanning a QR code
+
+On iOS, `FloconQRScannerView` scans a QR code with the camera and connects the app to the Mac it holds the address of, so nobody has to type the IP. It uses `AVFoundation` only, no dependency:
+
+```swift
+.sheet(isPresented: $isScanning) {
+    FloconQRScannerView { result in
+        if result == .connected { isScanning = false }
+    }
+}
+```
+
+The view calls `Flocon.connect(address:)` with the text it reads and gives you its `FloconConnectResult`; after a failure it keeps scanning, so the user can try again. The QR code of Flocon Desktop holds only the IP address of the Mac, such as `192.168.1.20`. To use your own camera screen, pass the text you read to `Flocon.connect(address:)`.
+
+Your app must add `NSCameraUsageDescription` to its `Info.plist`. The view asks for the permission the first time it is shown, and shows a message instead of the camera if it is denied or if there is no camera (the simulator has none: use `Flocon.connect(address:)` there).
+
 The options are set with `connect` in the `startFlocon` block:
 
 ```swift
