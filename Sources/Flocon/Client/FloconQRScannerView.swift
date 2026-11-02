@@ -74,7 +74,7 @@ private struct FloconQRScannerRepresentable: UIViewControllerRepresentable {
                 let result = await Flocon.connect(address: code)
                 onResult(result)
                 if result != .connected {
-                    try? await Task.sleep(for: .seconds(1.5))
+                    try? await Task.sleep(nanoseconds: 1_500_000_000)
                     controller?.resume()
                 }
             }
