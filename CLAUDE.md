@@ -17,7 +17,7 @@ swift test --filter FloconStartTests         # one suite
 swift test --filter FloconStartTests/configChangesTheHost   # one test
 ```
 
-The demo app has its own project, opened through the workspace; it needs an iOS 27 simulator (the demo's deployment target):
+The demo app has its own project, opened through the workspace; it needs an iOS 18 or later simulator (the demo's deployment target is iOS 18):
 
 ```bash
 xcodebuild -workspace FloconWorkspace.xcworkspace -scheme FloconDemo \
