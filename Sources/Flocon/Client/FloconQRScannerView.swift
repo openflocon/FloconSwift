@@ -144,11 +144,13 @@ private final class FloconQRScannerController: UIViewController, AVCaptureMetada
         didOutput metadataObjects: [AVMetadataObject],
         from connection: AVCaptureConnection
     ) {
+        // Read the code here: only the `String` crosses into the main actor.
+        guard let code = metadataObjects.lazy
+            .compactMap({ ($0 as? AVMetadataMachineReadableCodeObject)?.stringValue }).first
+        else { return }
         // The delegate queue is the main queue.
         MainActor.assumeIsolated {
-            guard !isPaused,
-                  let code = metadataObjects.lazy.compactMap({ ($0 as? AVMetadataMachineReadableCodeObject)?.stringValue }).first
-            else { return }
+            guard !isPaused else { return }
             isPaused = true
             onCode?(code)
         }
