@@ -5,19 +5,40 @@ struct FloconAddressError: Error, Equatable {
     let message: String
 }
 
-/// The WebSocket URL of the desktop app at `address`: only its IP address or host, such as
-/// `192.168.1.20` or `my-mac.local`. The port is the one of ``FloconConfig/webSocketPort``, `9023`.
+/// The WebSocket URL of the desktop app at `address`: its IP address or host, with an optional port,
+/// such as `192.168.1.20`, `my-mac.local` or `192.168.1.20:9100`.
 ///
-/// - Throws: ``FloconAddressError`` if the address is empty, or has a scheme, a port or a path.
+/// When the address has no port, `port` is used (``FloconConfig/webSocketPort``). Only IPv4 addresses and
+/// host names are read: no scheme, path, query, fragment, whitespace nor IPv6.
+///
+/// - Parameters:
+///   - address: The address to read.
+///   - port: The port used when `address` does not contain one.
+/// - Throws: ``FloconAddressError`` if the address is empty, has a scheme, a path, or a port that is not
+///   an integer from 1 to 65535 with at most 5 digits.
 func floconWebSocketURL(address: String, port: Int) throws -> URL {
-    let host = address.trimmingCharacters(in: .whitespacesAndNewlines)
-    let isReadable = !host.isEmpty && !host.contains { $0 == ":" || $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
-    guard isReadable, let url = URL(string: "wss://\(host):\(port)") else {
-        throw FloconAddressError(
-            message: "Cannot read '\(address)', enter only the IP address of the computer, such as 192.168.1.20 "
-                + "(no port: it is always \(port))"
-        )
+    let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
+    let invalid = FloconAddressError(
+        message: "Cannot read '\(address)', enter the IP address of the computer, such as 192.168.1.20, "
+            + "with an optional port, such as 192.168.1.20:9100 (without scheme nor path)"
+    )
+    let hasForbiddenCharacter = trimmed.contains { $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
+    let parts = trimmed.split(separator: ":", maxSplits: .max, omittingEmptySubsequences: false)
+    guard !trimmed.isEmpty, !hasForbiddenCharacter, parts.count <= 2, let host = parts.first, !host.isEmpty else {
+        throw invalid
     }
+    var resolvedPort = port
+    if parts.count == 2 {
+        let text = parts[1]
+        guard !text.isEmpty, text.count <= 5, text.allSatisfy({ $0.isASCII && $0.isNumber }),
+              let value = Int(text), (1...65535).contains(value) else {
+            throw FloconAddressError(
+                message: "Cannot read the port of '\(address)', it must be an integer from 1 to 65535, with at most 5 digits"
+            )
+        }
+        resolvedPort = value
+    }
+    guard let url = URL(string: "wss://\(host):\(resolvedPort)") else { throw invalid }
     return url
 }
 

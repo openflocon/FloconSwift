@@ -12,8 +12,10 @@ public struct FloconBuilder {
     ///
     /// - Parameters:
     ///   - host: Host name or IP address of the Mac running Flocon. Defaults to `localhost`.
-    ///   - webSocketPort: Port of the desktop WebSocket server. Defaults to `9023`.
-    ///   - httpPort: Port of the desktop HTTP server. Defaults to `9024`.
+    ///   - webSocketPort: Port of the desktop WebSocket server, from 1 to 65535 (otherwise logged and
+    ///     replaced by `9023`). Defaults to `9023`.
+    ///   - httpPort: Port of the desktop HTTP server, from 1 to 65535 (otherwise logged and replaced by
+    ///     `9024`). Defaults to `9024`.
     public mutating func config(host: String = "localhost", webSocketPort: Int = 9023, httpPort: Int = 9024) {
         config.host = host
         config.webSocketPort = webSocketPort
@@ -76,7 +78,8 @@ public struct FloconConnectOptions: Sendable {
     public var bufferCapacity = 5_000
 
     /// The IP address of a computer to also try when the SDK starts, for example one with a fixed IP.
-    /// No port nor scheme: the port is always `9023`.
+    /// A `host:port` such as `192.168.1.20:9100` is accepted; without a port, ``FloconConfig/webSocketPort``
+    /// is used. No scheme.
     public var address: String?
 
     /// Keeps the last address the SDK connected to (given as ``address`` or to ``Flocon/connect(address:)``)

@@ -26,6 +26,17 @@ import Testing
         #expect(builder.config.webSocketPort == 9023)
     }
 
+    @Test func configFallsBackToTheDefaultPortsWhenInvalid() {
+        var builder = FloconBuilder()
+        builder.config(webSocketPort: 0, httpPort: 70_000)
+        #expect(builder.config.webSocketPort == 9023)
+        #expect(builder.config.httpPort == 9024)
+
+        builder.config(webSocketPort: -1, httpPort: 65_535)
+        #expect(builder.config.webSocketPort == 9023)
+        #expect(builder.config.httpPort == 65_535)
+    }
+
     @Test func connectKeepsTheDefaultOptionsWithoutABlock() {
         var builder = FloconBuilder()
         builder.connect()
@@ -50,14 +61,33 @@ import Testing
 }
 
 @Suite struct FloconAddressTests {
-    @Test func readsAnIpAddressOrAHostWithThePort9023() throws {
+    @Test func readsAnIpAddressOrAHostWithTheDefaultPort() throws {
         #expect(try floconWebSocketURL(address: "192.168.1.20", port: 9023) == URL(string: "wss://192.168.1.20:9023")!)
         #expect(try floconWebSocketURL(address: " my-mac.local ", port: 9023) == URL(string: "wss://my-mac.local:9023")!)
         #expect(try floconWebSocketURL(address: "localhost", port: 9023) == URL(string: "wss://localhost:9023")!)
+        #expect(try floconWebSocketURL(address: "localhost", port: 9500) == URL(string: "wss://localhost:9500")!)
     }
 
-    @Test func refusesAPortASchemeAPathOrAnEmptyAddress() {
-        for address in ["", "192.168.1.20:9023", "192.168.1.20:9100", "ws://192.168.1.20", "192.168.1.20/path", "my mac"] {
+    @Test func rejectsAPortWithMoreThanFiveDigits() {
+        for address in ["host:0009023", "host:009023", "host:123456"] {
+            #expect(throws: FloconAddressError.self) { try floconWebSocketURL(address: address, port: 9023) }
+        }
+    }
+
+    @Test func readsAHostWithItsPort() throws {
+        #expect(try floconWebSocketURL(address: "192.168.1.20:9100", port: 9023) == URL(string: "wss://192.168.1.20:9100")!)
+        #expect(try floconWebSocketURL(address: "my-mac.local:1", port: 9023) == URL(string: "wss://my-mac.local:1")!)
+        #expect(try floconWebSocketURL(address: "host:65535", port: 9023) == URL(string: "wss://host:65535")!)
+    }
+
+    @Test func refusesAnInvalidPort() {
+        for address in ["host:0", "host:99999", "host:65536", "host:abc", "host:", "host:-1", "a:b:c", "host:9100:1", ":9100"] {
+            #expect(throws: FloconAddressError.self) { try floconWebSocketURL(address: address, port: 9023) }
+        }
+    }
+
+    @Test func refusesASchemeAPathOrAnEmptyAddress() {
+        for address in ["", "  ", "ws://192.168.1.20", "wss://host:9100", "192.168.1.20/path", "host?x=1", "host#a", "my mac", "host: 9100"] {
             #expect(throws: FloconAddressError.self) { try floconWebSocketURL(address: address, port: 9023) }
         }
     }

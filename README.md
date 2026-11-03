@@ -99,7 +99,23 @@ The default host, `localhost`, works from the iOS Simulator. On a device, use th
 Flocon.initialize(config: FloconConfig(host: "192.168.1.20"))
 ```
 
-Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`. The connection uses `wss://` with the self-signed certificate of the desktop app, which is accepted without being verified (the connection is encrypted, not authenticated), so no App Transport Security exception is needed.
+Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`. The connection uses `wss://` with the self-signed certificate of the desktop app, which is accepted without being verified (the connection is encrypted, not authenticated), so no App Transport Security exception is needed (neither for the HTTP downloads of the Files plugin, which use `https://` with the same trust).
+
+### Custom ports
+
+The SDK uses the ports `9023` (WebSocket) and `9024` (HTTP) of the desktop app. If you changed them in the Flocon desktop settings, give the same values here, they must match. A port outside 1...65535 is logged (when `Flocon.isLoggingEnabled` is set) and replaced by the default one:
+
+```swift
+Flocon.initialize(config: FloconConfig(host: "192.168.1.20", webSocketPort: 9100, httpPort: 9101))
+
+// or with the builder
+startFlocon { flocon in
+    flocon.config(host: "192.168.1.20", webSocketPort: 9100, httpPort: 9101)
+    flocon.install(.network)
+}
+```
+
+`Flocon.connect(address: "192.168.1.20:9100")` can also carry its own port.
 
 ### Connecting to another address
 
@@ -115,7 +131,7 @@ startFlocon { flocon in
 let result = await Flocon.connect(address: "192.168.1.20")
 ```
 
-Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
+Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give the IP address (or host) of the Mac, optionally with a port (`192.168.1.20:9100`), without scheme nor path. Without a port, `FloconConfig.webSocketPort` (`9023` by default) is used; a scheme, a path or a port outside 1...65535 or with more than 5 digits (`host:0009023`) gives `.invalidAddress`.
 
 #### Scanning a QR code
 
@@ -302,7 +318,7 @@ Flocon.filesPlugin.registerAppGroup("group.com.example.app")
 Flocon.filesPlugin.register(displayName: "Exports", url: exportsURL)
 ```
 
-Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside these folders are refused, and the folders themselves can never be deleted.
+Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). They use `https://` with the same trust delegate as the WebSocket connection, so no App Transport Security exception is needed. Paths outside these folders are refused, and the folders themselves can never be deleted.
 
 ## Databases
 

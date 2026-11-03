@@ -48,7 +48,10 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
 
     init(config: FloconConfig) {
         self.config = config
-        let defaultURL = URL(string: "wss://\(config.host):\(config.webSocketPort)") ?? URL(string: "wss://localhost:9023")!
+        // config.host is a host (a `host:port` is also read); an invalid one falls back to localhost
+        // with the configured port, so the SDK never crashes on a bad configuration
+        let defaultURL = (try? floconWebSocketURL(address: config.host, port: config.webSocketPort))
+            ?? URL(string: "wss://localhost:\(config.webSocketPort)")!
         self.defaultLink = FloconLink(url: defaultURL)
         var continuation: AsyncStream<OutboxItem>.Continuation!
         let stream = AsyncStream<OutboxItem> { continuation = $0 }

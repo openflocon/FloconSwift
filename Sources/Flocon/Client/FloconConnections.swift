@@ -106,8 +106,13 @@ final class FloconConnections: @unchecked Sendable {
         })
         states.set(.connected, for: link.id)
         // the address typed by the user, or given at start, comes back at the next launch
+        // (with its port only when it is not the default one)
         if link !== client.defaultLink, let host = link.url.host {
-            addressStore?.save(host)
+            if let port = link.url.port, port != config.webSocketPort {
+                addressStore?.save("\(host):\(port)")
+            } else {
+                addressStore?.save(host)
+            }
         }
     }
 

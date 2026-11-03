@@ -32,6 +32,30 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
 }
 
 @Suite struct FloconPublicAPITests {
+    @Test func configHasDefaultPorts() {
+        let config = FloconConfig()
+        #expect(config.webSocketPort == 9023)
+        #expect(config.httpPort == 9024)
+    }
+
+    @Test func configTakesCustomPorts() {
+        let config = FloconConfig(host: "192.168.1.20", webSocketPort: 9100, httpPort: 9101)
+        #expect(config.host == "192.168.1.20")
+        #expect(config.webSocketPort == 9100)
+        #expect(config.httpPort == 9101)
+    }
+
+    @Test func configReplacesInvalidPortsByTheDefaults() {
+        var config = FloconConfig(webSocketPort: 0, httpPort: 65_536)
+        #expect(config.webSocketPort == 9023)
+        #expect(config.httpPort == 9024)
+
+        config.webSocketPort = 9100
+        config.httpPort = -5
+        #expect(config.webSocketPort == 9100)
+        #expect(config.httpPort == 9024)
+    }
+
     @Test func pluginsAreNilBeforeInitialize() {
         #expect(Flocon.shared.networkPlugin == nil)
         #expect(Flocon.shared.analyticsPlugin == nil)
