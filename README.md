@@ -117,6 +117,8 @@ let result = await Flocon.connect(address: "192.168.1.20")
 
 Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
 
+`Flocon.disconnect()` closes the connection added with `Flocon.connect(address:)`, and forgets its address so it is not tried again at the next launch. The SDK keeps trying `localhost`, and what the app logs is kept in memory again until a desktop is reachable. It does nothing when there is no such connection.
+
 #### Scanning a QR code
 
 On iOS, `FloconQRScannerView` scans a QR code with the camera and connects the app to the Mac it holds the address of, so nobody has to type the IP. It uses `AVFoundation` only, no dependency:

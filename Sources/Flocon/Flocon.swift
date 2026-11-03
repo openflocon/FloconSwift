@@ -131,6 +131,20 @@ public final class Flocon: @unchecked Sendable {
         return await connections.connect(address: address)
     }
 
+    /// Closes the connection made with ``connect(address:)`` (or the address given at start), and forgets
+    /// its address: it is not tried again at the next launch.
+    ///
+    /// The default address (`localhost` on the simulator) is kept, the SDK keeps trying it. What the app logs
+    /// from now on is kept in memory, as when no desktop is reachable, and sent once a connection is back.
+    /// Does nothing when there is no such connection, or before the SDK is started.
+    ///
+    /// ```swift
+    /// await Flocon.disconnect()
+    /// ```
+    public static func disconnect() async {
+        await shared.connections?.disconnect()
+    }
+
     /// The current state of the connection to the desktop app.
     public static var connectionState: FloconConnectionState {
         shared.connectionStateStore.state

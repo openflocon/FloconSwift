@@ -1,7 +1,7 @@
 import SwiftUI
 import Flocon
 
-/// Connects the app to Flocon Desktop at an IP address, with `Flocon.connect(address:)`.
+/// Connects the app to Flocon Desktop at an IP address, with `Flocon.connect(address:)`, and closes it with `Flocon.disconnect()`.
 ///
 /// The default address (`localhost`) keeps being tried, this one is added. The port is always 9023.
 struct ConnectionScreen: View {
@@ -50,6 +50,9 @@ struct ConnectionScreen: View {
                         }
                         Button("Scan QR code", systemImage: "qrcode.viewfinder") { isScanning = true }
                             .buttonStyle(SampleButtonStyle())
+                        Button("Disconnect", action: disconnect)
+                            .buttonStyle(SampleButtonStyle())
+                            .disabled(isConnecting)
                         if let message = result?.sampleMessage {
                             Text(message.text)
                                 .font(.footnote)
@@ -78,6 +81,13 @@ struct ConnectionScreen: View {
                 result = scanResult
                 if scanResult == .connected { isScanning = false }
             }
+        }
+    }
+
+    private func disconnect() {
+        Task {
+            await Flocon.disconnect()
+            result = nil
         }
     }
 
