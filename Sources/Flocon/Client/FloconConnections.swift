@@ -48,6 +48,15 @@ final class FloconConnections: @unchecked Sendable {
         return result
     }
 
+    /// Closes the connection added with ``connect(address:)`` (or given at start), and forgets its address so it
+    /// is not tried again at the next launch. The default address stays. Does nothing without such a connection.
+    func disconnect() async {
+        await connectMutex.lock()
+        if let extra = client.extraLink { await removeExtraLink(extra) }
+        addressStore?.clear()
+        await connectMutex.unlock()
+    }
+
     private func connectLocked(address: String) async -> FloconConnectResult {
         let url: URL
         do {
