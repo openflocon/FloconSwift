@@ -5,22 +5,35 @@ import Flocon
 struct ContentView: View {
     @State private var path = NavigationPath()
     @State private var unknownDeeplink: URL?
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         NavigationStack(path: $path) {
             HomeView()
+                .logsNavigation("Home")
                 .navigationDestination(for: SampleScreen.self) { screen in
                     screen.destination
+                        .logsNavigation(screen.title)
                 }
                 .navigationDestination(for: SampleConnectionRoute.self) { _ in
                     ConnectionScreen()
+                        .logsNavigation("Connection")
                 }
                 .navigationDestination(for: DeeplinkRoute.self) { route in
                     route.screen
+                        .logsNavigation(route.screenName)
                 }
         }
         .tint(SampleTheme.accent)
         .preferredColorScheme(.dark)
+        .onChange(of: scenePhase) {
+            switch scenePhase {
+            case .active: Flocon.timelinePlugin.logLifecycle("active")
+            case .inactive: Flocon.timelinePlugin.logLifecycle("inactive")
+            case .background: Flocon.timelinePlugin.logLifecycle("background")
+            @unknown default: break
+            }
+        }
         .onOpenURL { url in
             switch DeeplinkRoute.destination(for: url) {
             case .home:
@@ -56,6 +69,7 @@ extension SampleScreen {
         case .files: FilesScreen()
         case .dashboard: DashboardScreen()
         case .deeplinks: DeeplinksScreen()
+        case .timeline: TimelineScreen()
         case .images: ImageListView()
         case .crash: CrashScreen()
         }

@@ -36,6 +36,14 @@ enum DeeplinkRoute: Hashable {
         }
     }
 
+    /// Readable name of the screen, for the timeline.
+    var screenName: String {
+        switch self {
+        case .user: "User"
+        case .post: "Post"
+        }
+    }
+
     /// The screen of the route.
     @ViewBuilder
     var screen: some View {
