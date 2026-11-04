@@ -8,13 +8,14 @@ final class FloconDeviceHandler: @unchecked Sendable {
     private static let methodGetAppIcon = "get_app_icon"  // desktop -> app
     private static let methodAppIcon = "app_icon"        // app -> desktop
 
-    private weak var sender: FloconMessageSender?
+    /// Where the answers are sent. Set once, before the first message can arrive.
+    weak var sender: FloconMessageSender?
     private let icon: @Sendable () async -> String?
 
     /// - Parameters:
-    ///   - sender: Where the answers are sent.
+    ///   - sender: Where the answers are sent, can be set later with ``sender``.
     ///   - icon: Reads the app icon as a base64 PNG, `nil` if there is none.
-    init(sender: FloconMessageSender, icon: @escaping @Sendable () async -> String? = { await FloconAppIcon.base64PNG() }) {
+    init(sender: FloconMessageSender? = nil, icon: @escaping @Sendable () async -> String? = { await FloconAppIcon.base64PNG() }) {
         self.sender = sender
         self.icon = icon
     }

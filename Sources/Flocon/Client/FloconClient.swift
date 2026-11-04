@@ -37,7 +37,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     private let outbox: AsyncStream<OutboxItem>.Continuation
     private var outboxTask: Task<Void, Never>?
 
-    private lazy var deviceHandler = FloconDeviceHandler(sender: self)
+    private let deviceHandler = FloconDeviceHandler()
 
     private let pluginsLock = NSLock()
     private var plugins: [String: FloconPlugin] = [:]
@@ -60,6 +60,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         let appInstance = appInstance
         let defaultLink = defaultLink
         let pending = FloconOutbox(capacity: config.bufferCapacity)
+        deviceHandler.sender = self
         outbox.yield(.addLink(defaultLink))
         outboxTask = Task {
             // Read without blocking the thread that called Flocon.initialize():
