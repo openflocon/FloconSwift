@@ -37,6 +37,8 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     private let outbox: AsyncStream<OutboxItem>.Continuation
     private var outboxTask: Task<Void, Never>?
 
+    private lazy var deviceHandler = FloconDeviceHandler(sender: self)
+
     private let pluginsLock = NSLock()
     private var plugins: [String: FloconPlugin] = [:]
 
@@ -214,6 +216,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
             FloconLogger.log(payload: text, "Unreadable message from the desktop:")
             return
         }
+        if deviceHandler.handle(message) { return }
         pluginsLock.lock()
         let plugin = plugins[message.plugin]
         pluginsLock.unlock()
