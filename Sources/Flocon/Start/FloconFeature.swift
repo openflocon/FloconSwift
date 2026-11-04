@@ -2,6 +2,7 @@ import Foundation
 
 enum FloconFeatureKind: Hashable, CaseIterable {
     case network, analytics, featureFlags, tables, preferences, files, database, dashboard, deeplinks
+    case timeline
     case crashReporter
     /// Always installed: the connection with the desktop app relies on it.
     case device

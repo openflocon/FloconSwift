@@ -47,6 +47,11 @@ extension Flocon {
     ///
     /// `nil` before ``initialize(config:)``. Prefer ``Flocon/deeplinksPlugin``.
     public var deeplinksPlugin: FloconDeeplinksPlugin? { client?.deeplinksPlugin }
+
+    /// Sends timeline logs.
+    ///
+    /// `nil` before ``initialize(config:)``. Prefer ``Flocon/timelinePlugin``.
+    public var timelinePlugin: FloconTimelinePlugin? { client?.timelinePlugin }
 }
 
 // The static accessors never return `nil`: when Flocon is not initialized, or the plugin is not
@@ -108,4 +113,13 @@ extension Flocon {
     ///
     /// Does nothing before ``initialize(config:)``, or if the plugin is not installed.
     public static var deeplinksPlugin: FloconDeeplinksPlugin { shared.deeplinksPlugin ?? FloconNoOpPlugins.deeplinks }
+
+    /// Sends timeline logs: navigation, user actions, lifecycle and your own events.
+    ///
+    /// ```swift
+    /// Flocon.timelinePlugin.logNavigation("CheckoutScreen", params: ["from": "CartScreen"])
+    /// ```
+    ///
+    /// Does nothing before ``initialize(config:)``, or if the plugin is not installed.
+    public static var timelinePlugin: FloconTimelinePlugin { shared.timelinePlugin ?? FloconNoOpPlugins.timeline }
 }

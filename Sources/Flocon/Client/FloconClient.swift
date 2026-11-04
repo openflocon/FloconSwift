@@ -128,6 +128,11 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         return plugins[FloconDeeplinksPlugin.name] as? FloconDeeplinksPlugin
     }
 
+    var timelinePlugin: FloconTimelinePlugin? {
+        pluginsLock.lock(); defer { pluginsLock.unlock() }
+        return plugins[FloconTimelinePlugin.name] as? FloconTimelinePlugin
+    }
+
     var filesPlugin: FloconFilesPlugin? {
         pluginsLock.lock(); defer { pluginsLock.unlock() }
         return plugins[FloconFilesPlugin.name] as? FloconFilesPlugin
