@@ -5,20 +5,69 @@ struct FloconAddressError: Error, Equatable {
     let message: String
 }
 
-/// The WebSocket URL of the desktop app at `address`: only its IP address or host, such as
-/// `192.168.1.20` or `my-mac.local`. The port is the one of ``FloconConfig/webSocketPort``, `9023`.
-///
-/// - Throws: ``FloconAddressError`` if the address is empty, or has a scheme, a port or a path.
-func floconWebSocketURL(address: String, port: Int) throws -> URL {
-    let host = address.trimmingCharacters(in: .whitespacesAndNewlines)
-    let isReadable = !host.isEmpty && !host.contains { $0 == ":" || $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
-    guard isReadable, let url = URL(string: "wss://\(host):\(port)") else {
-        throw FloconAddressError(
-            message: "Cannot read '\(address)', enter only the IP address of the computer, such as 192.168.1.20 "
-                + "(no port: it is always \(port))"
-        )
+/// A desktop app to connect to: its host and the two ports of its servers.
+struct FloconAddress: Equatable, Sendable {
+    let host: String
+    let webSocketPort: Int
+    let httpPort: Int
+
+    /// The WebSocket URL of the desktop app.
+    var webSocketURL: URL {
+        URL(string: "wss://\(host):\(webSocketPort)") ?? URL(string: "wss://localhost:\(webSocketPort)")!
     }
-    return url
+
+    /// Reads `address`: an IP address or a host, with optional ports, such as `192.168.1.20`,
+    /// `my-mac.local`, `192.168.1.20:10023` (WebSocket port) or `192.168.1.20:10023:10024`
+    /// (WebSocket port, then HTTP port).
+    ///
+    /// An omitted port takes the given default (``FloconConfig/webSocketPort``, ``FloconConfig/httpPort``).
+    /// Only IPv4 addresses and host names are read: no scheme, path, query, fragment, whitespace nor IPv6.
+    ///
+    /// - Parameters:
+    ///   - address: The address to read.
+    ///   - webSocketPort: The WebSocket port used when `address` does not contain one.
+    ///   - httpPort: The HTTP port used when `address` does not contain one.
+    /// - Throws: ``FloconAddressError`` if the address is empty, has a scheme, a path, more than two ports, or a
+    ///   port that is not an integer from 1 to 65535 with at most 5 digits.
+    init(parsing address: String, webSocketPort: Int, httpPort: Int) throws {
+        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        let invalid = FloconAddressError(
+            message: "Cannot read '\(address)', enter the IP address of the computer, such as 192.168.1.20, "
+                + "with optional ports, such as 192.168.1.20:10023:10024 (WebSocket port, then HTTP port), "
+                + "without scheme nor path"
+        )
+        let hasForbiddenCharacter = trimmed.contains { $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
+        let parts = trimmed.split(separator: ":", maxSplits: .max, omittingEmptySubsequences: false)
+        guard !trimmed.isEmpty, !hasForbiddenCharacter, parts.count <= 3, let host = parts.first, !host.isEmpty else {
+            throw invalid
+        }
+        func port(_ text: Substring) throws -> Int {
+            guard !text.isEmpty, text.count <= 5, text.allSatisfy({ $0.isASCII && $0.isNumber }),
+                  let value = Int(text), (1...65535).contains(value) else {
+                throw FloconAddressError(
+                    message: "Cannot read the ports of '\(address)', each must be an integer from 1 to 65535, with at most 5 digits"
+                )
+            }
+            return value
+        }
+        self.host = String(host)
+        self.webSocketPort = parts.count >= 2 ? try port(parts[1]) : webSocketPort
+        self.httpPort = parts.count == 3 ? try port(parts[2]) : httpPort
+        guard URL(string: "wss://\(self.host):\(self.webSocketPort)") != nil else { throw invalid }
+    }
+
+    /// The address kept for the next launch: the host alone when both ports are the given ones, otherwise
+    /// `host:webSocketPort:httpPort`.
+    func stored(webSocketPort defaultWebSocketPort: Int, httpPort defaultHttpPort: Int) -> String {
+        if webSocketPort == defaultWebSocketPort && httpPort == defaultHttpPort { return host }
+        return "\(host):\(webSocketPort):\(httpPort)"
+    }
+
+    init(host: String, webSocketPort: Int, httpPort: Int) {
+        self.host = host
+        self.webSocketPort = webSocketPort
+        self.httpPort = httpPort
+    }
 }
 
 /// Where the last desktop address the SDK connected to is kept between two launches of the app.

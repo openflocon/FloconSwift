@@ -100,7 +100,23 @@ The default host, `localhost`, works from the iOS Simulator. On a device, use th
 Flocon.initialize(config: FloconConfig(host: "192.168.1.20"))
 ```
 
-Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`. The connection uses `wss://` with the self-signed certificate of the desktop app, which is accepted without being verified (the connection is encrypted, not authenticated), so no App Transport Security exception is needed.
+Your app also needs to be allowed to reach the local network: add `NSLocalNetworkUsageDescription` to its `Info.plist`. The connection uses `wss://` with the self-signed certificate of the desktop app, which is accepted without being verified (the connection is encrypted, not authenticated), so no App Transport Security exception is needed (neither for the HTTP downloads of the Files plugin, which use `https://` with the same trust).
+
+### Custom ports
+
+The SDK uses the ports `9023` (WebSocket) and `9024` (HTTP) of the desktop app. If you changed them in the Flocon desktop settings, give the same values here, they must match. A port outside 1...65535 is logged (when `Flocon.isLoggingEnabled` is set) and replaced by the default one:
+
+```swift
+Flocon.initialize(config: FloconConfig(host: "192.168.1.20", webSocketPort: 9100, httpPort: 9101))
+
+// or with the builder
+startFlocon { flocon in
+    flocon.config(host: "192.168.1.20", webSocketPort: 9100, httpPort: 9101)
+    flocon.install(.network)
+}
+```
+
+`Flocon.connect(address:)` can also carry the ports, as `host:wsPort:httpPort` (`192.168.1.20:10023:10024`); `host:wsPort` sets only the WebSocket port. An omitted port is the configured one. The ports belong to each address: file uploads use the HTTP port of the address they go through.
 
 ### Connecting to another address
 
@@ -116,7 +132,7 @@ startFlocon { flocon in
 let result = await Flocon.connect(address: "192.168.1.20")
 ```
 
-Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give only the IP address (or host) of the Mac, without scheme nor port: the port is always `9023`, anything else is `.invalidAddress`.
+Until a desktop is reachable, everything the app logs is kept in memory. `Flocon.connect(address:)` opens the connection, introduces the app to the desktop, then sends what was kept, in the order it was logged, before sending the next messages right away. It returns a `FloconConnectResult` (`.connected`, `.notStarted`, `.invalidAddress`, `.failed`) instead of throwing; the messages are kept in every case, so you can call it again. Calling it with a new address replaces the previous one. The desktop app shows a wifi icon next to a device connected this way. Give the IP address (or host) of the Mac, optionally with ports (`192.168.1.20:10023` for the WebSocket port, `192.168.1.20:10023:10024` for the WebSocket then the HTTP port), without scheme nor path. An omitted port is `FloconConfig.webSocketPort` (`9023` by default) or `FloconConfig.httpPort` (`9024` by default); a scheme, a path, more than two ports, an empty port or a port outside 1...65535 or with more than 5 digits (`host:0009023`) gives `.invalidAddress`. The last address is kept as `host:wsPort:httpPort` when one of its ports differs from the configured ones.
 
 `Flocon.disconnect()` closes the connection added with `Flocon.connect(address:)`, and forgets its address so it is not tried again at the next launch. The SDK keeps trying `localhost`, and what the app logs is kept in memory again until a desktop is reachable. It does nothing when there is no such connection.
 
@@ -132,7 +148,7 @@ On iOS, `FloconQRScannerView` scans a QR code with the camera and connects the a
 }
 ```
 
-The view calls `Flocon.connect(address:)` with the text it reads and gives you its `FloconConnectResult`; after a failure it keeps scanning, so the user can try again. The QR code of Flocon Desktop holds only the IP address of the Mac, such as `192.168.1.20`. To use your own camera screen, pass the text you read to `Flocon.connect(address:)`.
+The view calls `Flocon.connect(address:)` with the text it reads and gives you its `FloconConnectResult`; after a failure it keeps scanning, so the user can try again. The QR code of Flocon Desktop holds the IP address of the Mac, such as `192.168.1.20`, followed by both ports (`192.168.1.20:10023:10024`) when they are not the defaults. To use your own camera screen, pass the text you read to `Flocon.connect(address:)`.
 
 Your app must add `NSCameraUsageDescription` to its `Info.plist`. The view asks for the permission the first time it is shown, and shows a message instead of the camera if it is denied or if there is no camera (the simulator has none: use `Flocon.connect(address:)` there).
 
@@ -305,7 +321,7 @@ Flocon.filesPlugin.registerAppGroup("group.com.example.app")
 Flocon.filesPlugin.register(displayName: "Exports", url: exportsURL)
 ```
 
-Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). On a physical device, this needs the same App Transport Security exception as the WebSocket connection. Paths outside these folders are refused, and the folders themselves can never be deleted.
+Files are downloaded over the desktop HTTP server (`FloconConfig.httpPort`, `9024` by default). They use `https://` with the same trust delegate as the WebSocket connection, so no App Transport Security exception is needed. Paths outside these folders are refused, and the folders themselves can never be deleted.
 
 ## Databases
 

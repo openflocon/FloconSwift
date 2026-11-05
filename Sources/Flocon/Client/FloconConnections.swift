@@ -31,9 +31,9 @@ final class FloconConnections: @unchecked Sendable {
         // then the address given by the app, or the last one that worked: the latter wins
         guard let address = addressStore?.load() ?? config.additionalAddress else { return }
         do {
-            let url = try floconWebSocketURL(address: address, port: config.webSocketPort)
-            if url != client.defaultLink.url {
-                launch(client.addExtraLink(url: url))
+            let parsed = try parse(address)
+            if parsed != client.defaultLink.address {
+                launch(client.addExtraLink(address: parsed))
             }
         } catch {
             FloconLogger.logError("Ignoring the address '\(address)'", error)
@@ -58,23 +58,23 @@ final class FloconConnections: @unchecked Sendable {
     }
 
     private func connectLocked(address: String) async -> FloconConnectResult {
-        let url: URL
+        let parsed: FloconAddress
         do {
-            url = try floconWebSocketURL(address: address, port: config.webSocketPort)
+            parsed = try parse(address)
         } catch let error as FloconAddressError {
             return .invalidAddress(error.message)
         } catch {
             return .invalidAddress(error.localizedDescription)
         }
         let defaultLink = client.defaultLink
-        if url == defaultLink.url {
+        if parsed == defaultLink.address {
             return defaultLink.isConnected
                 ? .connected
                 : .failed("\(address) is the default address, Flocon is already trying to connect to it")
         }
         if let previous = client.extraLink { await removeExtraLink(previous) }
 
-        let link = client.addExtraLink(url: url)
+        let link = client.addExtraLink(address: parsed)
         do {
             try await connectOnce(link)
             return .connected
@@ -83,6 +83,10 @@ final class FloconConnections: @unchecked Sendable {
             await removeExtraLink(link)
             return .failed(error.localizedDescription)
         }
+    }
+
+    private func parse(_ address: String) throws -> FloconAddress {
+        try FloconAddress(parsing: address, webSocketPort: config.webSocketPort, httpPort: config.httpPort)
     }
 
     private func launch(_ link: FloconLink) {
@@ -115,8 +119,9 @@ final class FloconConnections: @unchecked Sendable {
         })
         states.set(.connected, for: link.id)
         // the address typed by the user, or given at start, comes back at the next launch
-        if link !== client.defaultLink, let host = link.url.host {
-            addressStore?.save(host)
+        // (with its ports only when one is not the configured one)
+        if link !== client.defaultLink {
+            addressStore?.save(link.address.stored(webSocketPort: config.webSocketPort, httpPort: config.httpPort))
         }
     }
 

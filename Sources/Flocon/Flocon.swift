@@ -11,10 +11,18 @@ import Foundation
 public struct FloconConfig: Sendable {
     /// Host name or IP address of the Mac running the Flocon desktop app.
     public var host: String
-    /// Port of the desktop WebSocket server.
-    public var webSocketPort: Int
-    /// Port of the desktop HTTP server, used to send the files downloaded from the desktop app.
-    public var httpPort: Int
+    /// Port of the desktop WebSocket server, from 1 to 65535.
+    ///
+    /// An invalid value is logged and replaced by `9023`.
+    public var webSocketPort: Int {
+        didSet { webSocketPort = Self.validPort(webSocketPort, default: Self.defaultWebSocketPort, name: "webSocketPort") }
+    }
+    /// Port of the desktop HTTP server, from 1 to 65535, used to send the files downloaded from the desktop app.
+    ///
+    /// An invalid value is logged and replaced by `9024`.
+    public var httpPort: Int {
+        didSet { httpPort = Self.validPort(httpPort, default: Self.defaultHttpPort, name: "httpPort") }
+    }
     /// Whether the crashes of the app are reported to the desktop app, on the next launch.
     ///
     /// The crash handlers keep the handlers already installed, by another crash reporter for
@@ -37,12 +45,26 @@ public struct FloconConfig: Sendable {
     /// Version of the SDK, reported to the desktop app.
     public static let sdkVersion = "0.3.0"
 
+    static let defaultWebSocketPort = 9023
+    static let defaultHttpPort = 9024
+
+    /// `port` if it is in 1...65535, otherwise `default`, with an error logged.
+    static func validPort(_ port: Int, default defaultPort: Int, name: String) -> Int {
+        guard (1...65535).contains(port) else {
+            FloconLogger.logError("Invalid \(name) \(port), it must be from 1 to 65535: using \(defaultPort)")
+            return defaultPort
+        }
+        return port
+    }
+
     /// Creates a configuration.
     ///
     /// - Parameters:
     ///   - host: Host name or IP address of the Mac running Flocon. Defaults to `localhost`.
-    ///   - webSocketPort: Port of the desktop WebSocket server. Defaults to `9023`.
-    ///   - httpPort: Port of the desktop HTTP server. Defaults to `9024`.
+    ///   - webSocketPort: Port of the desktop WebSocket server, from 1 to 65535 (otherwise logged and
+    ///     replaced by `9023`). Must match the port set in the Flocon desktop settings. Defaults to `9023`.
+    ///   - httpPort: Port of the desktop HTTP server, from 1 to 65535 (otherwise logged and replaced by
+    ///     `9024`). Must match the port set in the Flocon desktop settings. Defaults to `9024`.
     ///   - isCrashReporterEnabled: Whether the crashes are reported to the desktop app. Defaults to `true`.
     ///   - bufferCapacity: Number of messages kept while not connected. Defaults to `5000`.
     ///   - additionalAddress: The IP address of another computer to also try on start. Defaults to `nil`.
@@ -57,8 +79,8 @@ public struct FloconConfig: Sendable {
         rememberLastAddress: Bool = true
     ) {
         self.host = host
-        self.webSocketPort = webSocketPort
-        self.httpPort = httpPort
+        self.webSocketPort = Self.validPort(webSocketPort, default: Self.defaultWebSocketPort, name: "webSocketPort")
+        self.httpPort = Self.validPort(httpPort, default: Self.defaultHttpPort, name: "httpPort")
         self.isCrashReporterEnabled = isCrashReporterEnabled
         self.bufferCapacity = bufferCapacity
         self.additionalAddress = additionalAddress
@@ -121,8 +143,10 @@ public final class Flocon: @unchecked Sendable {
     /// ```
     ///
     /// - Parameter address: The IP address (or host) of the Mac running Flocon Desktop, such as
-    ///   `192.168.1.20`. No port nor scheme: the port is always ``FloconConfig/webSocketPort`` (`9023`),
-    ///   anything else is ``FloconConnectResult/invalidAddress(_:)``.
+    ///   `192.168.1.20`, optionally with ports: `host:wsPort` or `host:wsPort:httpPort`, such as
+    ///   `192.168.1.20:10023:10024`. An omitted port is ``FloconConfig/webSocketPort`` or
+    ///   ``FloconConfig/httpPort``. A scheme, a path or an invalid port gives
+    ///   ``FloconConnectResult/invalidAddress(_:)``.
     /// - Returns: ``FloconConnectResult/connected``, or why it could not connect. The messages are
     ///   kept in every case, call it again to retry.
     @discardableResult
