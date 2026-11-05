@@ -3,7 +3,7 @@ import Foundation
 /// Collects the configuration and the plugins installed in ``startFlocon(_:)``.
 public struct FloconBuilder {
     var config = FloconConfig()
-    var features: Set<FloconFeatureKind> = [.device]
+    var features: Set<FloconFeatureKind> = []
     var applications: [() -> Void] = []
 
     /// Sets where to find the Flocon desktop app.

@@ -19,7 +19,7 @@ enum SampleTheme {
 
 /// The color of each family of plugins, used for its icon and its tile.
 enum SampleCategory {
-    case network, database, analytics, featureFlags, table, deeplink, crash, neutral
+    case network, database, analytics, featureFlags, table, deeplink, timeline, crash, neutral
 
     var color: Color {
         switch self {
@@ -29,6 +29,7 @@ enum SampleCategory {
         case .featureFlags: Color(hex: 0xF5B440)
         case .table: Color(hex: 0xA9D65E)
         case .deeplink: Color(hex: 0xF483C2)
+        case .timeline: Color(hex: 0x6FD6F0)
         case .crash: Color(hex: 0xFF6D6D)
         case .neutral: Color(hex: 0xA8ADB6)
         }

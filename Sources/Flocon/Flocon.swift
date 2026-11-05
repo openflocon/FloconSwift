@@ -154,6 +154,20 @@ public final class Flocon: @unchecked Sendable {
         return await connections.connect(address: address)
     }
 
+    /// Closes the connection made with ``connect(address:)`` (or the address given at start), and forgets
+    /// its address: it is not tried again at the next launch.
+    ///
+    /// The default address (`localhost` on the simulator) is kept, the SDK keeps trying it. What the app logs
+    /// from now on is kept in memory, as when no desktop is reachable, and sent once a connection is back.
+    /// Does nothing when there is no such connection, or before the SDK is started.
+    ///
+    /// ```swift
+    /// await Flocon.disconnect()
+    /// ```
+    public static func disconnect() async {
+        await shared.connections?.disconnect()
+    }
+
     /// The current state of the connection to the desktop app.
     public static var connectionState: FloconConnectionState {
         shared.connectionStateStore.state
@@ -166,7 +180,7 @@ public final class Flocon: @unchecked Sendable {
 
     /// Registers a custom plugin.
     ///
-    /// The built-in plugins (network, analytics, feature flags, tables, preferences, files, databases, dashboards, deeplinks, crash reporter, device) are registered by
+    /// The built-in plugins (network, analytics, feature flags, tables, preferences, files, databases, dashboards, deeplinks, timeline, crash reporter) are registered by
     /// ``initialize(config:)``. Registering a plugin with the same ``FloconPlugin/pluginName``
     /// replaces the previous one. Has no effect before ``initialize(config:)``.
     ///
@@ -216,7 +230,6 @@ public final class Flocon: @unchecked Sendable {
         if features.contains(.analytics) { newClient.register(plugin: FloconAnalyticsPlugin(sender: newClient)) }
         if features.contains(.featureFlags) { newClient.register(plugin: FloconFeatureFlagsPlugin(sender: newClient)) }
         if features.contains(.tables) { newClient.register(plugin: FloconTablePlugin(sender: newClient)) }
-        newClient.register(plugin: FloconDevicePlugin(sender: newClient))
         if features.contains(.preferences) { newClient.register(plugin: FloconPreferencesPlugin(sender: newClient)) }
         if features.contains(.files) {
             newClient.register(plugin: FloconFilesPlugin(sender: newClient, fileSender: newClient))
@@ -224,6 +237,7 @@ public final class Flocon: @unchecked Sendable {
         if features.contains(.database) { newClient.register(plugin: FloconDatabasePlugin(sender: newClient)) }
         if features.contains(.dashboard) { newClient.register(plugin: FloconDashboardPlugin(sender: newClient)) }
         if features.contains(.deeplinks) { newClient.register(plugin: FloconDeeplinksPlugin(sender: newClient)) }
+        if features.contains(.timeline) { newClient.register(plugin: FloconTimelinePlugin(sender: newClient)) }
         if features.contains(.crashReporter) {
             let crashReporter = FloconCrashReporterPlugin(sender: newClient)
             newClient.register(plugin: crashReporter)

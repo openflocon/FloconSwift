@@ -37,6 +37,8 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     private let outbox: AsyncStream<OutboxItem>.Continuation
     private var outboxTask: Task<Void, Never>?
 
+    private let deviceHandler = FloconDeviceHandler()
+
     private let pluginsLock = NSLock()
     private var plugins: [String: FloconPlugin] = [:]
 
@@ -61,6 +63,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         let appInstance = appInstance
         let defaultLink = defaultLink
         let pending = FloconOutbox(capacity: config.bufferCapacity)
+        deviceHandler.sender = self
         outbox.yield(.addLink(defaultLink))
         outboxTask = Task {
             // Read without blocking the thread that called Flocon.initialize():
@@ -129,6 +132,11 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
     var deeplinksPlugin: FloconDeeplinksPlugin? {
         pluginsLock.lock(); defer { pluginsLock.unlock() }
         return plugins[FloconDeeplinksPlugin.name] as? FloconDeeplinksPlugin
+    }
+
+    var timelinePlugin: FloconTimelinePlugin? {
+        pluginsLock.lock(); defer { pluginsLock.unlock() }
+        return plugins[FloconTimelinePlugin.name] as? FloconTimelinePlugin
     }
 
     var filesPlugin: FloconFilesPlugin? {
@@ -217,6 +225,7 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
             FloconLogger.log(payload: text, "Unreadable message from the desktop:")
             return
         }
+        if deviceHandler.handle(message) { return }
         pluginsLock.lock()
         let plugin = plugins[message.plugin]
         pluginsLock.unlock()

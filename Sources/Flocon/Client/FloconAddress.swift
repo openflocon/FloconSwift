@@ -47,6 +47,9 @@ protocol FloconAddressStore: Sendable {
     /// The address saved by ``save(_:)``, or `nil`.
     func load() -> String?
     func save(_ address: String)
+
+    /// Forgets the address saved by ``save(_:)``.
+    func clear()
 }
 
 /// Keeps the address in the `UserDefaults` of the app.
@@ -59,5 +62,9 @@ struct FloconUserDefaultsAddressStore: FloconAddressStore {
 
     func save(_ address: String) {
         UserDefaults.standard.set(address, forKey: Self.key)
+    }
+
+    func clear() {
+        UserDefaults.standard.removeObject(forKey: Self.key)
     }
 }
