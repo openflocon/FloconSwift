@@ -3,9 +3,9 @@ import Testing
 @testable import Flocon
 
 @Suite struct FloconStartTests {
-    @Test func onlyTheDeviceIsInstalledByDefault() {
+    @Test func nothingIsInstalledByDefault() {
         let builder = FloconBuilder()
-        #expect(builder.features == [.device])
+        #expect(builder.features.isEmpty)
     }
 
     @Test func installAddsThePluginAndKeepsItsOptions() {
@@ -14,7 +14,7 @@ import Testing
         builder.install(.database) { $0.register(displayName: "App", url: URL(fileURLWithPath: "/tmp/app.db")) }
         builder.install(.network) { $0.shouldLog = { _ in false } }
 
-        #expect(builder.features == [.device, .analytics, .database, .network])
+        #expect(builder.features == [.analytics, .database, .network])
         #expect(builder.applications.count == 3)
     }
 
