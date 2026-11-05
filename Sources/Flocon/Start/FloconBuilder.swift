@@ -78,8 +78,8 @@ public struct FloconConnectOptions: Sendable {
     public var bufferCapacity = 5_000
 
     /// The IP address of a computer to also try when the SDK starts, for example one with a fixed IP.
-    /// A `host:port` such as `192.168.1.20:9100` is accepted; without a port, ``FloconConfig/webSocketPort``
-    /// is used. No scheme.
+    /// Ports are optional: `host:wsPort` or `host:wsPort:httpPort`, such as `192.168.1.20:10023:10024`; an
+    /// omitted port is ``FloconConfig/webSocketPort`` or ``FloconConfig/httpPort``. No scheme.
     public var address: String?
 
     /// Keeps the last address the SDK connected to (given as ``address`` or to ``Flocon/connect(address:)``)

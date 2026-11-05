@@ -52,9 +52,9 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         self.config = config
         // config.host is a host (a `host:port` is also read); an invalid one falls back to localhost
         // with the configured port, so the SDK never crashes on a bad configuration
-        let defaultURL = (try? floconWebSocketURL(address: config.host, port: config.webSocketPort))
-            ?? URL(string: "wss://localhost:\(config.webSocketPort)")!
-        self.defaultLink = FloconLink(url: defaultURL)
+        let defaultAddress = (try? FloconAddress(parsing: config.host, webSocketPort: config.webSocketPort, httpPort: config.httpPort))
+            ?? FloconAddress(host: "localhost", webSocketPort: config.webSocketPort, httpPort: config.httpPort)
+        self.defaultLink = FloconLink(address: defaultAddress)
         var continuation: AsyncStream<OutboxItem>.Continuation!
         let stream = AsyncStream<OutboxItem> { continuation = $0 }
         self.outbox = continuation
@@ -167,9 +167,9 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
         return _extraLink
     }
 
-    /// Adds a connection to `url`, next to the default one.
-    func addExtraLink(url: URL) -> FloconLink {
-        let link = FloconLink(url: url)
+    /// Adds a connection to `address`, next to the default one.
+    func addExtraLink(address: FloconAddress) -> FloconLink {
+        let link = FloconLink(address: address)
         outbox.yield(.addLink(link))
         linkLock.lock(); defer { linkLock.unlock() }
         _extraLink = link
@@ -246,8 +246,8 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
 
     func sendFile(at fileURL: URL, remotePath: String, requestId: String) async {
         let appInfos = await self.appInfos.value
-        let connected = [extraLink, defaultLink].compactMap { $0 }.first { $0.isConnected }
-        let uploader = FloconFileUploader(host: (connected ?? defaultLink).url.host ?? config.host, port: config.httpPort)
+        let link = [extraLink, defaultLink].compactMap { $0 }.first { $0.isConnected } ?? defaultLink
+        let uploader = FloconFileUploader(host: link.address.host, port: link.address.httpPort)
         await uploader.upload(
             fileAt: fileURL,
             remotePath: remotePath,
@@ -286,7 +286,8 @@ final class FloconClient: FloconMessageSender, FloconFileSender, @unchecked Send
 ///
 /// The messages are shared between the links, see ``FloconOutbox``.
 final class FloconLink: @unchecked Sendable {
-    let url: URL
+    /// The desktop app this link connects to, with the ports of its servers.
+    let address: FloconAddress
     let id = UUID()
     let webSocketClient: FloconWebSocketClient = buildFloconWebSocketClient()
     let outboxLink: FloconOutbox.Link
@@ -295,8 +296,10 @@ final class FloconLink: @unchecked Sendable {
     private var _isConnected = false
     private var _task: Task<Void, Never>?
 
-    init(url: URL) {
-        self.url = url
+    var url: URL { address.webSocketURL }
+
+    init(address: FloconAddress) {
+        self.address = address
         let webSocketClient = webSocketClient
         self.outboxLink = FloconOutbox.Link { await webSocketClient.sendMessage($0) }
     }

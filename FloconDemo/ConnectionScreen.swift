@@ -3,7 +3,7 @@ import Flocon
 
 /// Connects the app to Flocon Desktop at an IP address, with `Flocon.connect(address:)`, and closes it with `Flocon.disconnect()`.
 ///
-/// The default address (`localhost`) keeps being tried, this one is added. Without a port, ``FloconConfig/webSocketPort`` is used; `host:port` is accepted.
+/// The default address (`localhost`) keeps being tried, this one is added. Ports are optional: `host`, `host:wsPort` or `host:wsPort:httpPort`; an omitted port is the configured one.
 struct ConnectionScreen: View {
     @AppStorage("flocon.sample.address") private var address = ""
     @State private var state = Flocon.connectionState
@@ -35,7 +35,7 @@ struct ConnectionScreen: View {
                 SampleSection(title: "Flocon Desktop address") {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 12) {
-                            TextField("192.168.1.20 or 192.168.1.20:9100", text: $address)
+                            TextField("192.168.1.20 or 192.168.1.20:10023:10024", text: $address)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
                                 .keyboardType(.numbersAndPunctuation)
@@ -64,7 +64,7 @@ struct ConnectionScreen: View {
 
                 SampleInfoCard(
                     text: "The SDK keeps trying its default address (localhost on the simulator) and also connects to this one. "
-                        + "Add a port with host:port (192.168.1.20:9100), otherwise the configured WebSocket port (9023 by default) is used. "
+                        + "Add ports with host:wsPort:httpPort (192.168.1.20:10023:10024), otherwise the configured ports (9023 and 9024 by default) are used. "
                         + "The last address that worked is tried again at the next launch.",
                     tint: SampleTheme.accent
                 )

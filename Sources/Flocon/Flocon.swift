@@ -143,8 +143,9 @@ public final class Flocon: @unchecked Sendable {
     /// ```
     ///
     /// - Parameter address: The IP address (or host) of the Mac running Flocon Desktop, such as
-    ///   `192.168.1.20`, or `host:port` such as `192.168.1.20:9100`. Without a port,
-    ///   ``FloconConfig/webSocketPort`` is used. A scheme, a path or an invalid port gives
+    ///   `192.168.1.20`, optionally with ports: `host:wsPort` or `host:wsPort:httpPort`, such as
+    ///   `192.168.1.20:10023:10024`. An omitted port is ``FloconConfig/webSocketPort`` or
+    ///   ``FloconConfig/httpPort``. A scheme, a path or an invalid port gives
     ///   ``FloconConnectResult/invalidAddress(_:)``.
     /// - Returns: ``FloconConnectResult/connected``, or why it could not connect. The messages are
     ///   kept in every case, call it again to retry.

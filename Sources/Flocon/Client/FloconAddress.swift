@@ -5,41 +5,69 @@ struct FloconAddressError: Error, Equatable {
     let message: String
 }
 
-/// The WebSocket URL of the desktop app at `address`: its IP address or host, with an optional port,
-/// such as `192.168.1.20`, `my-mac.local` or `192.168.1.20:9100`.
-///
-/// When the address has no port, `port` is used (``FloconConfig/webSocketPort``). Only IPv4 addresses and
-/// host names are read: no scheme, path, query, fragment, whitespace nor IPv6.
-///
-/// - Parameters:
-///   - address: The address to read.
-///   - port: The port used when `address` does not contain one.
-/// - Throws: ``FloconAddressError`` if the address is empty, has a scheme, a path, or a port that is not
-///   an integer from 1 to 65535 with at most 5 digits.
-func floconWebSocketURL(address: String, port: Int) throws -> URL {
-    let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
-    let invalid = FloconAddressError(
-        message: "Cannot read '\(address)', enter the IP address of the computer, such as 192.168.1.20, "
-            + "with an optional port, such as 192.168.1.20:9100 (without scheme nor path)"
-    )
-    let hasForbiddenCharacter = trimmed.contains { $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
-    let parts = trimmed.split(separator: ":", maxSplits: .max, omittingEmptySubsequences: false)
-    guard !trimmed.isEmpty, !hasForbiddenCharacter, parts.count <= 2, let host = parts.first, !host.isEmpty else {
-        throw invalid
+/// A desktop app to connect to: its host and the two ports of its servers.
+struct FloconAddress: Equatable, Sendable {
+    let host: String
+    let webSocketPort: Int
+    let httpPort: Int
+
+    /// The WebSocket URL of the desktop app.
+    var webSocketURL: URL {
+        URL(string: "wss://\(host):\(webSocketPort)") ?? URL(string: "wss://localhost:\(webSocketPort)")!
     }
-    var resolvedPort = port
-    if parts.count == 2 {
-        let text = parts[1]
-        guard !text.isEmpty, text.count <= 5, text.allSatisfy({ $0.isASCII && $0.isNumber }),
-              let value = Int(text), (1...65535).contains(value) else {
-            throw FloconAddressError(
-                message: "Cannot read the port of '\(address)', it must be an integer from 1 to 65535, with at most 5 digits"
-            )
+
+    /// Reads `address`: an IP address or a host, with optional ports, such as `192.168.1.20`,
+    /// `my-mac.local`, `192.168.1.20:10023` (WebSocket port) or `192.168.1.20:10023:10024`
+    /// (WebSocket port, then HTTP port).
+    ///
+    /// An omitted port takes the given default (``FloconConfig/webSocketPort``, ``FloconConfig/httpPort``).
+    /// Only IPv4 addresses and host names are read: no scheme, path, query, fragment, whitespace nor IPv6.
+    ///
+    /// - Parameters:
+    ///   - address: The address to read.
+    ///   - webSocketPort: The WebSocket port used when `address` does not contain one.
+    ///   - httpPort: The HTTP port used when `address` does not contain one.
+    /// - Throws: ``FloconAddressError`` if the address is empty, has a scheme, a path, more than two ports, or a
+    ///   port that is not an integer from 1 to 65535 with at most 5 digits.
+    init(parsing address: String, webSocketPort: Int, httpPort: Int) throws {
+        let trimmed = address.trimmingCharacters(in: .whitespacesAndNewlines)
+        let invalid = FloconAddressError(
+            message: "Cannot read '\(address)', enter the IP address of the computer, such as 192.168.1.20, "
+                + "with optional ports, such as 192.168.1.20:10023:10024 (WebSocket port, then HTTP port), "
+                + "without scheme nor path"
+        )
+        let hasForbiddenCharacter = trimmed.contains { $0 == "/" || $0 == "?" || $0 == "#" || $0.isWhitespace }
+        let parts = trimmed.split(separator: ":", maxSplits: .max, omittingEmptySubsequences: false)
+        guard !trimmed.isEmpty, !hasForbiddenCharacter, parts.count <= 3, let host = parts.first, !host.isEmpty else {
+            throw invalid
         }
-        resolvedPort = value
+        func port(_ text: Substring) throws -> Int {
+            guard !text.isEmpty, text.count <= 5, text.allSatisfy({ $0.isASCII && $0.isNumber }),
+                  let value = Int(text), (1...65535).contains(value) else {
+                throw FloconAddressError(
+                    message: "Cannot read the ports of '\(address)', each must be an integer from 1 to 65535, with at most 5 digits"
+                )
+            }
+            return value
+        }
+        self.host = String(host)
+        self.webSocketPort = parts.count >= 2 ? try port(parts[1]) : webSocketPort
+        self.httpPort = parts.count == 3 ? try port(parts[2]) : httpPort
+        guard URL(string: "wss://\(self.host):\(self.webSocketPort)") != nil else { throw invalid }
     }
-    guard let url = URL(string: "wss://\(host):\(resolvedPort)") else { throw invalid }
-    return url
+
+    /// The address kept for the next launch: the host alone when both ports are the given ones, otherwise
+    /// `host:webSocketPort:httpPort`.
+    func stored(webSocketPort defaultWebSocketPort: Int, httpPort defaultHttpPort: Int) -> String {
+        if webSocketPort == defaultWebSocketPort && httpPort == defaultHttpPort { return host }
+        return "\(host):\(webSocketPort):\(httpPort)"
+    }
+
+    init(host: String, webSocketPort: Int, httpPort: Int) {
+        self.host = host
+        self.webSocketPort = webSocketPort
+        self.httpPort = httpPort
+    }
 }
 
 /// Where the last desktop address the SDK connected to is kept between two launches of the app.
