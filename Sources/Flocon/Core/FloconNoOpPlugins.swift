@@ -29,4 +29,5 @@ enum FloconNoOpPlugins {
     static let files = FloconFilesPlugin(sender: sender, fileSender: sender)
     static let dashboard = FloconDashboardPlugin(sender: sender)
     static let deeplinks = FloconDeeplinksPlugin(sender: sender)
+    static let timeline = FloconTimelinePlugin(sender: sender)
 }

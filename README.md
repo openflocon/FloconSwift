@@ -13,6 +13,7 @@ Once the SDK is started, your app connects to the Flocon desktop app on your Mac
 - **Databases**: query the SQLite databases of the app (Core Data, GRDB, SQLite…), and see the queries it runs
 - **Dashboards**: values of your app updated live, and buttons, inputs and forms that run actions in it
 - **Deeplinks**: the deeplinks of your app, with their parameters
+- **Timeline logs**: navigation, user actions, lifecycle and your own events, in the Flocon timeline
 - **Crashes**: the crashes of your app, reported on the next launch
 - **App icon**: your app appears with its icon in the desktop app
 
@@ -72,7 +73,7 @@ struct MyApp: App {
 }
 ```
 
-Only the installed plugins are started: the others, such as `Flocon.analyticsPlugin`, do nothing: their calls can stay in the app. The available plugins are `.network` (also intercepts `URLSession.shared`), `.analytics`, `.featureFlags`, `.tables`, `.preferences`, `.files`, `.database`, `.dashboard`, `.deeplinks` and `.crashReporter`. Those with options take a closure, for example `flocon.install(.preferences) { $0.userDefaults(suite, suiteName: "group") }`.
+Only the installed plugins are started: the others, such as `Flocon.analyticsPlugin`, do nothing: their calls can stay in the app. The available plugins are `.network` (also intercepts `URLSession.shared`), `.analytics`, `.featureFlags`, `.tables`, `.preferences`, `.files`, `.database`, `.dashboard`, `.deeplinks`, `.timeline` and `.crashReporter`. Those with options take a closure, for example `flocon.install(.preferences) { $0.userDefaults(suite, suiteName: "group") }`.
 
 `Flocon.initialize()` is the short form that installs every plugin.
 
@@ -397,6 +398,33 @@ Opening a deeplink from the desktop app on the iOS Simulator needs a desktop ver
 xcrun simctl openurl booted "myapp://user/Florent"
 ```
 
+## Timeline logs
+
+Install `.timeline` (`flocon.install(.timeline)`, or `Flocon.initialize()` which installs everything), then log what happens in your app. The events appear in the Flocon timeline, with their time.
+
+```swift
+// typed events, without a level
+Flocon.timelinePlugin.logNavigation("CheckoutScreen", params: ["from": "CartScreen"])
+Flocon.timelinePlugin.logUserAction("tap_buy", params: ["sku": "premium_yearly"])
+Flocon.timelinePlugin.logLifecycle("didBecomeActive")
+Flocon.timelinePlugin.log(type: TimelineType("billing"), value: "Purchase started")
+
+// tagged events, with a level: .debug, .info (default), .warning or .error
+Flocon.timelinePlugin.log(tag: "billing", value: "Purchase failed", params: ["sku": "premium_yearly"], level: .error)
+```
+
+`navigation`, `userAction` and `lifecycle` are shown with their own icon; any other type or tag is a custom one, listed in the Type filter. To reuse a custom type, declare it once:
+
+```swift
+extension TimelineType {
+    static let billing = TimelineType("billing")
+}
+
+Flocon.timelinePlugin.log(type: .billing, value: "Purchase started")
+```
+
+The two kinds of calls are never mixed: a typed call has no level, a tagged call always has one. Params are text only. Until Flocon is started, or if `.timeline` is not installed, the calls do nothing. Timeline logs need a Flocon desktop version that includes them.
+
 ## Crashes
 
 Crashes are reported by default. A crash cannot be sent while the app crashes: it is saved, and sent the next time the app connects to the desktop.
@@ -412,7 +440,7 @@ Flocon.initialize(config: FloconConfig(isCrashReporterEnabled: false))
 
 ## Extending Flocon
 
-Each feature is a plugin of `Flocon`: `Flocon.networkPlugin`, `analyticsPlugin`, `featureFlagsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin`, `filesPlugin`, `dashboardPlugin` and `deeplinksPlugin`. They are never `nil`: until `Flocon.initialize()`, or if the plugin is not installed, they do nothing. (`Flocon.shared.networkPlugin` and the like are optionals, `nil` in that case.)
+Each feature is a plugin of `Flocon`: `Flocon.networkPlugin`, `analyticsPlugin`, `featureFlagsPlugin`, `tablePlugin`, `preferencesPlugin`, `databasePlugin`, `filesPlugin`, `dashboardPlugin`, `deeplinksPlugin` and `timelinePlugin`. They are never `nil`: until `Flocon.initialize()`, or if the plugin is not installed, they do nothing. (`Flocon.shared.networkPlugin` and the like are optionals, `nil` in that case.)
 
 ### Logging other network calls
 

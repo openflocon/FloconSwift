@@ -2,7 +2,7 @@ import SwiftUI
 
 /// One screen per plugin of the SDK.
 enum SampleScreen: String, CaseIterable, Hashable {
-    case network, database, analytics, featureFlags, preferences, files, dashboard, deeplinks, images, crash
+    case network, database, analytics, featureFlags, preferences, files, dashboard, deeplinks, timeline, images, crash
 
     var title: String {
         switch self {
@@ -14,6 +14,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .files: "Files"
         case .dashboard: "Dashboard & Tables"
         case .deeplinks: "Deeplinks"
+        case .timeline: "Timeline"
         case .images: "Images"
         case .crash: "Crash reporter"
         }
@@ -29,6 +30,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .files: "Files the desktop can browse"
         case .dashboard: "Live values and table rows"
         case .deeplinks: "Open links from the desktop"
+        case .timeline: "Navigation, actions and tagged logs"
         case .images: "Images loaded by Kingfisher"
         case .crash: "Crash the app on purpose"
         }
@@ -43,6 +45,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .dashboard: .table
         case .deeplinks: .deeplink
         case .crash: .crash
+        case .timeline: .timeline
         case .preferences, .files, .images: .neutral
         }
     }
@@ -57,6 +60,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .files: "folder"
         case .dashboard: "rectangle.split.1x2"
         case .deeplinks: "link"
+        case .timeline: "clock"
         case .images: "photo"
         case .crash: "exclamationmark.triangle"
         }

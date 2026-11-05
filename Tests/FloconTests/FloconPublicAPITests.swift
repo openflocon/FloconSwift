@@ -39,6 +39,7 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         #expect(Flocon.shared.tablePlugin == nil)
         #expect(Flocon.shared.preferencesPlugin == nil)
         #expect(Flocon.shared.deeplinksPlugin == nil)
+        #expect(Flocon.shared.timelinePlugin == nil)
         #expect(Flocon.shared.filesPlugin == nil)
     }
 
@@ -51,6 +52,11 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         Flocon.databasePlugin.register(displayName: "App", url: FileManager.default.temporaryDirectory)
         Flocon.databasePlugin.logQuery(dbId: FloconDatabase(displayName: "App", url: FileManager.default.temporaryDirectory).id, sqlQuery: "SELECT 1")
         Flocon.deeplinksPlugin.register(deeplinks: [FloconDeeplink("myapp://home", label: "Home")])
+        Flocon.timelinePlugin.logNavigation("Home", params: ["from": "Launch"])
+        Flocon.timelinePlugin.logUserAction("tap_buy")
+        Flocon.timelinePlugin.logLifecycle("didBecomeActive")
+        Flocon.timelinePlugin.log(type: TimelineType("billing"), value: "Purchase started")
+        Flocon.timelinePlugin.log(tag: "billing", value: "Purchase failed", params: ["sku": "a"], level: .error)
         Flocon.preferencesPlugin.registerKeychain()
         Flocon.dashboardPlugin.dashboard(id: "main") {}
         #expect(Flocon.analyticsPlugin === Flocon.analyticsPlugin)
