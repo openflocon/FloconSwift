@@ -43,7 +43,7 @@ public struct FloconConfig: Sendable {
     public var rememberLastAddress: Bool
 
     /// Version of the SDK, reported to the desktop app.
-    public static let sdkVersion = "0.3.0"
+    public static let sdkVersion = "2.0.0"
 
     static let defaultWebSocketPort = 9023
     static let defaultHttpPort = 9024
