@@ -391,8 +391,8 @@ The actions are called on the main actor. Element identifiers must be unique in 
 List the deeplinks of your app, writing the parts to fill in between brackets:
 
 ```swift
-floconRegisterDeeplinks(
-    [
+Flocon.deeplinksPlugin.register(
+    deeplinks: [
         FloconDeeplink("myapp://home", label: "Home"),
         FloconDeeplink(
             "myapp://user/[userId]",
