@@ -1,0 +1,48 @@
+name: Release
+
+# Lancer à la main depuis main (Actions > Release > Run workflow) avec la version : 2.1.0
+# Crée le tag + la release GitHub (changelog généré), puis déclenche la release de FloconSwiftGrpc.
+# SPM n'a rien à "publier" : le tag git EST la release.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version SemVer, sans 'v' (ex: 2.1.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency: release
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ inputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] || { echo "::error::Version invalide: $VERSION"; exit 1; }
+          [[ "${{ github.ref_name }}" == "main" ]] || { echo "::error::Lancer depuis main"; exit 1; }
+          ! git rev-parse -q --verify "refs/tags/$VERSION" || { echo "::error::Le tag $VERSION existe déjà"; exit 1; }
+
+      - name: Create tag and GitHub release (generated changelog)
+        run: |
+          flags=()
+          [[ "$VERSION" == *-* ]] && flags+=(--prerelease)
+          gh release create "$VERSION" --target "$GITHUB_SHA" --title "$VERSION" --generate-notes "${flags[@]}"
+
+      # GITHUB_TOKEN ne peut pas agir sur un autre repo : il faut le secret GRPC_RELEASE_TOKEN
+      # (PAT fine-grained, repo FloconSwiftGrpc uniquement, permission "Actions: Read and write").
+      - name: Trigger FloconSwiftGrpc release
+        env:
+          GH_TOKEN: ${{ secrets.GRPC_RELEASE_TOKEN }}
+        run: gh workflow run release.yml -R openflocon/FloconSwiftGrpc -f version="$VERSION"
