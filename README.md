@@ -2,7 +2,7 @@
 
 Swift SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugger for mobile apps: inspect the network calls, databases, files, preferences and more of your iOS or macOS app, live, from your Mac.
 
-<!-- screenshot: hero -->
+![Flocon Desktop showing the Timeline of an app](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg)
 
 ## Requirements
 
