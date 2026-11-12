@@ -12,20 +12,20 @@ Swift SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugg
 
 ## Installation
 
-Flocon is distributed with Swift Package Manager. The latest release is [2.0.0](https://github.com/openflocon/FloconSwift/releases).
+Flocon is distributed with Swift Package Manager. Latest release: [![FloconSwift release](https://img.shields.io/github/v/release/openflocon/FloconSwift?label=FloconSwift)](https://github.com/openflocon/FloconSwift/releases). Replace `LAST_VERSION` below with it.
 
 ### Xcode
 
 1. Choose **File > Add Package Dependencies...**
 2. Paste `https://github.com/openflocon/FloconSwift.git` in the search field.
-3. Keep **Dependency Rule** on **Up to Next Major Version** from `2.0.0`, then click **Add Package**.
+3. Keep **Dependency Rule** on **Up to Next Major Version** from the latest release, then click **Add Package**.
 4. Add the `Flocon` library to your app target.
 
 ### Package.swift
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/openflocon/FloconSwift.git", from: "2.0.0"),
+    .package(url: "https://github.com/openflocon/FloconSwift.git", from: "LAST_VERSION"),
 ],
 targets: [
     .target(
