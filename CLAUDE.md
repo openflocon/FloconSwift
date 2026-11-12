@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-FloconSwift is the iOS/macOS SDK of [Flocon](https://github.com/openflocon/Flocon), a debugging tool for mobile apps. The SDK connects to the Flocon desktop app over a WebSocket and sends what happens in the app (network calls, analytics, databases, files...). The Android SDK (FloconAndroid) is the reference: the JSON sent to the desktop must stay compatible with it. No third-party dependency; Swift tools 6.4, iOS 15+ / macOS 12+.
+FloconSwift is the iOS/macOS SDK of [Flocon](https://github.com/openflocon/Flocon), a debugging tool for mobile apps. The SDK connects to the Flocon desktop app over a WebSocket and sends what happens in the app (network calls, analytics, databases, files...). The Android SDK (FloconAndroid) is the reference: the JSON sent to the desktop must stay compatible with it. No third-party dependency; Swift 6.0 tools (`swift-tools-version: 6.0`), Xcode 16+, iOS 15+ / macOS 12+.
 
 A companion package, [FloconSwiftGrpc](https://github.com/openflocon/FloconSwiftGrpc) (separate repo), depends on the released version of this one and logs through `Flocon.shared.networkPlugin`. Keep that public API stable.
 
