@@ -1,3 +1,7 @@
+<p align="center">
+  <img height="450" alt="Flocon banner" src="https://raw.githubusercontent.com/openflocon/Flocon/main/ressources/flocon_banner_small.jpeg" />
+</p>
+
 # Flocon for iOS
 
 [![FloconSwift release](https://img.shields.io/github/v/release/openflocon/FloconSwift?label=release)](https://github.com/openflocon/FloconSwift/releases)
