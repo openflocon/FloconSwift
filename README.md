@@ -1,8 +1,33 @@
+<p align="center">
+  <img height="450" alt="Flocon banner" src="https://raw.githubusercontent.com/openflocon/Flocon/main/ressources/flocon_banner_small.jpeg" />
+</p>
+
 # Flocon for iOS
+
+[![FloconSwift release](https://img.shields.io/github/v/release/openflocon/FloconSwift?label=release)](https://github.com/openflocon/FloconSwift/releases)
+![Platforms](https://img.shields.io/badge/platforms-iOS%2015%2B%20%7C%20macOS%2012%2B-blue)
+[![AI agents: MCP](https://img.shields.io/badge/AI%20agents-MCP-black)](https://openflocon.github.io/Flocon/mcp/)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Swift SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugger for mobile apps: inspect the network calls, databases, files, preferences and more of your iOS or macOS app, live, from your Mac.
 
-![Flocon Desktop showing the Timeline of an app](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg)
+| **Network**: every call, mocks, bad network | **Databases**: query your SQLite live |
+|:---:|:---:|
+| ![Network inspector](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/network-detail.jpg) | ![Database](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/database-sql-editor.jpg) |
+| **Preferences**: browse and edit `UserDefaults` and the keychain | **Timeline**: what happened before the crash |
+| ![Preferences](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/preferences-list.jpg) | ![Timeline](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg) |
+
+## Your AI agent can see your app
+
+![An AI agent finds a failing checkout call through the Flocon MCP server and opens it in the Flocon timeline](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/mcp-session.jpg)
+
+Flocon Desktop runs an MCP server: Claude Code, Codex, Cursor or Gemini read the network calls, timeline, databases and preferences of your running iOS app, then mock calls, simulate a bad network and take screenshots. Try asking:
+
+- *"What happened right before the crash?"*
+- *"Mock `/profile` with a 503 and take a screenshot."*
+- *"Which analytics events are sent on checkout?"*
+
+In Claude Code: `/plugin marketplace add openflocon/Flocon`, then `/plugin install flocon@flocon`. Other agents: [MCP setup](https://openflocon.github.io/Flocon/mcp/), and the [cookbook](https://openflocon.github.io/Flocon/mcp-cookbook/).
 
 ## Requirements
 
@@ -121,10 +146,6 @@ startFlocon { flocon in
 ```
 
 Each feature is also reachable at runtime through `Flocon.networkPlugin`, `Flocon.databasePlugin`, `Flocon.filesPlugin`, `Flocon.deeplinksPlugin`, `Flocon.timelinePlugin`, and so on. They are never `nil` and do nothing when the feature is not installed.
-
-## AI agents
-
-Flocon ships an MCP server, so an AI agent such as Claude Code, Cursor or Codex can read what your app does (network calls, databases, logs...) while it runs, and debug it with you. See [MCP](https://openflocon.github.io/Flocon/mcp/) and the [MCP cookbook](https://openflocon.github.io/Flocon/mcp-cookbook/).
 
 ## Sample app
 
