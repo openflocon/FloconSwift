@@ -19,6 +19,8 @@ Swift SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugg
 
 ## Your AI agent can see your app
 
+![An AI agent finds a failing checkout call through the Flocon MCP server and opens it in the Flocon timeline](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/mcp-session.jpg)
+
 Flocon Desktop runs an MCP server: Claude Code, Codex, Cursor or Gemini read the network calls, timeline, databases and preferences of your running iOS app, then mock calls, simulate a bad network and take screenshots. Try asking:
 
 - *"What happened right before the crash?"*
