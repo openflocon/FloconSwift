@@ -14,7 +14,7 @@ Swift SDK for [Flocon](https://github.com/openflocon/Flocon), the desktop debugg
 | **Network**: every call, mocks, bad network | **Databases**: query your SQLite live |
 |:---:|:---:|
 | ![Network inspector](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/network-detail.jpg) | ![Database](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/database-sql-editor.jpg) |
-| **Preferences**: browse and edit `UserDefaults` and the keychain | **Timeline**: what happened before the crash |
+| **Preferences**: browse and edit `UserDefaults` and the keychain | **Timeline**: what happened in the app |
 | ![Preferences](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/preferences-list.jpg) | ![Timeline](https://raw.githubusercontent.com/openflocon/Flocon/main/docs/assets/screenshots/home-timeline-graph.jpg) |
 
 ## Your AI agent can see your app
