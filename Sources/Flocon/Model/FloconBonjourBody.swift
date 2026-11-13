@@ -12,6 +12,9 @@ struct FloconBonjourBody: Encodable, Equatable {
 
     let connectionType: ConnectionType
 
+    /// The SDK family, so the desktop app compares this app with the latest release of the right SDK.
+    let sdk = "swift"
+
     /// The JSON sent as the body of the message.
     func json() -> String? {
         guard let data = try? JSONEncoder().encode(self) else { return nil }

@@ -1,12 +1,22 @@
+import Foundation
 import Testing
 @testable import Flocon
 
 struct FloconBonjourBodyTests {
-    @Test func defaultConnectionIsSent() {
-        #expect(FloconBonjourBody(connectionType: .default).json() == #"{"connectionType":"default"}"#)
+    private func decode(_ body: FloconBonjourBody) throws -> [String: String] {
+        let json = try #require(body.json())
+        return try JSONDecoder().decode([String: String].self, from: Data(json.utf8))
     }
 
-    @Test func wifiConnectionIsSent() {
-        #expect(FloconBonjourBody(connectionType: .wifi).json() == #"{"connectionType":"wifi"}"#)
+    @Test func defaultConnectionIsSent() throws {
+        #expect(try decode(FloconBonjourBody(connectionType: .default))["connectionType"] == "default")
+    }
+
+    @Test func wifiConnectionIsSent() throws {
+        #expect(try decode(FloconBonjourBody(connectionType: .wifi))["connectionType"] == "wifi")
+    }
+
+    @Test func sdkIsSwift() throws {
+        #expect(try decode(FloconBonjourBody(connectionType: .default))["sdk"] == "swift")
     }
 }
