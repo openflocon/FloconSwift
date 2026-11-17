@@ -151,8 +151,12 @@ public final class Flocon: @unchecked Sendable {
     ///   kept in every case, call it again to retry.
     @discardableResult
     public static func connect(address: String) async -> FloconConnectResult {
+        #if FloconEnabled
         guard let connections = shared.connections else { return .notStarted }
         return await connections.connect(address: address)
+        #else
+        return .notStarted
+        #endif
     }
 
     /// Closes the connection made with ``connect(address:)`` (or the address given at start), and forgets
@@ -166,7 +170,9 @@ public final class Flocon: @unchecked Sendable {
     /// await Flocon.disconnect()
     /// ```
     public static func disconnect() async {
+        #if FloconEnabled
         await shared.connections?.disconnect()
+        #endif
     }
 
     /// The current state of the connection to the desktop app.
@@ -187,17 +193,35 @@ public final class Flocon: @unchecked Sendable {
     ///
     /// - Parameter plugin: The plugin that receives the desktop messages addressed to it.
     public static func register(plugin: FloconPlugin) {
+        #if FloconEnabled
         shared.client?.register(plugin: plugin)
+        #endif
     }
 
+    /// Whether the SDK is compiled in, with the `FloconEnabled` package trait (on by default).
+    ///
+    /// When `false`, the connection to the desktop app, the network interception and the crash reporter are not
+    /// in the binary: starting the SDK does nothing and the plugins drop every call. Use it to hide debug
+    /// screens that only make sense with the SDK, such as a ``FloconQRScannerView``.
+    public static let isEnabled: Bool = {
+        #if FloconEnabled
+        true
+        #else
+        false
+        #endif
+    }()
+
     private let lock = NSLock()
-    private var _client: FloconClient?
     private var _isInitialized = false
-    private var _connections: FloconConnections?
     let connectionStateStore = FloconConnectionStateStore()
+    #if FloconEnabled
+    private var _client: FloconClient?
+    private var _connections: FloconConnections?
+    #endif
 
     private init() {}
 
+    #if FloconEnabled
     var client: FloconClient? {
         lock.lock(); defer { lock.unlock() }
         return _client
@@ -207,6 +231,7 @@ public final class Flocon: @unchecked Sendable {
         lock.lock(); defer { lock.unlock() }
         return _connections
     }
+    #endif
 
     /// Whether ``initialize(config:)`` has been called.
     public var isInitialized: Bool {
@@ -218,8 +243,10 @@ public final class Flocon: @unchecked Sendable {
 
     /// - Parameter features: The plugins to register, or `nil` for all of them.
     /// - Returns: `false` if the SDK was already initialized, and nothing was done.
+    /// Without the `FloconEnabled` trait, does nothing and returns `false`: the plugins stay the no-op ones.
     @discardableResult
     func initializeFlocon(config: FloconConfig, features: Set<FloconFeatureKind>?) -> Bool {
+        #if FloconEnabled
         lock.lock()
         if _isInitialized {
             lock.unlock()
@@ -259,5 +286,8 @@ public final class Flocon: @unchecked Sendable {
         newConnections.start()
         lock.unlock()
         return true
+        #else
+        return false
+        #endif
     }
 }

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// WebSocket connection to the Flocon desktop app.
@@ -17,3 +18,4 @@ protocol FloconWebSocketClient: AnyObject, Sendable {
 func buildFloconWebSocketClient() -> FloconWebSocketClient {
     FloconWebSocketClientImpl()
 }
+#endif

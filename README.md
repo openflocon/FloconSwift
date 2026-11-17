@@ -32,7 +32,7 @@ In Claude Code: `/plugin marketplace add openflocon/Flocon`, then `/plugin insta
 ## Requirements
 
 - iOS 15+ or macOS 12+
-- Xcode 16+ (Swift 6.0, the `swift-tools-version` of the package)
+- Xcode 16.3+ (Swift 6.1, the `swift-tools-version` of the package)
 - The [Flocon desktop app](https://github.com/openflocon/Flocon) running on your Mac
 
 ## Installation
@@ -61,6 +61,28 @@ targets: [
     ),
 ]
 ```
+
+### Leaving the SDK out of a build
+
+The `FloconEnabled` package trait, on by default, compiles the connection to the desktop app, the network interception and the crash reporter. Turn it off for builds that must not contain them, such as App Store builds: the public API stays, so your code compiles unchanged, but starting the SDK does nothing, the plugins drop every call, and `withFlocon()` returns the configuration unchanged. `Flocon.isEnabled` tells which one you got, for example to hide a debug screen.
+
+SwiftPM chooses traits per package, not per build configuration, so decide in your `Package.swift`, for example from an environment variable set by your release script:
+
+```swift
+import Foundation
+
+let excludesFlocon = ProcessInfo.processInfo.environment["EXCLUDE_FLOCON"] == "1"
+
+dependencies: [
+    .package(
+        url: "https://github.com/openflocon/FloconSwift.git",
+        from: "LAST_VERSION",
+        traits: excludesFlocon ? [] : [.defaults]
+    ),
+],
+```
+
+The plugin types and their data models are still compiled without the trait: nothing calls them, since there is no connection to the desktop app.
 
 ## Quick start
 

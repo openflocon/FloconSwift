@@ -2,6 +2,7 @@ import Foundation
 
 // MARK: - Plugins
 
+#if FloconEnabled
 extension Flocon {
     /// Logs network calls and WebSocket events, for the clients the SDK does not intercept itself.
     ///
@@ -53,6 +54,21 @@ extension Flocon {
     /// `nil` before ``initialize(config:)``. Prefer ``Flocon/timelinePlugin``.
     public var timelinePlugin: FloconTimelinePlugin? { client?.timelinePlugin }
 }
+#else
+// Without the `FloconEnabled` trait the SDK never starts, so no plugin is installed.
+extension Flocon {
+    public var networkPlugin: FloconNetworkPlugin? { nil }
+    public var analyticsPlugin: FloconAnalyticsPlugin? { nil }
+    public var featureFlagsPlugin: FloconFeatureFlagsPlugin? { nil }
+    public var tablePlugin: FloconTablePlugin? { nil }
+    public var preferencesPlugin: FloconPreferencesPlugin? { nil }
+    public var databasePlugin: FloconDatabasePlugin? { nil }
+    public var filesPlugin: FloconFilesPlugin? { nil }
+    public var dashboardPlugin: FloconDashboardPlugin? { nil }
+    public var deeplinksPlugin: FloconDeeplinksPlugin? { nil }
+    public var timelinePlugin: FloconTimelinePlugin? { nil }
+}
+#endif
 
 // The static accessors never return `nil`: when Flocon is not initialized, or the plugin is not
 // installed, they return a plugin that does nothing, so the calls can stay in the app unconditionally.

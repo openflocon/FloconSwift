@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Uploads files to the HTTPS server of the desktop app, as `multipart/form-data`.
@@ -84,3 +85,4 @@ struct FloconFileUploader: Sendable {
         try write("\r\n--\(boundary)--\r\n")
     }
 }
+#endif

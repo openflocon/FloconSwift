@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -54,3 +55,4 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         #expect(!handler.handle(FloconMessageFromServer(plugin: "network", method: "get_app_icon", body: "")))
     }
 }
+#endif

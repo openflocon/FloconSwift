@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of a crash, sent to the desktop app and saved on disk until then.
@@ -10,3 +11,4 @@ struct CrashReportRemote: Codable, Equatable, Sendable {
     let exceptionMessage: String
     let stackTrace: String
 }
+#endif

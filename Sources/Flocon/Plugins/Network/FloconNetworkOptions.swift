@@ -60,8 +60,12 @@ extension Flocon {
     ///
     /// Sessions created with their own configuration are not affected: create them with
     /// ``Foundation/URLSessionConfiguration/withFlocon()`` instead.
+    ///
+    /// Does nothing without the `FloconEnabled` trait.
     public static func interceptSharedSession() {
+        #if FloconEnabled
         URLProtocol.registerClass(FloconURLProtocol.self)
+        #endif
     }
 }
 
@@ -78,13 +82,16 @@ extension URLSessionConfiguration {
     /// KingfisherManager.shared.downloader.sessionConfiguration = .default.withFlocon()
     /// ```
     ///
-    /// - Returns: The same configuration, with the Flocon interceptor added to its protocol classes.
+    /// - Returns: The same configuration, with the Flocon interceptor added to its protocol classes. Without the
+    ///   `FloconEnabled` trait, the configuration unchanged.
     public func withFlocon() -> URLSessionConfiguration {
+        #if FloconEnabled
         var classes = protocolClasses ?? []
         if !classes.contains(where: { $0 == FloconURLProtocol.self }) {
             classes.insert(FloconURLProtocol.self, at: 0)
         }
         protocolClasses = classes
+        #endif
         return self
     }
 }

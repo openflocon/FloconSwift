@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.1
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -12,6 +12,14 @@ let package = Package(
             name: "Flocon",
             targets: ["Flocon"]
         ),
+    ],
+    traits: [
+        .trait(
+            name: "FloconEnabled",
+            description: "Compiles the connection to the desktop app, the network interception and the crash reporter. "
+                + "Without it, the public API stays and does nothing, for builds that must not contain the SDK."
+        ),
+        .default(enabledTraits: ["FloconEnabled"]),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.

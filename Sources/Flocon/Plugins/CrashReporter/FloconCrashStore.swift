@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Keeps the crashes on disk until they are sent to the desktop app.
@@ -101,3 +102,4 @@ struct FloconCrashStore: Sendable {
         }
     }
 }
+#endif

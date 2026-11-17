@@ -163,6 +163,7 @@ private final class RecordingSender: FloconMessageSender, FloconFileSender, @unc
     }
 }
 
+#if FloconEnabled
 @Suite struct FloconFileUploaderTests {
     @Test func writesAMultipartBody() throws {
         let directory = FileManager.default.temporaryDirectory
@@ -188,3 +189,4 @@ private final class RecordingSender: FloconMessageSender, FloconFileSender, @unc
         #expect(try String(contentsOf: body, encoding: .utf8) == expected)
     }
 }
+#endif
