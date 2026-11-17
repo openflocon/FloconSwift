@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Security
 import Testing
@@ -24,3 +25,4 @@ import Testing
         #expect(FloconKeychainPreference.displayString(of: Data([0xFF, 0xFE, 0x00])) == "<3 bytes>")
     }
 }
+#endif

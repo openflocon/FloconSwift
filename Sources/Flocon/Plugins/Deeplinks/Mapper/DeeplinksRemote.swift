@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of the deeplinks sent to the desktop app.
@@ -74,3 +75,4 @@ struct DeeplinkVariableRemote: Encodable {
         description = variable.description
     }
 }
+#endif

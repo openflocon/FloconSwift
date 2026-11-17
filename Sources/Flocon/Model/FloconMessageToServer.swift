@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Envelope of every message sent to the desktop app: the payload of a plugin,
@@ -14,3 +15,4 @@ struct FloconMessageToServer: Encodable {
     let platform: String
     let versionName: String
 }
+#endif

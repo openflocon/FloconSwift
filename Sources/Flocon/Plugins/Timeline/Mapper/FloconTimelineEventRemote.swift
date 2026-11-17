@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of a timeline event sent to the desktop app.
@@ -19,3 +20,4 @@ struct FloconTimelineEventRemote: Encodable {
         self.timestamp = timestamp
     }
 }
+#endif

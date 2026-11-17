@@ -17,6 +17,7 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
 
     public let pluginName = FloconDatabasePlugin.name
     private weak var sender: FloconMessageSender?
+#if FloconEnabled
     private let discovery: FloconDatabaseDiscovery
 
     /// Scans and queries can be slow: they run in order, off the thread that receives the messages.
@@ -25,22 +26,31 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
     // by path, so that registering a file again replaces it
     private var registered: [String: FloconDatabase] = [:]
     private var registrationOrder: [String] = []
+#endif
 
+    #if FloconEnabled
     init(sender: FloconMessageSender, discovery: FloconDatabaseDiscovery = .app) {
         self.sender = sender
         self.discovery = discovery
     }
+    #else
+    init(sender: FloconMessageSender) {
+        self.sender = sender
+    }
+    #endif
 
     /// Shows a database in the desktop app, or renames a database already shown.
     ///
     /// - Parameter database: The database.
     public func register(_ database: FloconDatabase) {
+        #if FloconEnabled
         let path = Self.path(of: database.url)
         lock.lock()
         if registered[path] == nil { registrationOrder.append(path) }
         registered[path] = database
         lock.unlock()
         queue.async { self.sendDatabases() }
+        #endif
     }
 
     /// Shows a query run by the app in the desktop app, with the database it ran on.
@@ -50,6 +60,7 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
     ///   - sqlQuery: The SQL query.
     ///   - bindArgs: Values bound to the query; `nil` is shown as `null`.
     public func logQuery(dbId: String, sqlQuery: String, bindArgs: [Any?] = []) {
+        #if FloconEnabled
         let model = DatabaseQueryLogRemote(
             dbId: dbId,
             sqlQuery: sqlQuery,
@@ -57,6 +68,7 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
             timestamp: Int64(Date().timeIntervalSince1970 * 1000)
         )
         send(model, method: Self.methodLogQuery)
+        #endif
     }
 
     /// Shows a query run by the app in the desktop app, with the database it ran on.
@@ -72,10 +84,13 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
     // MARK: FloconPlugin
 
     public func onConnectedToServer() {
+        #if FloconEnabled
         queue.async { self.sendDatabases() }
+        #endif
     }
 
     public func onMessageReceived(_ message: FloconMessageFromServer) {
+        #if FloconEnabled
         switch message.method {
         case Self.methodGetDatabases:
             queue.async { self.sendDatabases() }
@@ -93,10 +108,12 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
         default:
             break
         }
+        #endif
     }
 
     // MARK: Databases
 
+#if FloconEnabled
     /// The databases found in the app, then the registered ones, without duplicates.
     ///
     /// A registered database keeps its name and its place among the found ones.
@@ -114,7 +131,9 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
             .compactMap { registered[$0] }
         return renamed + others
     }
+#endif
 
+#if FloconEnabled
     func execute(query: String, database id: String) -> FloconDatabaseResult {
         let path = Self.path(of: URL(fileURLWithPath: id))
         guard databases().contains(where: { Self.path(of: $0.url) == path }) else {
@@ -122,18 +141,25 @@ public final class FloconDatabasePlugin: FloconPlugin, @unchecked Sendable {
         }
         return FloconSQLite.execute(query: query, atPath: path)
     }
+#endif
 
+#if FloconEnabled
     private func sendDatabases() {
         let list = databases().map { DeviceDatabaseRemote(id: Self.path(of: $0.url), name: $0.displayName) }
         send(list, method: Self.methodDatabasesResult)
     }
+#endif
 
+#if FloconEnabled
     /// Encoded off the calling thread: ``logQuery(dbId:sqlQuery:bindArgs:)`` is often called from the main thread.
     private func send<T: Encodable & Sendable>(_ value: T, method: String) {
         sender?.send(plugin: pluginName, method: method, value: value)
     }
+#endif
 
+#if FloconEnabled
     private static func path(of url: URL) -> String {
         FloconDatabase.id(of: url)
     }
+#endif
 }

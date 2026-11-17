@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Intercepts the HTTP calls of a session and sends them to the desktop app.
@@ -337,3 +338,4 @@ final class FloconURLProtocol: URLProtocol, @unchecked Sendable {
         return result
     }
 }
+#endif

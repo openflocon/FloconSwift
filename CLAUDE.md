@@ -40,6 +40,7 @@ Run it with the Flocon desktop app open; on the simulator the default host `loca
 
 - Code comments and DocC are in English, written as DocC (`///`, `- Parameter`, double-backtick symbol links), and never refer to the Android equivalent.
 - One main type per file, named after the file (`FloconBuilder.swift`). Small types that only serve it (its options, a private helper) can sit beside it; as soon as a file holds several unrelated types or grows past a couple of hundred lines, split it. A plugin's `FloconFeature` and options live in its own folder (`Plugins/Database/FloconDatabaseFeature.swift`), not in `FloconStart.swift`.
+- The `FloconEnabled` package trait (on by default) compiles the SDK. Without it, only the public API is compiled: internal types (client, WebSocket, interception, crash handlers, SQLite, file system, keychain, `*Remote` models) sit in `#if FloconEnabled`, and public methods keep their signature with their body in `#if FloconEnabled`. New code must build both ways: `swift build` and `swift build --disable-default-traits`; tests of internals go in `#if FloconEnabled`.
 - Console logging goes through `FloconLogger` and is off unless `Flocon.isLoggingEnabled` is set before starting.
 - Public API changes need a README update (`README.md` has one section per plugin) and a test in `Tests/FloconTests/FloconPublicAPITests.swift`, which deliberately does not use `@testable` so it checks that the API is really public.
 - The branch `main` is consumed by SPM users directly (no tagged release yet).

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 // MARK: - Objective-C exceptions
@@ -144,3 +145,4 @@ private func floconSignalName(_ signal: Int32) -> StaticString {
     default: "SIGNAL"
     }
 }
+#endif

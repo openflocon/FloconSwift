@@ -31,6 +31,7 @@ import Testing
 
     // MARK: Request body
 
+    #if FloconEnabled
     @Test func readsAWholeStream() {
         let content = Data(String(repeating: "y", count: 200_000).utf8)
         var request = URLRequest(url: URL(string: "https://example.com")!)
@@ -38,6 +39,7 @@ import Testing
 
         #expect(FloconURLProtocol.readBody(of: request) == content)
     }
+    #endif
 
     // MARK: Logger
 

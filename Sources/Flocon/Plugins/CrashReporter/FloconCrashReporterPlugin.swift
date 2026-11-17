@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Reports the crashes of the app to the Flocon desktop app.
@@ -46,3 +47,4 @@ final class FloconCrashReporterPlugin: FloconPlugin, @unchecked Sendable {
         }
     }
 }
+#endif

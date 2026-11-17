@@ -19,9 +19,11 @@ public final class FloconDashboardPlugin: FloconPlugin, @unchecked Sendable {
     public let pluginName = FloconDashboardPlugin.name
     private weak var sender: FloconMessageSender?
 
+#if FloconEnabled
     private let lock = NSLock()
     private var dashboards: [String: FloconDashboardConfig] = [:]
     private var callbacks: [String: DashboardCallback] = [:]
+#endif
 
     init(sender: FloconMessageSender) {
         self.sender = sender
@@ -29,23 +31,28 @@ public final class FloconDashboardPlugin: FloconPlugin, @unchecked Sendable {
 
     /// Sends a dashboard, replacing the one with the same identifier.
     func register(_ config: FloconDashboardConfig) {
+        #if FloconEnabled
         let (remote, newCallbacks) = DashboardRemote.make(config)
         lock.lock()
         dashboards[config.id] = config
         callbacks.merge(newCallbacks) { _, new in new }
         lock.unlock()
         send(remote)
+        #endif
     }
 
     public func onConnectedToServer() {
+        #if FloconEnabled
         lock.lock()
         let configs = Array(dashboards.values)
         lock.unlock()
         configs.forEach { send(DashboardRemote.make($0).remote) }
+        #endif
     }
 
     /// Runs the action of a button, text field, check box or form, on the main actor.
     public func onMessageReceived(_ message: FloconMessageFromServer) {
+        #if FloconEnabled
         let data = Data(message.body.utf8)
         let decoder = JSONDecoder()
         do {
@@ -83,15 +90,20 @@ public final class FloconDashboardPlugin: FloconPlugin, @unchecked Sendable {
         } catch {
             FloconLogger.logError("Dashboard message parsing error", error)
         }
+        #endif
     }
 
+#if FloconEnabled
     private func callback(id: String) -> DashboardCallback? {
         lock.lock(); defer { lock.unlock() }
         return callbacks[id]
     }
+#endif
 
+#if FloconEnabled
     /// Encoded off the calling thread.
     private func send(_ remote: DashboardRemote) {
         sender?.send(plugin: Self.remotePluginName, method: Self.methodUpdate, value: remote)
     }
+#endif
 }

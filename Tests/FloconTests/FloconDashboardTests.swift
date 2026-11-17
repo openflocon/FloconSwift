@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Combine
 import Foundation
 import Testing
@@ -172,3 +173,4 @@ private func message(_ method: String, _ body: String) -> FloconMessageFromServe
         #expect(registered.configs.count == 2)
     }
 }
+#endif

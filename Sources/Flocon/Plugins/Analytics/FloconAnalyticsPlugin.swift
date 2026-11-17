@@ -23,6 +23,7 @@ public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
     ///
     /// - Parameter items: The items to send. Nothing is sent if empty.
     public func registerAnalytics(_ items: [FloconAnalyticsItem]) {
+        #if FloconEnabled
         guard !items.isEmpty else { return }
         let models = items.compactMap { item -> FloconAnalyticsItemRemote? in
             return FloconAnalyticsItemRemote(
@@ -36,6 +37,7 @@ public final class FloconAnalyticsPlugin: FloconPlugin, @unchecked Sendable {
 
         // the desktop expects a JSON array of items, encoded off the calling thread
         sender?.send(plugin: pluginName, method: Self.methodAddItems, value: models)
+        #endif
     }
 }
 

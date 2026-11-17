@@ -32,7 +32,7 @@ In Claude Code: `/plugin marketplace add openflocon/Flocon`, then `/plugin insta
 ## Requirements
 
 - iOS 15+ or macOS 12+
-- Xcode 16+ (Swift 6.0, the `swift-tools-version` of the package)
+- Xcode 16.3+ (Swift 6.1, the `swift-tools-version` of the package)
 - The [Flocon desktop app](https://github.com/openflocon/Flocon) running on your Mac
 
 ## Installation
@@ -60,6 +60,41 @@ targets: [
         ]
     ),
 ]
+```
+
+### Leaving the SDK out of a build
+
+The `FloconEnabled` package trait, on by default, compiles the SDK. Turn it off for builds that must not contain it, such as App Store builds: the public API stays, so your code compiles unchanged, but only its types and empty methods are compiled. Starting the SDK does nothing, the plugins drop every call, `withFlocon()` returns the configuration unchanged and `FloconQRScannerView` shows a message instead of the camera. There is no connection to the desktop app, network interception, crash handler, database, file or keychain access in the binary. `Flocon.isEnabled` tells which one you got, for example to hide a debug screen.
+
+The trait is chosen where you declare the dependency:
+
+```swift
+// On: no `traits`, the default traits are used
+.package(url: "https://github.com/openflocon/FloconSwift.git", from: "LAST_VERSION"),
+
+// On, explicitly
+.package(url: "https://github.com/openflocon/FloconSwift.git", from: "LAST_VERSION", traits: [.defaults]),
+
+// Off
+.package(url: "https://github.com/openflocon/FloconSwift.git", from: "LAST_VERSION", traits: []),
+```
+
+SwiftPM enables the union of the traits asked by every package of the graph: the SDK is left out only if every package that depends on FloconSwift turns the trait off, [FloconSwiftGrpc](https://github.com/openflocon/FloconSwiftGrpc) included (it turns it on with its own default trait).
+
+Traits are chosen per package, not per build configuration, so decide in your `Package.swift`, for example from an environment variable set by your release script:
+
+```swift
+import Foundation
+
+let excludesFlocon = ProcessInfo.processInfo.environment["EXCLUDE_FLOCON"] == "1"
+
+dependencies: [
+    .package(
+        url: "https://github.com/openflocon/FloconSwift.git",
+        from: "LAST_VERSION",
+        traits: excludesFlocon ? [] : [.defaults]
+    ),
+],
 ```
 
 ## Quick start

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of an analytics item sent to the desktop app.
@@ -21,3 +22,4 @@ struct FloconAnalyticsItemRemote: Encodable {
         let value: String
     }
 }
+#endif

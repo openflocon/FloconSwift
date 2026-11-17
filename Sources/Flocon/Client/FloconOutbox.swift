@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Keeps the encoded messages in order until they can be sent to the desktop app(s).
@@ -166,3 +167,4 @@ struct FloconMessageLog {
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 #if canImport(UIKit)
 import UIKit
@@ -92,3 +93,4 @@ enum FloconAppIcon {
     }
     #endif
 }
+#endif

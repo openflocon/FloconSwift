@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -20,3 +21,4 @@ struct FloconBonjourBodyTests {
         #expect(try decode(FloconBonjourBody(connectionType: .default))["sdk"] == "swift")
     }
 }
+#endif

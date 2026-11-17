@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Shared session that performs the requests intercepted by ``FloconURLProtocol``.
@@ -64,3 +65,4 @@ final class FloconInnerSessionRouter: NSObject, URLSessionDataDelegate, @uncheck
         removeHandler(for: task)?.didComplete(task: task, error: error)
     }
 }
+#endif

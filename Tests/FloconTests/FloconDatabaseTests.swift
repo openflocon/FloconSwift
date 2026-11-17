@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import SQLite3
 import Testing
@@ -243,3 +244,4 @@ private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
         #expect(discovery.databases().map(\.displayName) == ["Documents/a/b/c/deep.sqlite"])
     }
 }
+#endif

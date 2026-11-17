@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Accepts the certificate of the Flocon desktop app.
@@ -26,3 +27,4 @@ final class FloconTrustDelegate: NSObject, URLSessionDelegate, Sendable {
         completionHandler(disposition, credential)
     }
 }
+#endif

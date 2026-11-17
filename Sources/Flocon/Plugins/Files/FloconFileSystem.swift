@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// A folder the desktop can open, shown at the top of the Files section.
@@ -158,3 +159,4 @@ struct FloconFileSystem: Sendable {
         return roots.contains { Self.resolved($0.url).path == path }
     }
 }
+#endif

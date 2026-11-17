@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Answers the device requests of the Flocon desktop app, whatever the installed plugins.
@@ -38,3 +39,4 @@ final class FloconDeviceHandler: @unchecked Sendable {
         sender?.send(plugin: Self.pluginName, method: Self.methodAppIcon, body: icon)
     }
 }
+#endif

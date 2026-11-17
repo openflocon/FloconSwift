@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of a mock sent by the desktop app (`setupMocks`).
@@ -104,3 +105,4 @@ struct FloconBadNetworkConfigRemote: Decodable {
         try? JSONDecoder().decode(FloconBadNetworkConfigRemote.self, from: Data(json.utf8)).config
     }
 }
+#endif

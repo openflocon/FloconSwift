@@ -22,6 +22,7 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
     public let pluginName = FloconFilesPlugin.name
     private weak var sender: FloconMessageSender?
     private weak var fileSender: FloconFileSender?
+#if FloconEnabled
     private let defaultRoots: [FloconFileRoot]
 
     /// File operations can be slow: they run in order, off the thread that receives the messages.
@@ -30,17 +31,26 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
     private var withFoldersSize = false
     // in registration order, a folder registered again keeps its place
     private var registered: [FloconFileRoot] = []
+#endif
 
+    #if FloconEnabled
     init(sender: FloconMessageSender, fileSender: FloconFileSender, defaultRoots: [FloconFileRoot] = FloconFileRoot.appDefaults) {
         self.sender = sender
         self.fileSender = fileSender
         self.defaultRoots = defaultRoots
     }
+    #else
+    init(sender: FloconMessageSender, fileSender: FloconFileSender) {
+        self.sender = sender
+        self.fileSender = fileSender
+    }
+    #endif
 
     /// Shows a folder in the desktop app, or renames a folder already shown.
     ///
     /// - Parameter folder: The folder.
     public func register(_ folder: FloconFolder) {
+        #if FloconEnabled
         let root = FloconFileRoot(folder: folder)
         lock.lock()
         if let index = registered.firstIndex(where: { $0.id == root.id }) {
@@ -49,8 +59,10 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
             registered.append(root)
         }
         lock.unlock()
+        #endif
     }
 
+#if FloconEnabled
     /// The root folders: the default ones, then the registered ones.
     var fileSystem: FloconFileSystem {
         lock.lock(); defer { lock.unlock() }
@@ -59,12 +71,14 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
         let defaults = defaultRoots.filter { !registeredPaths.contains(FloconFileSystem.resolved($0.url).path) }
         return FloconFileSystem(roots: defaults + registered)
     }
+#endif
 
     // MARK: FloconPlugin
 
     public func onConnectedToServer() {}
 
     public func onMessageReceived(_ message: FloconMessageFromServer) {
+        #if FloconEnabled
         let body = Data(message.body.utf8)
         let decoder = JSONDecoder()
         switch message.method {
@@ -111,13 +125,17 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
         default:
             break
         }
+        #endif
     }
 
+#if FloconEnabled
     private func sendRoots(requestId: String) {
         let roots = fileSystem.existingRoots.map { FileRootRemote(id: $0.id, name: $0.name, path: $0.url.path) }
         send(FileRootsResultRemote(requestId: requestId, roots: roots), method: Self.methodGetRootsResult)
     }
+#endif
 
+#if FloconEnabled
     private func sendListing(path: String, isConstantPath: Bool, requestId: String) {
         lock.lock(); let withFoldersSize = withFoldersSize; lock.unlock()
         let fileSystem = fileSystem
@@ -125,7 +143,9 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
             .map { fileSystem.contentsOfFolder($0, withFoldersSize: withFoldersSize) } ?? []
         send(FilesResultRemote(requestId: requestId, files: files), method: Self.methodListFilesResult)
     }
+#endif
 
+#if FloconEnabled
     private func send(_ model: some Encodable, method: String) {
         do {
             let data = try JSONEncoder().encode(model)
@@ -135,4 +155,5 @@ public final class FloconFilesPlugin: FloconPlugin, @unchecked Sendable {
             FloconLogger.logError("Files json mapping error", error)
         }
     }
+#endif
 }

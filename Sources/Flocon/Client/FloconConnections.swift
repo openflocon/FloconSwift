@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// The connections to the desktop app: the default address, always tried, and one more address
@@ -164,3 +165,4 @@ actor AsyncMutex {
         }
     }
 }
+#endif

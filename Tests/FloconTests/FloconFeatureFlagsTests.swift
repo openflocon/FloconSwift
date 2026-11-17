@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -73,3 +74,4 @@ private func sorted(_ json: String) throws -> String {
 private extension Array {
     var single: Element? { count == 1 ? first : nil }
 }
+#endif

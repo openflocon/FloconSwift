@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Body of the `bonjour` message, the first one sent to the desktop app on a new connection.
@@ -21,3 +22,4 @@ struct FloconBonjourBody: Encodable, Equatable {
         return String(data: data, encoding: .utf8)
     }
 }
+#endif

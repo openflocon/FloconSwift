@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Keeps the mocks and the bad network configuration on disk, so they apply from the launch
@@ -43,3 +44,4 @@ struct FloconNetworkStore: Sendable {
         }
     }
 }
+#endif

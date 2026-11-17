@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of a table row sent to the desktop app.
@@ -13,3 +14,4 @@ struct TableColumnRemote: Encodable {
     let column: String
     let value: String
 }
+#endif

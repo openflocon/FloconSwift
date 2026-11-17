@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Owns the WebSocket connection and the plugins, sends messages to the desktop
@@ -315,3 +316,4 @@ final class FloconLink: @unchecked Sendable {
         set { lock.lock(); _task = newValue; lock.unlock() }
     }
 }
+#endif

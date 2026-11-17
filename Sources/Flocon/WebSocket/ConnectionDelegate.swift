@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Tells when the WebSocket is actually open, or why it could not open:
@@ -55,3 +56,4 @@ final class ConnectionDelegate: NSObject, URLSessionWebSocketDelegate, @unchecke
         finish(error: error)
     }
 }
+#endif

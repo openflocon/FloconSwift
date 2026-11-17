@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of a WebSocket event sent to the desktop app.
@@ -27,3 +28,4 @@ struct FloconWebSocketEventRemote: Encodable {
         try c.encode(error, forKey: .error)
     }
 }
+#endif

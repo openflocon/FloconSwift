@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of a request sent to the desktop app.
@@ -87,3 +88,4 @@ struct FloconNetworkCallResponseRemote: Encodable {
         try c.encode(response.error, forKey: .responseError)
     }
 }
+#endif

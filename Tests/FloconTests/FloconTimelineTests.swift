@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -139,3 +140,4 @@ private func json(_ body: String) throws -> [String: Any] {
         #expect(builder.features.contains(.timeline))
     }
 }
+#endif

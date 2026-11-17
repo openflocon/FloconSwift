@@ -23,6 +23,7 @@ public final class FloconTablePlugin: FloconPlugin, @unchecked Sendable {
     ///
     /// - Parameter item: The row to send.
     public func registerTable(_ item: FloconTableItem) {
+        #if FloconEnabled
         let model = TableItemRemote(
             id: item.id,
             name: item.name,
@@ -31,6 +32,7 @@ public final class FloconTablePlugin: FloconPlugin, @unchecked Sendable {
         )
         // the desktop expects a JSON array of items, even for a single row; encoded off the calling thread
         sender?.send(plugin: pluginName, method: Self.methodAddItems, value: [model])
+        #endif
     }
 }
 

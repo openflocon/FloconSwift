@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -77,3 +78,4 @@ import Testing
         #expect(json == #"[{"crashId":"a","exceptionMessage":"M","exceptionType":"T","stackTrace":"S","timestamp":1}]"#)
     }
 }
+#endif

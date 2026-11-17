@@ -20,6 +20,8 @@ extension FloconPreferencesPlugin {
     ///   - suiteName: The suite name used to create `defaults`. It is also the name of the store
     ///     in the desktop app.
     public func registerUserDefaults(_ defaults: UserDefaults, suiteName: String) {
+        #if FloconEnabled
         register(FloconUserDefaultsPreference(defaults: defaults, name: suiteName, domainName: suiteName))
+        #endif
     }
 }

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -111,3 +112,4 @@ import Testing
         #expect(try parse("host:10023").httpPort == 9024)
     }
 }
+#endif

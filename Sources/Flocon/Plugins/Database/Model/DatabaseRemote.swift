@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 // MARK: - From device
@@ -34,3 +35,4 @@ struct ToDeviceDatabaseQueryMessage: Decodable {
     /// The `id` of a database of the list.
     let database: String
 }
+#endif

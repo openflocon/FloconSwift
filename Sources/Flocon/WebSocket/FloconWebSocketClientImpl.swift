@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// WebSocket client based on `URLSessionWebSocketTask`.
@@ -102,3 +103,4 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
         session = nil
     }
 }
+#endif

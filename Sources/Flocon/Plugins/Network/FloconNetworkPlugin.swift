@@ -33,39 +33,58 @@ public final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
 
     public let pluginName = FloconNetworkPlugin.name
     private weak var sender: FloconMessageSender?
+#if FloconEnabled
     private let store: FloconNetworkStore
 
     private let lock = NSLock()
     private var _mocks: [FloconNetworkMock]
     private var _badNetworkConfig: FloconBadNetworkConfig?
+#endif
 
+    #if FloconEnabled
     init(sender: FloconMessageSender, store: FloconNetworkStore = .app) {
         self.sender = sender
         self.store = store
         _mocks = store.mocksJSON.map(FloconNetworkMockRemote.parse) ?? []
         _badNetworkConfig = store.badNetworkConfigJSON.flatMap(FloconBadNetworkConfigRemote.parse)
     }
+    #else
+    init(sender: FloconMessageSender) {
+        self.sender = sender
+    }
+    #endif
 
     /// The mocks set in the desktop app.
     public var mocks: [FloconNetworkMock] {
+        #if FloconEnabled
         lock.lock(); defer { lock.unlock() }
         return _mocks
+        #else
+        return []
+        #endif
     }
 
     /// The bad network simulation set in the desktop app, or `nil` when it is disabled.
     public var badNetworkConfig: FloconBadNetworkConfig? {
+        #if FloconEnabled
         lock.lock(); defer { lock.unlock() }
         return _badNetworkConfig
+        #else
+        return nil
+        #endif
     }
 
+#if FloconEnabled
     /// The first mock matching a request, if any.
     func mock(url: String, method: String) -> FloconNetworkMock? {
         mocks.first { $0.expectation.matches(url: url, method: method) }
     }
+#endif
 
     public func onConnectedToServer() {}
 
     public func onMessageReceived(_ message: FloconMessageFromServer) {
+        #if FloconEnabled
         switch message.method {
         case Self.methodSetupMocks:
             let mocks = FloconNetworkMockRemote.parse(message.body)
@@ -78,24 +97,31 @@ public final class FloconNetworkPlugin: FloconPlugin, @unchecked Sendable {
         default:
             break
         }
+        #endif
     }
 
     /// Logs the request of a call. Log its response with ``logResponse(_:)``, using the same `callId`.
     ///
     /// - Parameter call: The request.
     public func logRequest(_ call: FloconNetworkCallRequest) {
+        #if FloconEnabled
         send(FloconNetworkCallRequestRemote(call), method: Self.methodLogRequest)
+        #endif
     }
 
     /// Logs the response of a call whose request was logged with ``logRequest(_:)``.
     ///
     /// - Parameter call: The response, with the `callId` of its request.
     public func logResponse(_ call: FloconNetworkCallResponse) {
+        #if FloconEnabled
         send(FloconNetworkCallResponseRemote(call), method: Self.methodLogResponse)
+        #endif
     }
 
+#if FloconEnabled
     /// Encoded by the client off this thread: bodies can be large.
     func send<T: Encodable & Sendable>(_ value: T, method: String) {
         sender?.send(plugin: pluginName, method: method, value: value)
     }
+#endif
 }

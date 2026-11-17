@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -50,3 +51,4 @@ import Testing
         #expect((json["responseHeaders"] as? [String: String])?["te"] == "trailers")
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -286,3 +287,4 @@ private actor FakeTransport {
         #expect(store.state == .idle)
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Finds the SQLite files of the app, so that they are shown without being registered.
@@ -67,3 +68,4 @@ struct FloconDatabaseDiscovery: Sendable {
         return handle.readData(ofLength: sqliteHeader.count) == sqliteHeader
     }
 }
+#endif
