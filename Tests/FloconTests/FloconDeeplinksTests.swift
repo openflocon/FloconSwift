@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -35,3 +36,4 @@ import Testing
         #expect(json == expected)
     }
 }
+#endif

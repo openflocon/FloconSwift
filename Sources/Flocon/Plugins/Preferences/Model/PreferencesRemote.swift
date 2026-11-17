@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 // MARK: - From device
@@ -74,3 +75,4 @@ struct ToDeviceRemovePreferenceValueMessage: Decodable {
     let sharedPreferenceName: String
     let key: String
 }
+#endif

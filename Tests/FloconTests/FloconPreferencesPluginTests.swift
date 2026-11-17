@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -88,3 +89,4 @@ private final class RealmPreference: FloconPreference, @unchecked Sendable {
         #expect(FloconKeychainPreference(itemClass: .genericPassword, isEditable: false).type == FloconPreferenceType.keychain)
     }
 }
+#endif

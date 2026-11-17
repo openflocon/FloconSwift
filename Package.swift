@@ -16,8 +16,7 @@ let package = Package(
     traits: [
         .trait(
             name: "FloconEnabled",
-            description: "Compiles the connection to the desktop app, the network interception and the crash reporter. "
-                + "Without it, the public API stays and does nothing, for builds that must not contain the SDK."
+            description: "Compiles the SDK. Without it, only the public API is compiled, with empty methods."
         ),
         .default(enabledTraits: ["FloconEnabled"]),
     ],

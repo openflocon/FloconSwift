@@ -64,7 +64,7 @@ targets: [
 
 ### Leaving the SDK out of a build
 
-The `FloconEnabled` package trait, on by default, compiles the connection to the desktop app, the network interception and the crash reporter. Turn it off for builds that must not contain them, such as App Store builds: the public API stays, so your code compiles unchanged, but starting the SDK does nothing, the plugins drop every call, and `withFlocon()` returns the configuration unchanged. `Flocon.isEnabled` tells which one you got, for example to hide a debug screen.
+The `FloconEnabled` package trait, on by default, compiles the SDK. Turn it off for builds that must not contain it, such as App Store builds: the public API stays, so your code compiles unchanged, but only its types and empty methods are compiled. Starting the SDK does nothing, the plugins drop every call, `withFlocon()` returns the configuration unchanged and `FloconQRScannerView` shows a message instead of the camera. There is no connection to the desktop app, network interception, crash handler, database, file or keychain access in the binary. `Flocon.isEnabled` tells which one you got, for example to hide a debug screen.
 
 SwiftPM chooses traits per package, not per build configuration, so decide in your `Package.swift`, for example from an environment variable set by your release script:
 
@@ -81,8 +81,6 @@ dependencies: [
     ),
 ],
 ```
-
-The plugin types and their data models are still compiled without the trait: nothing calls them, since there is no connection to the desktop app.
 
 ## Quick start
 

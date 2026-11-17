@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// Exposes a `UserDefaults` store to the Flocon desktop app.
@@ -115,3 +116,4 @@ final class FloconUserDefaultsPreference: FloconPreference, @unchecked Sendable 
         }
     }
 }
+#endif

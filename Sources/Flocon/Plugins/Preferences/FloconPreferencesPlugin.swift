@@ -16,41 +16,58 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
     public let pluginName = FloconPreferencesPlugin.name
     private weak var sender: FloconMessageSender?
 
+#if FloconEnabled
     private let lock = NSLock()
     private var preferences: [String: FloconPreference] = [:]
+#endif
 
+    #if FloconEnabled
     init(sender: FloconMessageSender) {
         self.sender = sender
         if let bundleId = Bundle.main.bundleIdentifier {
             add(FloconUserDefaultsPreference(defaults: .standard, name: "UserDefaults.standard", domainName: bundleId))
         }
     }
+    #else
+    init(sender: FloconMessageSender) {
+        self.sender = sender
+    }
+    #endif
 
     /// Adds a store, or replaces the store that has the same name, without notifying the desktop app.
     func add(_ preference: FloconPreference) {
+        #if FloconEnabled
         lock.lock(); preferences[preference.name] = preference; lock.unlock()
+        #endif
     }
 
     /// Shows a store in the desktop app, or replaces the store that has the same name.
     ///
     /// - Parameter preference: The store.
     public func register(_ preference: FloconPreference) {
+        #if FloconEnabled
         add(preference)
         sendPreferenceList()
+        #endif
     }
 
+#if FloconEnabled
     private func preference(named name: String) -> FloconPreference? {
         lock.lock(); defer { lock.unlock() }
         return preferences[name]
     }
+#endif
 
     // MARK: FloconPlugin
 
     public func onConnectedToServer() {
+        #if FloconEnabled
         sendPreferenceList()
+        #endif
     }
 
     public func onMessageReceived(_ message: FloconMessageFromServer) {
+        #if FloconEnabled
         let body = Data(message.body.utf8)
         switch message.method {
         case Self.methodGetSharedPreferences:
@@ -77,10 +94,12 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
         default:
             break
         }
+        #endif
     }
 
     // MARK: Sending
 
+#if FloconEnabled
     private func sendPreferenceList() {
         lock.lock()
         let descriptors = preferences.values
@@ -89,7 +108,9 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
         lock.unlock()
         send(descriptors, method: Self.methodGetSharedPreferences)
     }
+#endif
 
+#if FloconEnabled
     private func sendContent(of preference: FloconPreference, requestId: String) {
         let rows = preference.keys().map { PreferenceRowRemote(key: $0, value: preference.value(forKey: $0)) }
         let result = SharedPreferenceValueResultRemote(
@@ -99,7 +120,9 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
         )
         send(result, method: Self.methodGetSharedPreferenceValue)
     }
+#endif
 
+#if FloconEnabled
     private func send<T: Encodable>(_ value: T, method: String) {
         do {
             let data = try JSONEncoder().encode(value)
@@ -109,4 +132,5 @@ public final class FloconPreferencesPlugin: FloconPlugin, @unchecked Sendable {
             FloconLogger.logError("Preferences json mapping error", error)
         }
     }
+#endif
 }

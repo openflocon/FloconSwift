@@ -10,8 +10,10 @@ public final class FloconFeatureFlagsPlugin: FloconPlugin, @unchecked Sendable {
     public let pluginName = FloconFeatureFlagsPlugin.name
     private weak var sender: FloconMessageSender?
 
+#if FloconEnabled
     private let lock = NSLock()
     private var registered: [String: [FloconFeatureFlag]] = [:]
+#endif
 
     init(sender: FloconMessageSender) {
         self.sender = sender
@@ -23,24 +25,30 @@ public final class FloconFeatureFlagsPlugin: FloconPlugin, @unchecked Sendable {
     ///   - provider: Name of the provider, for example `"firebase"`.
     ///   - flags: All the flags of the provider.
     public func register(provider: String, flags: [FloconFeatureFlag]) {
+        #if FloconEnabled
         lock.lock(); registered[provider] = flags; lock.unlock()
         send(FloconFeatureFlagsRemote(provider: provider, flags: flags))
+        #endif
     }
 
     public func onConnectedToServer() {
+        #if FloconEnabled
         lock.lock(); let all = registered; lock.unlock()
         for provider in all.keys.sorted() {
             send(FloconFeatureFlagsRemote(provider: provider, flags: all[provider] ?? []))
         }
+        #endif
     }
 
     /// The desktop app is read only: it sends nothing to this plugin.
     public func onMessageReceived(_ message: FloconMessageFromServer) {}
 
+#if FloconEnabled
     /// Encoded off the calling thread.
     private func send(_ remote: FloconFeatureFlagsRemote) {
         sender?.send(plugin: pluginName, method: Self.methodRegister, value: remote)
     }
+#endif
 }
 
 extension FloconFeatureFlagsPlugin {

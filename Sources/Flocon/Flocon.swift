@@ -200,9 +200,9 @@ public final class Flocon: @unchecked Sendable {
 
     /// Whether the SDK is compiled in, with the `FloconEnabled` package trait (on by default).
     ///
-    /// When `false`, the connection to the desktop app, the network interception and the crash reporter are not
-    /// in the binary: starting the SDK does nothing and the plugins drop every call. Use it to hide debug
-    /// screens that only make sense with the SDK, such as a ``FloconQRScannerView``.
+    /// When `false`, only the public API is in the binary, with empty methods: starting the SDK does nothing and
+    /// the plugins drop every call. Use it to hide debug screens that only make sense with the SDK, such as a
+    /// ``FloconQRScannerView``.
     public static let isEnabled: Bool = {
         #if FloconEnabled
         true

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// An action of the app, run when the desktop app sends the matching event.
@@ -150,3 +151,4 @@ struct DashboardFormSubmittedRemote: Decodable {
     let id: String
     let values: [String: String]
 }
+#endif

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -163,3 +164,4 @@ private struct FixedGenerator: RandomNumberGenerator {
         #expect(cleared.badNetworkConfig == nil)
     }
 }
+#endif

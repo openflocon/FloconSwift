@@ -63,12 +63,15 @@ public struct FloconWebSocketEvent: Sendable {
 // MARK: - Sending
 
 extension FloconNetworkPlugin {
+#if FloconEnabled
     private static let methodLogWebSocketEvent = "log_websocket_event"
+#endif
 
     /// Logs an event of a WebSocket connection. See ``FloconNetworkPlugin/logWebSocketEvent(_:)``.
     ///
     /// - Parameter event: The event.
     public func logWebSocketEvent(_ event: FloconWebSocketEvent) {
+        #if FloconEnabled
         let model = FloconWebSocketEventRemote(
             id: UUID().uuidString,
             event: {
@@ -88,5 +91,6 @@ extension FloconNetworkPlugin {
             error: event.error
         )
         send(model, method: Self.methodLogWebSocketEvent)
+        #endif
     }
 }

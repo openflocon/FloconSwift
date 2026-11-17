@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 // MARK: - From device
@@ -82,3 +83,4 @@ struct FileRootRemote: Encodable, Equatable {
     /// Absolute path.
     let path: String
 }
+#endif

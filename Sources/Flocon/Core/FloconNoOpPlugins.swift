@@ -15,12 +15,16 @@ enum FloconNoOpPlugins {
     static let sender = FloconNoOpSender()
 
     // an empty folder of its own, so that the saved mocks of the app are not loaded
+    #if FloconEnabled
     static let network = FloconNetworkPlugin(
         sender: sender,
         store: FloconNetworkStore(
             directory: FileManager.default.temporaryDirectory.appendingPathComponent("flocon_no_op", isDirectory: true)
         )
     )
+    #else
+    static let network = FloconNetworkPlugin(sender: sender)
+    #endif
     static let analytics = FloconAnalyticsPlugin(sender: sender)
     static let featureFlags = FloconFeatureFlagsPlugin(sender: sender)
     static let table = FloconTablePlugin(sender: sender)

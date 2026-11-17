@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -189,4 +190,5 @@ private final class RecordingSender: FloconMessageSender, FloconFileSender, @unc
         #expect(try String(contentsOf: body, encoding: .utf8) == expected)
     }
 }
+#endif
 #endif

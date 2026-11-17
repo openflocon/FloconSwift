@@ -23,7 +23,9 @@ extension FloconPreferencesPlugin {
     ///   to the keychain. Only existing items with a readable text value can be edited; items are never added.
     ///   Defaults to `false`.
     public func registerKeychain(isEditable: Bool = false) {
+        #if FloconEnabled
         add(FloconKeychainPreference(itemClass: .genericPassword, isEditable: isEditable))
         register(FloconKeychainPreference(itemClass: .internetPassword, isEditable: isEditable))
+        #endif
     }
 }

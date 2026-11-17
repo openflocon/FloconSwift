@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// The address given to ``Flocon/connect(address:)`` cannot be read.
@@ -96,3 +97,4 @@ struct FloconUserDefaultsAddressStore: FloconAddressStore {
         UserDefaults.standard.removeObject(forKey: Self.key)
     }
 }
+#endif

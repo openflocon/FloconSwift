@@ -1,5 +1,7 @@
 #if os(iOS)
+#if FloconEnabled
 import AVFoundation
+#endif
 import SwiftUI
 
 /// A camera view that scans the QR code shown by Flocon Desktop and connects the app to it.
@@ -19,6 +21,7 @@ import SwiftUI
 /// }
 /// ```
 public struct FloconQRScannerView: View {
+    #if FloconEnabled
     private enum Access {
         case checking, ready, denied, unavailable
     }
@@ -62,7 +65,24 @@ public struct FloconQRScannerView: View {
         default: return .denied
         }
     }
+    #else
+    private let onResult: @MainActor (FloconConnectResult) -> Void
+
+    /// - Parameter onResult: Never called: the SDK is not compiled in without the `FloconEnabled` trait.
+    public init(onResult: @escaping @MainActor (FloconConnectResult) -> Void) {
+        self.onResult = onResult
+    }
+
+    public var body: some View {
+        Text("Flocon is not included in this build.")
+            .multilineTextAlignment(.center)
+            .padding()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    #endif
 }
+
+#if FloconEnabled
 
 private struct FloconQRScannerRepresentable: UIViewControllerRepresentable {
     let onResult: @MainActor (FloconConnectResult) -> Void
@@ -156,4 +176,5 @@ private final class FloconQRScannerController: UIViewController, AVCaptureMetada
         }
     }
 }
+#endif
 #endif

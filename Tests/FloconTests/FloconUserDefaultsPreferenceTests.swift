@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import Testing
 @testable import Flocon
@@ -82,3 +83,4 @@ import Testing
         #expect(defaults.object(forKey: "missing") == nil)
     }
 }
+#endif

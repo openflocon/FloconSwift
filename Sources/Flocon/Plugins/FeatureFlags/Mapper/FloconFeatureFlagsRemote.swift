@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 
 /// JSON format of the feature flags of a provider sent to the desktop app.
@@ -17,3 +18,4 @@ struct FloconFeatureFlagsRemote: Encodable {
         self.flags = flags.map { Flag(name: $0.name, state: $0.state.rawValue, variant: $0.variant, payload: $0.payload) }
     }
 }
+#endif

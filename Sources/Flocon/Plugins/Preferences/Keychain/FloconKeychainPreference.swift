@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import LocalAuthentication
 import Security
@@ -219,3 +220,4 @@ final class FloconKeychainPreference: FloconPreference, @unchecked Sendable {
 private extension String {
     var nonEmpty: String? { isEmpty ? nil : self }
 }
+#endif

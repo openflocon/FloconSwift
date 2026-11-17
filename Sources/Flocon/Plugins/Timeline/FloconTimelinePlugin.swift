@@ -70,11 +70,13 @@ public final class FloconTimelinePlugin: FloconPlugin, @unchecked Sendable {
     public func onMessageReceived(_ message: FloconMessageFromServer) {}
 
     private func send(type: String, value: String, params: [String: String], level: TimelineLevel?) {
+        #if FloconEnabled
         // the moment of the call, not the moment the message is sent
         let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
         let event = FloconTimelineEventRemote(
             type: type, value: value, params: params, level: level, timestamp: timestamp
         )
         sender?.send(plugin: pluginName, method: Self.methodLog, value: event)
+        #endif
     }
 }

@@ -1,3 +1,4 @@
+#if FloconEnabled
 import Foundation
 import SQLite3
 
@@ -157,3 +158,4 @@ enum FloconSQLite {
         return String(trimmed.prefix { !$0.isWhitespace && $0 != "(" }).uppercased()
     }
 }
+#endif
