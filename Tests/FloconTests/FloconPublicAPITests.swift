@@ -64,6 +64,7 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         #expect(Flocon.shared.preferencesPlugin == nil)
         #expect(Flocon.shared.deeplinksPlugin == nil)
         #expect(Flocon.shared.timelinePlugin == nil)
+        #expect(Flocon.shared.webViewPlugin == nil)
         #expect(Flocon.shared.filesPlugin == nil)
     }
 
@@ -81,6 +82,9 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         Flocon.timelinePlugin.logLifecycle("didBecomeActive")
         Flocon.timelinePlugin.log(type: TimelineType("billing"), value: "Purchase started")
         Flocon.timelinePlugin.log(tag: "billing", value: "Purchase failed", params: ["sku": "a"], level: .error)
+        Flocon.webViewPlugin.logConsole(webViewId: "checkout", level: .warn, message: "slow render")
+        Flocon.webViewPlugin.logPageEvent(webViewId: "checkout", type: .pageFinished, url: "https://example.com")
+        Flocon.webViewPlugin.logBridgeCall(webViewId: "checkout", interfaceName: "app", method: "share", arguments: "hello")
         Flocon.preferencesPlugin.registerKeychain()
         Flocon.dashboardPlugin.dashboard(id: "main") {}
         #expect(Flocon.analyticsPlugin === Flocon.analyticsPlugin)
