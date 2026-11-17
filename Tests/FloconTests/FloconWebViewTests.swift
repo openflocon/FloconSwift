@@ -253,10 +253,10 @@ private func now() -> Int64 {
             baseURL: URL(string: "https://example.com/page")
         )
 
-        for _ in 0..<100 where sender.messages.count < 3 {
+        for _ in 0..<100 where sender.messages.filter({ $0.method == "add_console_logs" }).count < 3 {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
-        let bodies = try sender.messages.compactMap { try items($0.body).first }
+        let bodies = try sender.messages.filter { $0.method == "add_console_logs" }.compactMap { try items($0.body).first }
         #expect(bodies.count == 3)
         #expect(bodies.map { $0["level"] as? String } == ["info", "error", "error"])
         #expect(bodies.first?["message"] as? String == #"ready {"a":1} 2"#)
@@ -281,10 +281,10 @@ private func now() -> Int64 {
         first.loadHTMLString("<script>console.log('a')</script>", baseURL: nil)
         second.loadHTMLString("<script>console.log('b')</script>", baseURL: nil)
 
-        for _ in 0..<100 where sender.messages.count < 2 {
+        for _ in 0..<100 where sender.messages.filter({ $0.method == "add_console_logs" }).count < 2 {
             try await Task.sleep(nanoseconds: 50_000_000)
         }
-        let ids = try sender.messages.compactMap { try items($0.body).first }
+        let ids = try sender.messages.filter { $0.method == "add_console_logs" }.compactMap { try items($0.body).first }
             .reduce(into: [String: String]()) { $0[$1["message"] as? String ?? ""] = $1["web_view_id"] as? String }
         #expect(ids == ["a": "first", "b": "second"])
         #expect(first.configuration.userContentController.userScripts.count == 1)

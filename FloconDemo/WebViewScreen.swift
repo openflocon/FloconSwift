@@ -10,7 +10,7 @@ struct WebViewScreen: View {
                 .clipShape(RoundedRectangle(cornerRadius: 16))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(SampleTheme.line))
             SampleInfoCard(
-                text: "Console messages and uncaught errors are captured by attach. Page events and the calls to the app bridge are logged by the sample. See Flocon > WebView.",
+                text: "Console messages, uncaught errors and page events are captured by attach. The calls to the app bridge are logged by the sample. See Flocon > WebView.",
                 tint: SampleTheme.accent
             )
         }
@@ -32,6 +32,7 @@ private struct SampleWebView: UIViewRepresentable {
     <button onclick="console.warn('Slow render: 1200 ms')">console.warn</button>
     <button onclick="missingFunction()">Uncaught error</button>
     <button onclick="window.webkit.messageHandlers.app.postMessage({ method: 'share', text: 'Flocon' })">Bridge call</button>
+    <button onclick="location.href = 'https://example.com/missing-page'">HTTP 404</button>
     </body>
     </html>
     """
@@ -41,7 +42,6 @@ private struct SampleWebView: UIViewRepresentable {
     func makeUIView(context: Context) -> WKWebView {
         let webView = WKWebView()
         webView.isInspectable = true
-        webView.navigationDelegate = context.coordinator
         webView.configuration.userContentController.add(context.coordinator, name: "app")
         Flocon.webViewPlugin.attach(webView, webViewId: Self.webViewId)
         webView.loadHTMLString(Self.html, baseURL: URL(string: "https://sample.flocon"))
@@ -50,24 +50,7 @@ private struct SampleWebView: UIViewRepresentable {
 
     func updateUIView(_ webView: WKWebView, context: Context) {}
 
-    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
-            Flocon.webViewPlugin.logPageEvent(webViewId: webViewId, type: .pageStarted, url: webView.url?.absoluteString)
-        }
-
-        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-            Flocon.webViewPlugin.logPageEvent(webViewId: webViewId, type: .pageFinished, url: webView.url?.absoluteString)
-        }
-
-        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-            Flocon.webViewPlugin.logPageEvent(
-                webViewId: webViewId,
-                type: .error,
-                url: webView.url?.absoluteString,
-                message: error.localizedDescription
-            )
-        }
-
+    final class Coordinator: NSObject, WKScriptMessageHandler {
         func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
             let body = message.body as? [String: Any]
             Flocon.webViewPlugin.logBridgeCall(

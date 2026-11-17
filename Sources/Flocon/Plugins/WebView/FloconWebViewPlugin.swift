@@ -50,8 +50,7 @@ public final class FloconWebViewPlugin: FloconPlugin, @unchecked Sendable {
 
     /// Logs a page event: a page load, a navigation or an error.
     ///
-    /// Call it from your `WKNavigationDelegate`, for example ``WebViewPageEventType/pageFinished``
-    /// in `webView(_:didFinish:)`.
+    /// ``attach(_:webViewId:)`` sends them for you: call it for a web view you do not attach.
     ///
     /// - Parameters:
     ///   - webViewId: Id of the web view.

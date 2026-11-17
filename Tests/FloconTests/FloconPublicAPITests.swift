@@ -165,8 +165,13 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
 
     #if canImport(WebKit)
     @MainActor
-    @Test func attachesAWebViewBeforeInitialize() {
-        Flocon.webViewPlugin.attach(WKWebView(), webViewId: "checkout")
+    @Test func attachingAWebViewBeforeInitializeLeavesItUntouched() {
+        let webView = WKWebView()
+
+        Flocon.webViewPlugin.attach(webView, webViewId: "checkout")
+
+        #expect(webView.navigationDelegate == nil)
+        #expect(webView.configuration.userContentController.userScripts.isEmpty)
     }
     #endif
 }

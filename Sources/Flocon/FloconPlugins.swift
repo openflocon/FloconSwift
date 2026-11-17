@@ -131,7 +131,7 @@ extension Flocon {
     /// Sends what happens in the web views of the app: console messages, page events and bridge calls.
     ///
     /// ```swift
-    /// Flocon.webViewPlugin.logPageEvent(webViewId: "checkout", type: .pageFinished, url: webView.url?.absoluteString)
+    /// Flocon.webViewPlugin.attach(webView, webViewId: "checkout")
     /// ```
     ///
     /// Does nothing before ``initialize(config:)``, or if the plugin is not installed.

@@ -133,7 +133,7 @@ More about the connection, custom ports and troubleshooting: [Connect your app](
 | Analytics | `.analytics` | [Analytics](https://openflocon.github.io/Flocon/analytics/) |
 | Feature flags | `.featureFlags` | [Feature flags](https://openflocon.github.io/Flocon/featureflags/) |
 | Timeline (navigation, user actions, lifecycle, your own events) | `.timeline` | [Timeline](https://openflocon.github.io/Flocon/timeline/) |
-| WebView (console of a `WKWebView` with `attach`, page events and bridge calls you log) | `.webView` | [WebView](https://openflocon.github.io/Flocon/webview/) |
+| WebView (console and page events of a `WKWebView` with `attach`, bridge calls you log) | `.webView` | [WebView](https://openflocon.github.io/Flocon/webview/) |
 | Crash reporter | `.crashReporter` | [Crash reporter](https://openflocon.github.io/Flocon/crashreporter/) |
 
 Features with options take a closure, for example:

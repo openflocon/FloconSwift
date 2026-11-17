@@ -2,33 +2,6 @@
 import Foundation
 import WebKit
 
-extension FloconWebViewPlugin {
-    /// Sends the console messages and the uncaught errors of the pages of a web view.
-    ///
-    /// Call it once per web view, after starting Flocon and before loading a page: it adds a user
-    /// script and a script message handler to its `userContentController`. Web views that share a
-    /// `userContentController` keep their own id. The messages of every frame are sent, with the URL
-    /// of their frame. Log page events from your `WKNavigationDelegate` with
-    /// ``logPageEvent(webViewId:type:url:message:statusCode:)``.
-    ///
-    /// Web Inspector shows the added script as the caller of the `console` functions.
-    ///
-    /// ```swift
-    /// let webView = WKWebView()
-    /// Flocon.webViewPlugin.attach(webView, webViewId: "checkout")
-    /// webView.load(URLRequest(url: url))
-    /// ```
-    ///
-    /// - Parameters:
-    ///   - webView: The web view.
-    ///   - webViewId: Stable id of the web view, shown in the desktop app.
-    @MainActor
-    public func attach(_ webView: WKWebView, webViewId: String) {
-        FloconWebViewConsoleHandler.handler(for: webView.configuration.userContentController, plugin: self)
-            .webViewIds.setObject(webViewId as NSString, forKey: webView)
-    }
-}
-
 /// Receives the console messages posted by the script added by ``FloconWebViewPlugin/attach(_:webViewId:)``,
 /// one handler per `WKUserContentController`.
 final class FloconWebViewConsoleHandler: NSObject, WKScriptMessageHandler {
@@ -71,7 +44,7 @@ final class FloconWebViewConsoleHandler: NSObject, WKScriptMessageHandler {
     """
 
     let webViewIds = NSMapTable<WKWebView, NSString>.weakToStrongObjects()
-    private weak var plugin: FloconWebViewPlugin?
+    private var plugin: FloconWebViewPlugin
 
     private init(plugin: FloconWebViewPlugin) {
         self.plugin = plugin
@@ -92,7 +65,7 @@ final class FloconWebViewConsoleHandler: NSObject, WKScriptMessageHandler {
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let plugin, let webView = message.webView, let webViewId = webViewIds.object(forKey: webView) as String? else { return }
+        guard let webView = message.webView, let webViewId = webViewIds.object(forKey: webView) as String? else { return }
         let url = message.frameInfo.request.url?.absoluteString ?? webView.url?.absoluteString
         Self.log(message.body, url: url, webViewId: webViewId, to: plugin)
     }
