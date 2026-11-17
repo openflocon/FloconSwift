@@ -70,6 +70,7 @@ extension SampleScreen {
         case .dashboard: DashboardScreen()
         case .deeplinks: DeeplinksScreen()
         case .timeline: TimelineScreen()
+        case .webView: WebViewScreen()
         case .images: ImageListView()
         case .crash: CrashScreen()
         }

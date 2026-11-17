@@ -24,7 +24,7 @@ public final class FloconWebViewPlugin: FloconPlugin, @unchecked Sendable {
     ///   - webViewId: Id of the web view.
     ///   - level: Level of the message.
     ///   - message: The message.
-    ///   - url: Url of the page when the message was emitted.
+    ///   - url: URL of the page when the message was emitted.
     ///   - sourceId: Script that emitted the message.
     ///   - lineNumber: Line in `sourceId`.
     public func logConsole(
@@ -56,7 +56,7 @@ public final class FloconWebViewPlugin: FloconPlugin, @unchecked Sendable {
     /// - Parameters:
     ///   - webViewId: Id of the web view.
     ///   - type: Type of the event.
-    ///   - url: Url concerned by the event.
+    ///   - url: URL concerned by the event.
     ///   - message: Description of the error.
     ///   - statusCode: HTTP status, for ``WebViewPageEventType/httpError``.
     public func logPageEvent(
@@ -87,7 +87,7 @@ public final class FloconWebViewPlugin: FloconPlugin, @unchecked Sendable {
     ///   - method: Called method.
     ///   - arguments: Arguments, as text.
     ///   - result: Returned value, as text.
-    ///   - url: Url of the page.
+    ///   - url: URL of the page.
     public func logBridgeCall(
         webViewId: String,
         interfaceName: String,

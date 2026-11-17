@@ -1,5 +1,8 @@
 import Foundation
 import Testing
+#if canImport(WebKit)
+import WebKit
+#endif
 // not @testable: this file only compiles if the API it uses is public
 import Flocon
 
@@ -159,4 +162,11 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         var states = Flocon.connectionStates.makeAsyncIterator()
         #expect(await states.next() == .idle)
     }
+
+    #if canImport(WebKit)
+    @MainActor
+    @Test func attachesAWebViewBeforeInitialize() {
+        Flocon.webViewPlugin.attach(WKWebView(), webViewId: "checkout")
+    }
+    #endif
 }

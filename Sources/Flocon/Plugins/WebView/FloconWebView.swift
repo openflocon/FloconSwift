@@ -15,7 +15,7 @@ public enum WebViewPageEventType: String, Sendable, Hashable {
     case pageStarted = "page_started"
     /// A page finished loading.
     case pageFinished = "page_finished"
-    /// The web view navigated to another url.
+    /// The web view navigated to another URL.
     case navigation
     /// The page could not be loaded, for example without network.
     case error

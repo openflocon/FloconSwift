@@ -16,6 +16,7 @@
 		F10C00000000000000000074 /* SampleDashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000073 /* SampleDashboard.swift */; };
 		F10C00000000000000000076 /* SampleFeatureFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000075 /* SampleFeatureFlags.swift */; };
 		F10C00000000000000000078 /* TimelineScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000077 /* TimelineScreen.swift */; };
+		F10C000000000000000001F4 /* WebViewScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C000000000000000001F3 /* WebViewScreen.swift */; };
 		F10C0000000000000000007A /* SampleNavigationLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000079 /* SampleNavigationLog.swift */; };
 		F10C00000000000000000062 /* DeeplinkScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000061 /* DeeplinkScreens.swift */; };
 		F10C00000000000000000012 /* ImageListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10C00000000000000000011 /* ImageListView.swift */; };
@@ -48,6 +49,7 @@
 		F10C00000000000000000073 /* SampleDashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleDashboard.swift; sourceTree = "<group>"; };
 		F10C00000000000000000075 /* SampleFeatureFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleFeatureFlags.swift; sourceTree = "<group>"; };
 		F10C00000000000000000077 /* TimelineScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineScreen.swift; sourceTree = "<group>"; };
+		F10C000000000000000001F3 /* WebViewScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebViewScreen.swift; sourceTree = "<group>"; };
 		F10C00000000000000000079 /* SampleNavigationLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleNavigationLog.swift; sourceTree = "<group>"; };
 		F10C00000000000000000011 /* ImageListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageListView.swift; sourceTree = "<group>"; };
 		E56E38683083E1C70063FCD8 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -92,6 +94,7 @@
 				F10C00000000000000000073 /* SampleDashboard.swift */,
 				F10C00000000000000000075 /* SampleFeatureFlags.swift */,
 				F10C00000000000000000077 /* TimelineScreen.swift */,
+				F10C000000000000000001F3 /* WebViewScreen.swift */,
 				F10C00000000000000000079 /* SampleNavigationLog.swift */,
 				F10C00000000000000000061 /* DeeplinkScreens.swift */,
 				F10C00000000000000000100 /* SampleTheme.swift */,
@@ -212,6 +215,7 @@
 				F10C00000000000000000074 /* SampleDashboard.swift in Sources */,
 				F10C00000000000000000076 /* SampleFeatureFlags.swift in Sources */,
 				F10C00000000000000000078 /* TimelineScreen.swift in Sources */,
+				F10C000000000000000001F4 /* WebViewScreen.swift in Sources */,
 				F10C0000000000000000007A /* SampleNavigationLog.swift in Sources */,
 				F10C00000000000000000062 /* DeeplinkScreens.swift in Sources */,
 				F10C00000000000000000101 /* SampleTheme.swift in Sources */,

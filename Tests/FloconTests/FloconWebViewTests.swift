@@ -1,5 +1,8 @@
 import Foundation
 import Testing
+#if canImport(WebKit)
+import WebKit
+#endif
 @testable import Flocon
 
 private final class RecordingSender: FloconMessageSender, @unchecked Sendable {
@@ -186,3 +189,105 @@ private func now() -> Int64 {
         #expect(builder.features.contains(.webView))
     }
 }
+
+#if canImport(WebKit)
+@Suite struct FloconWebViewConsoleTests {
+    @Test func consoleMessageIsLoggedWithItsLevelAndPosition() throws {
+        let sender = RecordingSender()
+        let plugin = FloconWebViewPlugin(sender: sender)
+
+        FloconWebViewConsoleHandler.log(
+            ["level": "warn", "message": "slow render", "sourceId": "https://example.com/app.js", "lineNumber": 12],
+            url: "https://example.com",
+            webViewId: "checkout",
+            to: plugin
+        )
+
+        let message = try #require(sender.messages.first)
+        #expect(message.method == "add_console_logs")
+        let item = try #require(try items(message.body).first)
+        #expect(item["web_view_id"] as? String == "checkout")
+        #expect(item["level"] as? String == "warn")
+        #expect(item["message"] as? String == "slow render")
+        #expect(item["source_id"] as? String == "https://example.com/app.js")
+        #expect(item["line_number"] as? Int == 12)
+        #expect(item["url"] as? String == "https://example.com")
+    }
+
+    @Test func unknownLevelIsLoggedAsLog() throws {
+        let sender = RecordingSender()
+        let plugin = FloconWebViewPlugin(sender: sender)
+
+        FloconWebViewConsoleHandler.log(["level": "trace", "message": "m"], url: nil, webViewId: "w", to: plugin)
+
+        let message = try #require(sender.messages.first)
+        #expect(try items(message.body).first?["level"] as? String == "log")
+    }
+
+    @Test func bodyWithoutMessageIsIgnored() {
+        let sender = RecordingSender()
+        let plugin = FloconWebViewPlugin(sender: sender)
+
+        FloconWebViewConsoleHandler.log("not a dictionary", url: nil, webViewId: "w", to: plugin)
+        FloconWebViewConsoleHandler.log(["level": "log"], url: nil, webViewId: "w", to: plugin)
+
+        #expect(sender.messages.isEmpty)
+    }
+
+    @MainActor
+    @Test func attachedWebViewSendsConsoleMessagesAndErrors() async throws {
+        let sender = RecordingSender()
+        let plugin = FloconWebViewPlugin(sender: sender)
+        let webView = WKWebView()
+        plugin.attach(webView, webViewId: "checkout")
+        plugin.attach(webView, webViewId: "checkout")
+
+        webView.loadHTMLString(
+            """
+            <script>
+            console.info("ready", {a: 1}, 2);
+            console.error(new Error("boom"));
+            undefinedFunction();
+            </script>
+            """,
+            baseURL: URL(string: "https://example.com/page")
+        )
+
+        for _ in 0..<100 where sender.messages.count < 3 {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        let bodies = try sender.messages.compactMap { try items($0.body).first }
+        #expect(bodies.count == 3)
+        #expect(bodies.map { $0["level"] as? String } == ["info", "error", "error"])
+        #expect(bodies.first?["message"] as? String == #"ready {"a":1} 2"#)
+        #expect((bodies[1]["message"] as? String)?.contains("boom") == true)
+        #expect((bodies[2]["message"] as? String)?.contains("undefinedFunction") == true)
+        #expect(bodies[2]["line_number"] is Int)
+        #expect(bodies.allSatisfy { $0["web_view_id"] as? String == "checkout" })
+        #expect(bodies.allSatisfy { $0["url"] as? String == "https://example.com/page" })
+    }
+
+    @MainActor
+    @Test func webViewsSharingAControllerKeepTheirOwnId() async throws {
+        let sender = RecordingSender()
+        let plugin = FloconWebViewPlugin(sender: sender)
+        let configuration = WKWebViewConfiguration()
+        let first = WKWebView(frame: .zero, configuration: configuration)
+        let second = WKWebView(frame: .zero, configuration: configuration)
+        #expect(first.configuration.userContentController === second.configuration.userContentController)
+        plugin.attach(first, webViewId: "first")
+        plugin.attach(second, webViewId: "second")
+
+        first.loadHTMLString("<script>console.log('a')</script>", baseURL: nil)
+        second.loadHTMLString("<script>console.log('b')</script>", baseURL: nil)
+
+        for _ in 0..<100 where sender.messages.count < 2 {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        let ids = try sender.messages.compactMap { try items($0.body).first }
+            .reduce(into: [String: String]()) { $0[$1["message"] as? String ?? ""] = $1["web_view_id"] as? String }
+        #expect(ids == ["a": "first", "b": "second"])
+        #expect(first.configuration.userContentController.userScripts.count == 1)
+    }
+}
+#endif

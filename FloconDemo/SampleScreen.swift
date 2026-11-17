@@ -2,7 +2,7 @@ import SwiftUI
 
 /// One screen per plugin of the SDK.
 enum SampleScreen: String, CaseIterable, Hashable {
-    case network, database, analytics, featureFlags, preferences, files, dashboard, deeplinks, timeline, images, crash
+    case network, database, analytics, featureFlags, preferences, files, dashboard, deeplinks, timeline, webView, images, crash
 
     var title: String {
         switch self {
@@ -15,6 +15,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .dashboard: "Dashboard & Tables"
         case .deeplinks: "Deeplinks"
         case .timeline: "Timeline"
+        case .webView: "WebView"
         case .images: "Images"
         case .crash: "Crash reporter"
         }
@@ -31,6 +32,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .dashboard: "Live values and table rows"
         case .deeplinks: "Open links from the desktop"
         case .timeline: "Navigation, actions and tagged logs"
+        case .webView: "Console, page events and bridge calls"
         case .images: "Images loaded by Kingfisher"
         case .crash: "Crash the app on purpose"
         }
@@ -46,7 +48,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .deeplinks: .deeplink
         case .crash: .crash
         case .timeline: .timeline
-        case .preferences, .files, .images: .neutral
+        case .preferences, .files, .webView, .images: .neutral
         }
     }
 
@@ -61,6 +63,7 @@ enum SampleScreen: String, CaseIterable, Hashable {
         case .dashboard: "rectangle.split.1x2"
         case .deeplinks: "link"
         case .timeline: "clock"
+        case .webView: "globe"
         case .images: "photo"
         case .crash: "exclamationmark.triangle"
         }
