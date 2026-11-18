@@ -53,6 +53,11 @@ extension Flocon {
     ///
     /// `nil` before ``initialize(config:)``. Prefer ``Flocon/timelinePlugin``.
     public var timelinePlugin: FloconTimelinePlugin? { client?.timelinePlugin }
+
+    /// Sends what happens in the web views of the app.
+    ///
+    /// `nil` before ``initialize(config:)``. Prefer ``Flocon/webViewPlugin``.
+    public var webViewPlugin: FloconWebViewPlugin? { client?.webViewPlugin }
 }
 #else
 // Without the `FloconEnabled` trait the SDK never starts, so no plugin is installed.
@@ -138,4 +143,13 @@ extension Flocon {
     ///
     /// Does nothing before ``initialize(config:)``, or if the plugin is not installed.
     public static var timelinePlugin: FloconTimelinePlugin { shared.timelinePlugin ?? FloconNoOpPlugins.timeline }
+
+    /// Sends what happens in the web views of the app: console messages, page events and bridge calls.
+    ///
+    /// ```swift
+    /// Flocon.webViewPlugin.attach(webView, webViewId: "checkout")
+    /// ```
+    ///
+    /// Does nothing before ``initialize(config:)``, or if the plugin is not installed.
+    public static var webViewPlugin: FloconWebViewPlugin { shared.webViewPlugin ?? FloconNoOpPlugins.webView }
 }

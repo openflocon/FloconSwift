@@ -24,6 +24,7 @@ struct FloconSampleApp: App {
             flocon.install(.tables)
             flocon.install(.dashboard)
             flocon.install(.timeline)
+            flocon.install(.webView)
             flocon.install(.crashReporter)
 
             // UserDefaults.standard is shown automatically; other suites are registered.

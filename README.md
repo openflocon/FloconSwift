@@ -168,6 +168,7 @@ More about the connection, custom ports and troubleshooting: [Connect your app](
 | Analytics | `.analytics` | [Analytics](https://openflocon.github.io/Flocon/analytics/) |
 | Feature flags | `.featureFlags` | [Feature flags](https://openflocon.github.io/Flocon/featureflags/) |
 | Timeline (navigation, user actions, lifecycle, your own events) | `.timeline` | [Timeline](https://openflocon.github.io/Flocon/timeline/) |
+| WebView (console and page events of a `WKWebView` with `attach`, bridge calls you log) | `.webView` | [WebView](https://openflocon.github.io/Flocon/webview/) |
 | Crash reporter | `.crashReporter` | [Crash reporter](https://openflocon.github.io/Flocon/crashreporter/) |
 
 Features with options take a closure, for example:
@@ -180,7 +181,7 @@ startFlocon { flocon in
 }
 ```
 
-Each feature is also reachable at runtime through `Flocon.networkPlugin`, `Flocon.databasePlugin`, `Flocon.filesPlugin`, `Flocon.deeplinksPlugin`, `Flocon.timelinePlugin`, and so on. They are never `nil` and do nothing when the feature is not installed.
+Each feature is also reachable at runtime through `Flocon.networkPlugin`, `Flocon.databasePlugin`, `Flocon.filesPlugin`, `Flocon.deeplinksPlugin`, `Flocon.timelinePlugin`, `Flocon.webViewPlugin`, and so on. They are never `nil` and do nothing when the feature is not installed.
 
 ## Sample app
 
