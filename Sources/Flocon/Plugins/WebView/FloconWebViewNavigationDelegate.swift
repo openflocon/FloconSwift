@@ -11,15 +11,15 @@ import WebKit
 @MainActor
 final class FloconWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
     private static var associationKey: UInt8 = 0
-    private static let decideActionPolicyWithPreferences = NSSelectorFromString(
+    nonisolated private static let decideActionPolicyWithPreferences = NSSelectorFromString(
         "webView:decidePolicyForNavigationAction:preferences:decisionHandler:"
     )
-    private static let decideActionPolicy = NSSelectorFromString("webView:decidePolicyForNavigationAction:decisionHandler:")
+    nonisolated private static let decideActionPolicy = NSSelectorFromString("webView:decidePolicyForNavigationAction:decisionHandler:")
     private static let decideResponsePolicy = NSSelectorFromString("webView:decidePolicyForNavigationResponse:decisionHandler:")
     private static let webKitErrorDomain = "WebKitErrorDomain"
     private static let frameLoadInterruptedByPolicyChange = 102
 
-    private weak var delegate: WKNavigationDelegate?
+    nonisolated(unsafe) private weak var delegate: WKNavigationDelegate?
     private weak var webView: WKWebView?
     private var plugin: FloconWebViewPlugin
     private var webViewId: String
@@ -53,14 +53,14 @@ final class FloconWebViewNavigationDelegate: NSObject, WKNavigationDelegate {
 
     // MARK: Forwarding
 
-    override func responds(to aSelector: Selector!) -> Bool {
+    nonisolated override func responds(to aSelector: Selector!) -> Bool {
         if aSelector == Self.decideActionPolicyWithPreferences {
             return delegate?.responds(to: aSelector) == true || delegate?.responds(to: Self.decideActionPolicy) == true
         }
         return super.responds(to: aSelector) || delegate?.responds(to: aSelector) == true
     }
 
-    override func forwardingTarget(for aSelector: Selector!) -> Any? {
+    nonisolated override func forwardingTarget(for aSelector: Selector!) -> Any? {
         delegate?.responds(to: aSelector) == true ? delegate : nil
     }
 
