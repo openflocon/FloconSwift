@@ -180,6 +180,7 @@
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				F10C00000000000000000004 /* XCLocalSwiftPackageReference ".." */,
 				F10C00000000000000000003 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 90;
@@ -470,6 +471,13 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		F10C00000000000000000004 /* XCLocalSwiftPackageReference ".." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ..;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCRemoteSwiftPackageReference section */
 		F10C00000000000000000003 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
 			isa = XCRemoteSwiftPackageReference;
@@ -484,6 +492,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		E56E385A30838EA70063FCD8 /* Flocon */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = F10C00000000000000000004 /* XCLocalSwiftPackageReference ".." */;
 			productName = Flocon;
 		};
 		F10C00000000000000000001 /* Kingfisher */ = {
