@@ -4,7 +4,7 @@ import Foundation
 ///
 /// The app shows `Documents`, `Application Support`, `Caches`, `tmp` and the whole app container
 /// without anything to register. Register the other folders, such as an App Group container,
-/// with ``Flocon.filesPlugin.register(displayName:url:)`` or ``floconRegisterAppGroup(_:)``.
+/// with ``FloconFilesPlugin/register(displayName:url:)`` or ``FloconFilesPlugin/registerAppGroup(_:)``.
 public struct FloconFolder: Sendable, Equatable {
     /// Name shown in the desktop app.
     public let displayName: String
