@@ -11,6 +11,10 @@ import Foundation
 ///     parameters: [
 ///         .variable("host", variableName: "host"),
 ///         .autoComplete("userId", ["Florent", "David"]),
+///         .autoComplete("tab") { suggestions in
+///             suggestions.suggest("friends", label: "Friends list")
+///             suggestions.suggestDefault("posts")
+///         },
 ///     ]
 /// )
 /// ```
@@ -19,8 +23,26 @@ public struct FloconDeeplink: Sendable, Equatable {
     public enum Parameter: Sendable, Equatable {
         /// A part filled in from a list of suggestions.
         case autoComplete(_ name: String, _ suggestions: [String])
+        /// A part filled in from suggestions that can have a label and a default one, see
+        /// ``autoComplete(_:suggestions:)`` to build them.
+        case suggestions(_ name: String, _ suggestions: [FloconDeeplinkSuggestion])
         /// A part filled in with the value of a ``FloconDeeplinkVariable``, shared by several deeplinks.
         case variable(_ name: String, variableName: String)
+
+        /// A part filled in from suggestions that can have a label, and a default one that the
+        /// desktop app pre-selects.
+        ///
+        /// - Parameters:
+        ///   - name: Name of the part, written `[name]` in the link.
+        ///   - build: Declares the suggestions.
+        public static func autoComplete(
+            _ name: String,
+            suggestions build: (inout FloconDeeplinkSuggestions) -> Void
+        ) -> Parameter {
+            var suggestions = FloconDeeplinkSuggestions()
+            build(&suggestions)
+            return .suggestions(name, suggestions.suggestions)
+        }
     }
 
     /// The link, with its parameters between brackets.
@@ -55,6 +77,8 @@ public struct FloconDeeplinkVariable: Sendable, Equatable {
     public let description: String?
     /// Values offered in the desktop app, or `nil` for a free text input.
     public let suggestions: [String]?
+    /// Suggestions with their label and default, or `nil` when the variable was created with plain values.
+    public let suggestionItems: [FloconDeeplinkSuggestion]?
 
     /// Creates a variable.
     ///
@@ -66,5 +90,26 @@ public struct FloconDeeplinkVariable: Sendable, Equatable {
         self.name = name
         self.description = description
         self.suggestions = suggestions
+        self.suggestionItems = nil
+    }
+
+    /// Creates a variable whose suggestions can have a label, and a default one that the desktop app pre-selects.
+    ///
+    /// - Parameters:
+    ///   - name: Name of the variable.
+    ///   - description: What the variable is for.
+    ///   - build: Declares the suggestions.
+    public init(
+        _ name: String,
+        description: String? = nil,
+        suggestions build: (inout FloconDeeplinkSuggestions) -> Void
+    ) {
+        var collected = FloconDeeplinkSuggestions()
+        build(&collected)
+        let items = collected.suggestions
+        self.name = name
+        self.description = description
+        self.suggestions = items.map(\.value)
+        self.suggestionItems = items
     }
 }
