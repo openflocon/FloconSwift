@@ -81,7 +81,11 @@ enum SampleDeeplinks {
             description: "Open the profile of a user",
             parameters: [
                 .variable("scheme", variableName: "scheme"),
-                .autoComplete("userId", ["Florent", "David", "Guillaume"]),
+                .autoComplete("userId") { suggestions in
+                    suggestions.suggestDefault("Florent", label: "Florent (admin)")
+                    suggestions.suggest("David", label: "David (guest)")
+                    suggestions.suggest("Guillaume")
+                },
             ]
         ),
         FloconDeeplink(

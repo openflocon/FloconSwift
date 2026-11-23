@@ -80,6 +80,20 @@ final class ReadOnlyPreference: FloconPreference, @unchecked Sendable {
         Flocon.databasePlugin.register(displayName: "App", url: FileManager.default.temporaryDirectory)
         Flocon.databasePlugin.logQuery(dbId: FloconDatabase(displayName: "App", url: FileManager.default.temporaryDirectory).id, sqlQuery: "SELECT 1")
         Flocon.deeplinksPlugin.register(deeplinks: [FloconDeeplink("myapp://home", label: "Home")])
+        Flocon.deeplinksPlugin.register(
+            deeplinks: [
+                FloconDeeplink(
+                    "myapp://user/[tab]",
+                    parameters: [
+                        .autoComplete("tab") { suggestions in
+                            suggestions.suggest("friends", label: "Friends list")
+                            suggestions.suggestDefault("posts")
+                        },
+                    ]
+                ),
+            ],
+            variables: [FloconDeeplinkVariable("env") { $0.suggestDefault("staging", label: "Staging") }]
+        )
         Flocon.timelinePlugin.logNavigation("Home", params: ["from": "Launch"])
         Flocon.timelinePlugin.logUserAction("tap_buy")
         Flocon.timelinePlugin.logLifecycle("didBecomeActive")
