@@ -72,6 +72,7 @@ extension Flocon {
     public var dashboardPlugin: FloconDashboardPlugin? { nil }
     public var deeplinksPlugin: FloconDeeplinksPlugin? { nil }
     public var timelinePlugin: FloconTimelinePlugin? { nil }
+    public var webViewPlugin: FloconWebViewPlugin? { nil }
 }
 #endif
 
