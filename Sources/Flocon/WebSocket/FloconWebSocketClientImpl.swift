@@ -22,14 +22,21 @@ actor FloconWebSocketClientImpl: FloconWebSocketClient {
         request.setValue("Flocon", forHTTPHeaderField: "User-Agent")
         let newTask = newSession.webSocketTask(with: request)
 
-        try await withTaskCancellationHandler {
-            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                delegate.setOpenContinuation(continuation)
-                newTask.resume()
+        do {
+            try await withTaskCancellationHandler {
+                try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                    delegate.setOpenContinuation(continuation)
+                    newTask.resume()
+                }
+            } onCancel: {
+                FloconLogger.log("Task cancelled, closing the WebSocket.")
+                newTask.cancel(with: .goingAway, reason: nil)
             }
-        } onCancel: {
-            FloconLogger.log("Task cancelled, closing the WebSocket.")
-            newTask.cancel(with: .goingAway, reason: nil)
+        } catch {
+            // A session keeps its delegate until it is invalidated: without this, every failed attempt
+            // (one every 3 seconds while the desktop app is unreachable) would leak both.
+            newSession.invalidateAndCancel()
+            throw error
         }
 
         FloconLogger.log("✅ WebSocket Connection Opened!")
